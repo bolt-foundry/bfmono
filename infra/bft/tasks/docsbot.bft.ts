@@ -153,7 +153,7 @@ function buildContainerArgs(config: ContainerConfig): Array<string> {
     "-e",
     "DISPLAY=:99", // Virtual display for headless Chrome
     "-e",
-    "CODEBOT_CONTAINER=true", // Identify we're in a codebot container
+    "DOCSBOT_CONTAINER=true", // Identify we're in a docsbot container
     "-e",
     "TERM=xterm-256color", // Enable proper color support in terminal
   ];
@@ -260,10 +260,10 @@ OPTIONS:
 
 EXAMPLES:
   bft codebot                           # Start Claude Code CLI (new workspace)
-  bft codebot --workspace fuzzy-goat    # Resume running container or reuse workspace
+  bft docsbot --workspace fuzzy-goat    # Resume running container or reuse workspace
   bft codebot --resume                  # Choose from existing workspaces
   bft codebot --cleanup                 # Start and cleanup workspace when done
-  bft codebot --shell                   # Open container shell for debugging
+  bft docsbot --shell                   # Open container shell for debugging
   bft codebot --exec "ls -la"           # Run command and exit
   bft codebot --checkout remote/main    # Checkout branch with auto shelve/unshelve
   bft codebot --memory 8g --cpus 8      # Run with 8GB RAM and 8 CPUs
@@ -518,31 +518,20 @@ FIRST TIME SETUP:
     );
   }
 
-  // Get GitHub token - first try codebot-specific token, then fall back to gh CLI
+  // Get GitHub token from host
   let githubToken = "";
-
-  // First, check for codebot-specific GitHub token
-  const codebotToken = getConfigurationVariable("BF_CODEBOT_GITHUB_TOKEN");
-  if (codebotToken) {
-    githubToken = codebotToken;
-    ui.output("✅ Using codebot-specific GitHub token");
-  } else {
-    // Fall back to gh CLI token
-    try {
-      const ghTokenCmd = new Deno.Command("gh", {
-        args: ["auth", "token"],
-        stdout: "piped",
-        stderr: "null",
-      });
-      const ghTokenResult = await ghTokenCmd.output();
-      if (ghTokenResult.success) {
-        githubToken = new TextDecoder().decode(ghTokenResult.stdout).trim();
-        ui.output("✅ Using GitHub token from gh CLI");
-      }
-    } catch {
-      // gh command not available or failed, continue without token
-      ui.output("⚠️ No GitHub token found - some features may be limited");
+  try {
+    const ghTokenCmd = new Deno.Command("gh", {
+      args: ["auth", "token"],
+      stdout: "piped",
+      stderr: "null",
+    });
+    const ghTokenResult = await ghTokenCmd.output();
+    if (ghTokenResult.success) {
+      githubToken = new TextDecoder().decode(ghTokenResult.stdout).trim();
     }
+  } catch {
+    // gh command not available or failed, continue without token
   }
 
   // Handle workspace selection
@@ -1041,7 +1030,7 @@ FIRST TIME SETUP:
     });
 
     // Add container image
-    containerArgs.push("codebot");
+    containerArgs.push("docsbot");
 
     const child = new Deno.Command("container", {
       args: containerArgs,
@@ -1057,36 +1046,7 @@ FIRST TIME SETUP:
       ui.output(`🧹 Cleaning up workspace: ${workspaceId}`);
       await Deno.remove(workspacePath, { recursive: true });
     } else {
-      // Ask user if they want to clean up the workspace
-      ui.output(`\n📁 Workspace: ${workspaceId}`);
-      ui.output(`📍 Location: ${workspacePath}`);
-
-      const cleanup = await promptSelect(
-        "\nWhat would you like to do with this workspace?",
-        [
-          "🗂️  Keep workspace for later use",
-          "🧹 Delete workspace permanently",
-        ],
-      );
-
-      if (cleanup === "🧹 Delete workspace permanently") {
-        ui.output(`🧹 Cleaning up workspace: ${workspaceId}`);
-        try {
-          await Deno.remove(workspacePath, { recursive: true });
-          ui.output(`✅ Workspace deleted successfully`);
-        } catch (error) {
-          ui.error(
-            `❌ Failed to delete workspace: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
-      } else {
-        ui.output(`📁 Workspace preserved at: ${workspacePath}`);
-        ui.output(
-          `💡 Resume later with: bft codebot --workspace ${workspaceId}`,
-        );
-      }
+      ui.output(`📁 Workspace preserved at: ${workspacePath}`);
     }
     return 0;
   }
@@ -1131,7 +1091,7 @@ FIRST TIME SETUP:
     });
 
     // Add container image and command
-    containerArgs.push("codebot", "-c", parsed.exec);
+    containerArgs.push("docsbot", "-c", parsed.exec);
 
     // Debug: log the full container command
     ui.output(
@@ -1152,7 +1112,6 @@ FIRST TIME SETUP:
       ui.output(`🧹 Cleaning up workspace: ${workspaceId}`);
       await Deno.remove(workspacePath, { recursive: true });
     } else {
-      // For exec mode, don't prompt - just preserve
       ui.output(`📁 Workspace preserved at: ${workspacePath}`);
     }
     return success ? 0 : 1;
@@ -1207,41 +1166,14 @@ FIRST TIME SETUP:
     ui.output(`🧹 Cleaning up workspace: ${workspaceId}`);
     await Deno.remove(workspacePath, { recursive: true });
   } else {
-    // Ask user if they want to clean up the workspace
-    ui.output(`\n📁 Workspace: ${workspaceId}`);
-    ui.output(`📍 Location: ${workspacePath}`);
-
-    const cleanup = await promptSelect(
-      "\nWhat would you like to do with this workspace?",
-      [
-        "🗂️  Keep workspace for later use",
-        "🧹 Delete workspace permanently",
-      ],
-    );
-
-    if (cleanup === "🧹 Delete workspace permanently") {
-      ui.output(`🧹 Cleaning up workspace: ${workspaceId}`);
-      try {
-        await Deno.remove(workspacePath, { recursive: true });
-        ui.output(`✅ Workspace deleted successfully`);
-      } catch (error) {
-        ui.error(
-          `❌ Failed to delete workspace: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
-    } else {
-      ui.output(`📁 Workspace preserved at: ${workspacePath}`);
-      ui.output(`💡 Resume later with: bft codebot --workspace ${workspaceId}`);
-    }
+    ui.output(`📁 Workspace preserved at: ${workspacePath}`);
   }
   return success ? 0 : 1;
 }
 
 // Export the task definition for autodiscovery
 export const bftDefinition = {
-  description: "Run Claude Code in isolated container environment",
+  description: "Run Claude Code in isolated container for documentation work",
   fn: codebot,
 } satisfies TaskDefinition;
 
