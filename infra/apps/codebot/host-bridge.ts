@@ -2,9 +2,9 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
-export function startHostBridge() {
+export function startHostBridge(port = 8017) {
   const server = Deno.serve(
-    { port: 8017 },
+    { port },
     async (req) => {
       const url = new URL(req.url);
 
@@ -63,7 +63,7 @@ export function startHostBridge() {
     },
   );
 
-  logger.debug("🌉 Host bridge started on port 8017");
+  logger.debug(`🌉 Host bridge started on port ${port}`);
   return server;
 }
 

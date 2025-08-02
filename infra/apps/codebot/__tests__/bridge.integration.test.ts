@@ -7,14 +7,15 @@ import { startContainerBridge } from "../container-bridge.ts";
 const originalFetch = globalThis.fetch;
 
 Deno.test("host bridge - ping/pong endpoint", async () => {
-  const server = startHostBridge();
+  const port = 9018;
+  const server = startHostBridge(port);
 
   try {
     // Wait for server to start
     await delay(100);
 
     // Test /pong endpoint
-    const response = await fetch("http://localhost:8017/pong");
+    const response = await fetch(`http://localhost:${port}/pong`);
     assertEquals(response.status, 200);
 
     const data = await response.json();
@@ -67,13 +68,14 @@ Deno.test("host bridge - browser open endpoint", async () => {
     }
   } as unknown as typeof Deno.Command;
 
-  const server = startHostBridge();
+  const port = 9019;
+  const server = startHostBridge(port);
 
   try {
     await delay(100);
 
     // Test /browser/open endpoint
-    const response = await fetch("http://localhost:8017/browser/open", {
+    const response = await fetch(`http://localhost:${port}/browser/open`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: "http://test.codebot.local:8000" }),
@@ -93,12 +95,13 @@ Deno.test("host bridge - browser open endpoint", async () => {
 });
 
 Deno.test("host bridge - 404 for unknown endpoints", async () => {
-  const server = startHostBridge();
+  const port = 9020;
+  const server = startHostBridge(port);
 
   try {
     await delay(100);
 
-    const response = await fetch("http://localhost:8017/unknown");
+    const response = await fetch(`http://localhost:${port}/unknown`);
     assertEquals(response.status, 404);
     await response.text(); // Consume response body
   } finally {
@@ -110,13 +113,14 @@ Deno.test("container bridge - status endpoint", async () => {
   // Set workspace ID for testing
   Deno.env.set("WORKSPACE_ID", "test-workspace");
 
-  const server = startContainerBridge();
+  const port = 9021;
+  const server = startContainerBridge(port);
 
   try {
     await delay(100);
 
     // Test /status endpoint
-    const response = await fetch("http://localhost:8017/status");
+    const response = await fetch(`http://localhost:${port}/status`);
     assertEquals(response.status, 200);
 
     const data = await response.json();
@@ -157,13 +161,14 @@ Deno.test("container bridge - ping endpoint with host connectivity", async () =>
   };
 
   Deno.env.set("WORKSPACE_ID", "test-workspace");
-  const server = startContainerBridge();
+  const port = 9022;
+  const server = startContainerBridge(port);
 
   try {
     await delay(100);
 
     // Test /ping endpoint
-    const response = await fetch("http://localhost:8017/ping");
+    const response = await fetch(`http://localhost:${port}/ping`);
     assertEquals(response.status, 200);
 
     const data = await response.json();
@@ -196,13 +201,14 @@ Deno.test("container bridge - ping endpoint with host error", async () => {
   };
 
   Deno.env.set("WORKSPACE_ID", "test-workspace");
-  const server = startContainerBridge();
+  const port = 9023;
+  const server = startContainerBridge(port);
 
   try {
     await delay(100);
 
     // Test /ping endpoint with host error
-    const response = await fetch("http://localhost:8017/ping");
+    const response = await fetch(`http://localhost:${port}/ping`);
     assertEquals(response.status, 200);
 
     const data = await response.json();
@@ -222,11 +228,12 @@ Deno.test({
   name: "bidirectional communication - endpoints exist",
   fn: async () => {
     // Test that we can create both servers independently
-    const hostServer = startHostBridge();
+    const hostPort = 9024;
+    const hostServer = startHostBridge(hostPort);
     await delay(100);
 
     // Verify host bridge endpoints
-    const pongResponse = await fetch("http://localhost:8017/pong");
+    const pongResponse = await fetch(`http://localhost:${hostPort}/pong`);
     assertEquals(pongResponse.status, 200);
     await pongResponse.text();
 
@@ -235,11 +242,14 @@ Deno.test({
 
     // Now test container bridge
     Deno.env.set("WORKSPACE_ID", "test-workspace");
-    const containerServer = startContainerBridge();
+    const containerPort = 9025;
+    const containerServer = startContainerBridge(containerPort);
     await delay(100);
 
     // Verify container bridge endpoints
-    const statusResponse = await fetch("http://localhost:8017/status");
+    const statusResponse = await fetch(
+      `http://localhost:${containerPort}/status`,
+    );
     assertEquals(statusResponse.status, 200);
     const statusData = await statusResponse.json();
     assertEquals(statusData.ready, true);

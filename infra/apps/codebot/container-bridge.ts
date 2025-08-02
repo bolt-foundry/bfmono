@@ -17,8 +17,8 @@ async function checkAppHealth(): Promise<boolean> {
   }
 }
 
-export function startContainerBridge() {
-  const server = Deno.serve({ port: 8017 }, async (req) => {
+export function startContainerBridge(port = 8017) {
+  const server = Deno.serve({ port }, async (req) => {
     const url = new URL(req.url);
     const workspaceId = getConfigurationVariable("WORKSPACE_ID") || "unknown";
 
@@ -70,7 +70,7 @@ export function startContainerBridge() {
     return new Response("Not Found", { status: 404 });
   });
 
-  logger.debug("🌉 Container bridge started on port 8017");
+  logger.debug(`🌉 Container bridge started on port ${port}`);
   return server;
 }
 
