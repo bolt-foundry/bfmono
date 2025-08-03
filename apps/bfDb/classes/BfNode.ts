@@ -18,6 +18,9 @@ import type {
   FieldSpec,
   RelationSpec,
 } from "@bfmono/apps/bfDb/builders/bfDb/types.ts";
+import type {
+  RelationshipMethods,
+} from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
 import { makeBfDbSpec } from "@bfmono/apps/bfDb/builders/bfDb/makeBfDbSpec.ts";
 
 const logger = getLogger(import.meta);
@@ -149,7 +152,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
       totalLimit?: number;
       countOnly?: boolean;
     } = {},
-  ) {
+  ): Promise<Array<InstanceType<TThis> & RelationshipMethods<TThis>>> {
     const items = await storage.query(
       metadata,
       props,
@@ -167,7 +170,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
         item.metadata,
       );
       cache?.set(item.metadata.bfGid, instance);
-      return instance as InstanceType<TThis>;
+      return instance as InstanceType<TThis> & RelationshipMethods<TThis>;
     });
   }
 
@@ -260,13 +263,13 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     cv: CurrentViewer,
     id: BfGid,
     cache?: BfNodeCache<TProps>,
-  ): Promise<InstanceType<TThis> | null> {
+  ): Promise<(InstanceType<TThis> & RelationshipMethods<TThis>) | null> {
     const cachedItem = cache?.get(id);
     if (cachedItem) {
-      return cachedItem as InstanceType<TThis>;
+      return cachedItem as InstanceType<TThis> & RelationshipMethods<TThis>;
     }
     try {
-      const result = await this.findX(cv, id, cache) as InstanceType<TThis>;
+      const result = await this.findX(cv, id, cache);
       if (result) {
         if (cache) {
           cache.set(id, result);
@@ -291,11 +294,11 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     cv: CurrentViewer,
     id: BfGid,
     cache?: BfNodeCache<TProps>,
-  ) {
+  ): Promise<InstanceType<TThis> & RelationshipMethods<TThis>> {
     logger.debug(`findX: ${this.name} ${id} ${cv}`);
     const itemFromCache = cache?.get(id);
     if (itemFromCache) {
-      return itemFromCache as InstanceType<TThis>;
+      return itemFromCache as InstanceType<TThis> & RelationshipMethods<TThis>;
     }
     const itemFromDb = await storage.get(cv.orgBfOid, id);
     if (!itemFromDb) {
@@ -310,7 +313,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
       itemFromDb.metadata as BfMetadata,
     );
     cache?.set(id, item);
-    return item as InstanceType<TThis>;
+    return item as InstanceType<TThis> & RelationshipMethods<TThis>;
   }
 
   static async __DANGEROUS__createUnattached<
@@ -322,7 +325,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     props: TProps,
     metadata?: Partial<BfMetadata>,
     cache?: BfNodeCache<TProps>,
-  ): Promise<InstanceType<TThis>> {
+  ): Promise<InstanceType<TThis> & RelationshipMethods<TThis>> {
     logger.debug(
       `Creating unattached ${this.name} with props ${JSON.stringify(props)}`,
     );
@@ -334,7 +337,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     await newNode.afterCreate();
     logger.debug(`Created ${newNode}`);
     cache?.set(newNode.metadata.bfGid, newNode);
-    return newNode;
+    return newNode as InstanceType<TThis> & RelationshipMethods<TThis>;
   }
 
   constructor(
