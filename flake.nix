@@ -88,8 +88,9 @@
           extras:${toString (map (p: p.name or "<pkg>") extras)}"
 
           # Set up Bolt Foundry environment
-          export BF_ROOT="$PWD"
-          export PATH="$BF_ROOT/bin:$BF_ROOT/areas/bolt-foundry-monorepo/infra/bin:$PATH"
+          # Only set BF_ROOT if not already set (allows parent directories to override)
+          export BF_ROOT="''${BF_ROOT:-$PWD}"
+          export PATH="$BF_ROOT/bin:$BF_ROOT/infra/bin:$PATH"
           export DENO_DIR="''${HOME}/.cache/deno"
           export GH_REPO="bolt-foundry/bolt-foundry"
           
