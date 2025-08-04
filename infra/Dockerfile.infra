@@ -108,7 +108,7 @@ RUN set -ex && \
 ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
 
 # Copy flake files for caching
-COPY bfmono/flake.nix bfmono/flake.lock /internalbf/bfmono/
+COPY flake.nix flake.lock /internalbf/bfmono/
 WORKDIR /internalbf/bfmono
 
 # Install development tools from flake (includes gh, deno, sapling, etc.)
@@ -121,7 +121,7 @@ RUN npm install -g @anthropic-ai/claude-code
 RUN (google-chrome --version || chromium --version) || echo "WARNING: Chrome/Chromium may not be properly configured"
 
 # Copy Puppeteer test helper script
-COPY bfmono/infra/apps/codebot/puppeteer-test-helper.sh /usr/local/bin/puppeteer-test
+COPY infra/apps/codebot/puppeteer-test-helper.sh /usr/local/bin/puppeteer-test
 RUN chmod +x /usr/local/bin/puppeteer-test
 
 # Create entrypoint script that ensures /etc/hosts exists (must be done as root)
