@@ -16,8 +16,11 @@ ssh:
 builder:
   arch:
     - amd64
-  dockerfile: apps/boltfoundry-com/Dockerfile
+  dockerfile: infra/Dockerfile.deploy
   context: .
+  args:
+    BINARY_PATH: build/boltfoundry-com
+    BINARY_NAME: boltfoundry-com
 
 # Kamal 2.x proxy configuration - HTTP only (SSL handled by Cloudflare)
 proxy:

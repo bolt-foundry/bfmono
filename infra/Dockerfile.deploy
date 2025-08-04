@@ -1,0 +1,29 @@
+FROM debian:bookworm-slim
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the compiled binary (path should be specified at build time)
+ARG BINARY_PATH
+ARG BINARY_NAME
+COPY ${BINARY_PATH} /usr/local/bin/${BINARY_NAME}
+RUN chmod +x /usr/local/bin/${BINARY_NAME}
+
+# Create non-root user for security
+RUN useradd -m -s /bin/false app
+
+# Create data directory if needed (some apps might require it)
+RUN mkdir -p /data && chown app:app /data
+
+USER app
+
+# Default port (can be overridden)
+EXPOSE 8000
+
+# Set the binary name as environment variable from build arg
+ENV BINARY_NAME=${BINARY_NAME}
+
+# Use shell form to allow variable expansion
+CMD /usr/local/bin/${BINARY_NAME}

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "infra/apps/codebot/**"
+      - "infra/Dockerfile.infra"
       - "flake.nix"
       - "flake.lock"
       - ".github/workflows/build-codebot-container.yml"
@@ -96,7 +96,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./infra/apps/codebot/Dockerfile
+          file: ./infra/Dockerfile.infra
           push: ${{ !inputs.build_only }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

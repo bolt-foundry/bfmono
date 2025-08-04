@@ -60,11 +60,10 @@ done
 
 # Set build context
 BUILD_CONTEXT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-DOCKERFILE_PATH="${BUILD_CONTEXT}/infra/apps/codebot/Dockerfile"
+DOCKERFILE_PATH="${BUILD_CONTEXT}/infra/Dockerfile.infra"
 
 if [ "$DEBUG_DOCKERFILE" = true ]; then
-    DOCKERFILE_PATH="${BUILD_CONTEXT}/infra/apps/codebot/Dockerfile.debug"
-    echo -e "${YELLOW}Using debug Dockerfile: $DOCKERFILE_PATH${NC}"
+    echo -e "${RED}Debug Dockerfile no longer exists - using standard infra Dockerfile${NC}"
 fi
 
 # Build arguments

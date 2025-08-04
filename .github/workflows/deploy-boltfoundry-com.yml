@@ -30,7 +30,12 @@ jobs:
       - name: Build and push Docker image
         run: |
           # Build with git hash and latest tags
-          docker build -t ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} -f apps/boltfoundry-com/Dockerfile .
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} \
+            -f infra/Dockerfile.deploy \
+            --build-arg BINARY_PATH=build/boltfoundry-com \
+            --build-arg BINARY_NAME=boltfoundry-com \
+            .
           docker tag ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest
           docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }}
           docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest

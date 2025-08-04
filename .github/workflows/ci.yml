@@ -369,7 +369,12 @@ jobs:
       - name: Test Docker build
         run: |
           echo "Testing Docker build for boltfoundry-com..."
-          docker build -t boltfoundry-com-test -f apps/boltfoundry-com/Dockerfile .
+          docker build \
+            -t boltfoundry-com-test \
+            -f infra/Dockerfile.deploy \
+            --build-arg BINARY_PATH=build/boltfoundry-com \
+            --build-arg BINARY_NAME=boltfoundry-com \
+            .
           echo "Docker build successful"
 
       - name: Test container startup

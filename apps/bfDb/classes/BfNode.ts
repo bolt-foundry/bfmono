@@ -657,7 +657,7 @@ export abstract class BfNode<TProps extends PropsBase = {}>
    * @param role - Optional role filter for the edges
    */
   async unlinkTargetInstances(
-    targetIds: BfGid[],
+    targetIds: Array<BfGid>,
     role?: string,
   ): Promise<void> {
     const { BfEdge } = await import("@bfmono/apps/bfDb/nodeTypes/BfEdge.ts");

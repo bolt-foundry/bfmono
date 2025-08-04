@@ -5,7 +5,7 @@ import { parseArgs } from "@std/cli/parse-args";
 import { ui } from "@bfmono/packages/tui/tui.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { promptSelect } from "@std/cli/unstable-prompt-select";
-import { dirname, join, resolve } from "@std/path";
+import { dirname, join } from "@std/path";
 
 const logger = getLogger(import.meta);
 
@@ -285,35 +285,39 @@ async function ensureHostBridge(): Promise<void> {
 }
 
 async function generateRandomName(): Promise<string> {
-  const adjectives = [
-    "happy",
-    "fuzzy",
-    "bright",
-    "smart",
-    "quick",
-    "cool",
-    "warm",
-    "wild",
-    "calm",
-    "bold",
-  ];
-  const nouns = [
-    "panda",
-    "koala",
-    "tiger",
-    "eagle",
-    "shark",
-    "wolf",
-    "fox",
-    "bear",
-    "lion",
-    "hawk",
-  ];
+  // Read the codebot names file
+  const namesPath = join(
+    dirname(dirname(import.meta.url.replace("file://", ""))),
+    "tasks",
+    "codebot-names.txt",
+  );
 
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  try {
+    const namesContent = await Deno.readTextFile(namesPath);
+    const names = namesContent
+      .split("\n")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
 
-  return `${adjective}-${noun}`;
+    if (names.length === 0) {
+      throw new Error("No names found in codebot-names.txt");
+    }
+
+    // Pick a random name
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    return randomName;
+  } catch (error) {
+    // Fallback to generic names if file read fails
+    logger.debug(`Failed to read codebot names: ${error}`);
+    const fallbackNames = [
+      "happy-coder",
+      "swift-debugger",
+      "brave-compiler",
+      "cool-developer",
+      "smart-engineer",
+    ];
+    return fallbackNames[Math.floor(Math.random() * fallbackNames.length)];
+  }
 }
 
 export async function runBot(botConfig: BotConfig): Promise<number> {
@@ -337,7 +341,7 @@ OPTIONS:
   --checkout <branch>     Checkout branch with auto shelve/unshelve
   --memory <size>         Container memory limit (e.g., 4g, 8192m)
   --cpus <count>          Number of CPUs (e.g., 4)
-  --force-rebuild         (Deprecated - use 'bft codebot-build' instead)
+  --force-rebuild         (Deprecated - build container manually)
   --debug-logs            Enable debug logging
   --help                  Show this help
 `,
@@ -687,7 +691,7 @@ OPTIONS:
 
       if (!inspectResult.success) {
         ui.error(
-          "❌ No container image found. Please run 'bft codebot-build' first",
+          "❌ No container image found. Please build the container image first",
         );
         throw new Error("Container image not found");
       }
