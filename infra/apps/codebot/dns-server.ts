@@ -135,7 +135,8 @@ class CodebotDNSServer {
     response.set(query);
 
     // Set response flags (standard query response)
-    view.setUint16(2, 0x8180);
+    const flags = view.getUint16(2);
+    view.setUint16(2, (flags & 0x7800) | 0x8180);
 
     // Set answer count to 1
     view.setUint16(6, 1);

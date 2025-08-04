@@ -209,6 +209,7 @@ async function ensureDnsServer(): Promise<void> {
         "run",
         "--allow-net",
         "--allow-run",
+        "--allow-env",
         dnsServerPath,
       ],
       stdout: "null",
