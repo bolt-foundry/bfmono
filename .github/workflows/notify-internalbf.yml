@@ -31,6 +31,7 @@ jobs:
         run: |
           nix develop .#github-actions --accept-flake-config --command bash -euc "
             export PATH=\"\$PATH:\$PWD/infra/bin\"
+            export OP_SERVICE_ACCOUNT_TOKEN=\"$OP_SERVICE_ACCOUNT_TOKEN\"
 
             # Load secrets from 1Password
             bft sitevar sync --secret-only
