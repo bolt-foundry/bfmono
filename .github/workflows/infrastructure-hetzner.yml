@@ -9,6 +9,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    environment: production
     defaults:
       run:
         working-directory: infra/terraform/hetzner

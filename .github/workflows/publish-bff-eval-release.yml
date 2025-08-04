@@ -23,6 +23,7 @@ jobs:
   build-and-publish:
     name: Build and Publish bff-eval Release
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main

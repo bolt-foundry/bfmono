@@ -6,6 +6,7 @@ on:
 jobs:
   force-unlock:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       packages: write

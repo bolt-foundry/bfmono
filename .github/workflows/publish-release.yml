@@ -23,6 +23,7 @@ jobs:
   build-and-publish:
     name: Build and Publish Release
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       id-token: write
       contents: read

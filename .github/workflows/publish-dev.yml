@@ -18,6 +18,7 @@ jobs:
   build-and-publish:
     name: Build and Publish Dev Version
     runs-on: ubuntu-latest
+    environment: ci
     permissions:
       id-token: write
       contents: read
