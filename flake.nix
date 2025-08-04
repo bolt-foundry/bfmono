@@ -87,18 +87,38 @@
           base:${toString (map (p: p.name or "<pkg>") baseDeps)}  \
           extras:${toString (map (p: p.name or "<pkg>") extras)}"
 
-          # Source shared environment setup
-          source ./infra/env-setup.sh
-
-          # Load .env.local if it exists
-          if [ -f ".env.local" ]; then
-            echo "Loading environment from .env.local..."
-            set -a  # automatically export all variables
-            source .env.local
-            set +a
-            echo "Environment loaded from .env.local"
+          # Set up Bolt Foundry environment
+          export BF_ROOT="$PWD"
+          export PATH="$BF_ROOT/bin:$BF_ROOT/areas/bolt-foundry-monorepo/infra/bin:$PATH"
+          export DENO_DIR="''${HOME}/.cache/deno"
+          export GH_REPO="bolt-foundry/bolt-foundry"
+          
+          # Set INTERNALBF_ROOT to parent directory if we're in bfmono
+          if [[ "$PWD" == */bfmono ]]; then
+            export INTERNALBF_ROOT="$(dirname "$PWD")"
           else
-            echo "No .env.local found. Run 'bff inject-secrets' to create it from 1Password."
+            export INTERNALBF_ROOT="$PWD"
+          fi
+
+          # Function to load env file if it exists
+          load_env_if_exists() {
+            if [ -f "$1" ]; then
+              echo "Loading $1..."
+              set -a  # automatically export all variables
+              source "$1"
+              set +a
+            fi
+          }
+
+          # Load environment files in order (later overrides earlier)
+          load_env_if_exists .env.config.example  # Safe defaults
+          load_env_if_exists .env.secrets.example # Safe defaults
+          load_env_if_exists .env.config          # From 1Password
+          load_env_if_exists .env.secrets         # From 1Password
+          load_env_if_exists .env.local           # User overrides
+
+          if [ ! -f ".env.config" ] && [ ! -f ".env.secrets" ]; then
+            echo "No .env.config or .env.secrets found. Run 'bft sitevar sync' to load secrets from 1Password."
           fi
 
           ${shellHookExtra}

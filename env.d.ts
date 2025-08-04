@@ -23,6 +23,7 @@ interface ClientEnvVars {
 // Server-only variables (from .env.secrets.example)
 interface ServerEnvVars {
   readonly GOOGLE_OAUTH_CLIENT_SECRET?: string;
+  readonly CODEBOT_GITHUB_PAT?: string;
 }
 
 // Environment-aware typing
