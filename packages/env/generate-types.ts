@@ -9,7 +9,7 @@ export async function generateEnvTypes(): Promise<string> {
   let serverVars: Record<string, string> = {};
 
   try {
-    const clientContent = await Deno.readTextFile(".env.client.example");
+    const clientContent = await Deno.readTextFile(".env.config.example");
     clientVars = parseEnvFile(clientContent);
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) {
@@ -18,7 +18,7 @@ export async function generateEnvTypes(): Promise<string> {
   }
 
   try {
-    const serverContent = await Deno.readTextFile(".env.server.example");
+    const serverContent = await Deno.readTextFile(".env.secrets.example");
     serverVars = parseEnvFile(serverContent);
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) {
@@ -36,7 +36,7 @@ export async function generateEnvTypes(): Promise<string> {
     .join("\n");
 
   return `// Auto-generated from .env.example files - do not edit manually
-// Run 'bft secrets generate-types' to regenerate
+// Run 'bft sitevar generate-types' to regenerate
 
 /// <reference no-default-lib="true" />
 /// <reference lib="dom" />
@@ -50,15 +50,14 @@ interface BaseImportMetaEnv {
   readonly BASE_URL: string;
   readonly PROD: boolean;
   readonly DEV: boolean;
-  readonly SSR: boolean;
 }
 
-// Client-safe variables (from .env.client.example)
+// Client-safe variables (from .env.config.example)
 interface ClientEnvVars {
 ${clientTypes || "  // No client variables defined"}
 }
 
-// Server-only variables (from .env.server.example)  
+// Server-only variables (from .env.secrets.example)  
 interface ServerEnvVars {
 ${serverTypes || "  // No server variables defined"}
 }
@@ -72,7 +71,7 @@ declare namespace ImportMetaEnv {
   
   // Server environment: All variables available
   interface Server extends BaseImportMetaEnv, ClientEnvVars, ServerEnvVars {
-    readonly SSR: true;
+    readonly SSR: boolean;
   }
 }
 

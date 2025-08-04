@@ -82,32 +82,32 @@ Deno.test("env wrapper - file loading", async (t) => {
 
     await t.step("loads variables from .env files", async () => {
       // Create test env files
-      await Deno.writeTextFile(".env.client", "CLIENT_VAR=client_value\n");
-      await Deno.writeTextFile(".env.server", "SERVER_VAR=server_value\n");
+      await Deno.writeTextFile(".env.config", "CONFIG_VAR=config_value\n");
+      await Deno.writeTextFile(".env.secrets", "SECRET_VAR=secret_value\n");
       await Deno.writeTextFile(
         ".env.local",
-        "LOCAL_VAR=local_value\nCLIENT_VAR=overridden\n",
+        "LOCAL_VAR=local_value\nCONFIG_VAR=overridden\n",
       );
 
       // Import a fresh module to test loading
       const { env: testEnv } = await import(`../mod.ts?test=${Date.now()}`);
 
-      assertEquals(testEnv.CLIENT_VAR, "overridden"); // .env.local overrides
-      assertEquals(testEnv.SERVER_VAR, "server_value");
+      assertEquals(testEnv.CONFIG_VAR, "overridden"); // .env.local overrides
+      assertEquals(testEnv.SECRET_VAR, "secret_value");
       assertEquals(testEnv.LOCAL_VAR, "local_value");
     });
 
     await t.step("system env overrides file values", async () => {
       // Set system env
-      Deno.env.set("CLIENT_VAR", "system_value");
+      Deno.env.set("CONFIG_VAR", "system_value");
 
       // Import a fresh module
       const { env: testEnv } = await import(`../mod.ts?test=${Date.now()}-2`);
 
-      assertEquals(testEnv.CLIENT_VAR, "system_value");
+      assertEquals(testEnv.CONFIG_VAR, "system_value");
 
       // Cleanup
-      Deno.env.delete("CLIENT_VAR");
+      Deno.env.delete("CONFIG_VAR");
     });
   } finally {
     // Restore original directory

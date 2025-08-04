@@ -18,7 +18,7 @@ system needs additional components:
 ### ❌ What Still Needs Implementation
 
 - **Vite plugin** (`packages/env/vite-plugin.ts`) for client-side support
-- **BFT command** (`bft secrets sync`) for 1Password synchronization
+- **BFT command** (`bft sitevar sync`) for 1Password synchronization
 - **Example files** (`.env.client.example` and `.env.server.example`)
 - **Type generation** (`packages/env/generate-types.ts`)
 - **Migration** from current configuration system to `import.meta.env`
@@ -30,7 +30,7 @@ The configuration workflow works like this:
 
 ```bash
 # Sync all secrets from 1Password
-bft secrets sync
+bft sitevar sync
 
 # Use anywhere in your code
 const apiKey = import.meta.env.OPENAI_API_KEY;
@@ -41,7 +41,7 @@ const clientId = import.meta.env.GOOGLE_OAUTH_CLIENT_ID;
 
 ### Core Components
 
-- **Single sync command**: `bft secrets sync` fetches all secrets
+- **Single sync command**: `bft sitevar sync` fetches all secrets
 - **Standard API**: Uses web-standard `import.meta.env`
 - **Security separation**: Clear client/server variable boundaries
 - **Type generation**: Auto-generated TypeScript definitions
@@ -177,7 +177,7 @@ function loadClientEnvironment(): Record<string, string> {
 
 ### 4. Secret Synchronization
 
-The `bft secrets sync` command in `infra/bft/tasks/secrets.bft.ts`:
+The `bft sitevar sync` command in `infra/bft/tasks/sitevar.bft.ts`:
 
 ```typescript
 #!/usr/bin/env -S bft run
@@ -208,7 +208,7 @@ async function syncSecretsFromOnePassword(
   // Auto-generate TypeScript types
   await generateTypeDefinitions();
 
-  ui.info("✅ Secrets synced successfully");
+  ui.info("✅ Site variables synced successfully");
   return 0;
 }
 ```
@@ -283,7 +283,7 @@ export default {
 - [ ] Create `.env.server.example` with all server-only variables
 - [ ] Implement `packages/env/polyfill.ts`
 - [ ] Implement `packages/env/vite-plugin.ts`
-- [ ] Implement `bft secrets sync` command
+- [ ] Implement `bft sitevar sync` command
 - [ ] Test with a sample application
 
 ### Phase 2: Migrate Applications
@@ -306,7 +306,7 @@ export default {
 
 ```bash
 # Initial setup
-bft secrets sync
+bft sitevar sync
 
 # Create local overrides
 echo "LOG_LEVEL=debug" > .env.local
@@ -317,14 +317,14 @@ echo "LOG_LEVEL=debug" > .env.local
 ### Adding New Variables
 
 1. Add to appropriate `.env.*.example` file
-2. Run `bft secrets sync` to regenerate types
+2. Run `bft sitevar sync` to regenerate types
 3. TypeScript now knows about the new variable
 
 ### Production Deployment
 
 ```dockerfile
 # Container startup script
-RUN bft secrets sync --production
+RUN bft sitevar sync --production
 CMD ["deno", "run", "--preload=packages/env/polyfill.ts", "main.ts"]
 ```
 
@@ -340,7 +340,7 @@ CMD ["deno", "run", "--preload=packages/env/polyfill.ts", "main.ts"]
 ### "Variable undefined" in browser
 
 - Check variable is in `.env.client.example` (not `.env.server.example`)
-- Run `bft secrets sync` to update `.env.client`
+- Run `bft sitevar sync` to update `.env.client`
 - Restart Vite dev server
 
 ### "Variable undefined" in Deno
@@ -351,7 +351,7 @@ CMD ["deno", "run", "--preload=packages/env/polyfill.ts", "main.ts"]
 
 ### Type errors after adding variables
 
-- Run `bft secrets sync` to regenerate types
+- Run `bft sitevar sync` to regenerate types
 - Restart TypeScript language server
 
 ## Key Features
@@ -383,9 +383,9 @@ Implement `packages/env/vite-plugin.ts` to:
 - Inject them at build time
 - Ensure server variables never reach the browser
 
-### 3. Implement BFT Secrets Command
+### 3. Implement BFT Sitevar Command
 
-Create `infra/bft/tasks/secrets.bft.ts` to:
+Create `infra/bft/tasks/sitevar.bft.ts` to:
 
 - Read variables from example files
 - Fetch from 1Password using `op` CLI

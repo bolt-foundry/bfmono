@@ -27,8 +27,8 @@ generated-icon.png
 .config/op/*.sock
 .env
 .env.local
-.env.client
-.env.server
+.env.config
+.env.secrets
 *.local.*
 .DS_Store
 

@@ -15,7 +15,7 @@ function loadEnv(): Record<string, string | undefined> {
   envCache = {};
 
   // Load .env files in priority order (lowest to highest)
-  const envFiles = [".env.client", ".env.server", ".env.local"];
+  const envFiles = [".env.config", ".env.secrets", ".env.local"];
 
   for (const file of envFiles) {
     try {

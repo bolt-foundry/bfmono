@@ -4,7 +4,7 @@ import { parseEnvFile } from "./utils.ts";
 
 /**
  * Vite plugin for Bolt Foundry environment variables
- * Loads client-safe variables from .env.client and .env.local
+ * Loads client-safe variables from .env.config and .env.local
  * Ensures server-only variables never reach the browser
  */
 export function boltFoundryEnvPlugin(): Plugin {
@@ -50,8 +50,8 @@ function loadClientEnvironment(): Record<string, string> {
   const clientVars: Record<string, string> = {};
 
   // IMPORTANT: Only load client-safe files
-  // Never load .env.server here - it contains secrets!
-  const envFiles = [".env.client", ".env.local"];
+  // Never load .env.secrets here - it contains secrets!
+  const envFiles = [".env.config", ".env.local"];
 
   for (const file of envFiles) {
     try {
@@ -68,9 +68,9 @@ function loadClientEnvironment(): Record<string, string> {
   }
 
   // Also check system environment for overrides
-  // But only include variables that are defined in .env.client.example
+  // But only include variables that are defined in .env.config.example
   try {
-    const exampleContent = Deno.readTextFileSync(".env.client.example");
+    const exampleContent = Deno.readTextFileSync(".env.config.example");
     const exampleVars = parseEnvFile(exampleContent);
     const systemEnv = Deno.env.toObject();
 

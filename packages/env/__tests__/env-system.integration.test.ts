@@ -46,8 +46,8 @@ Deno.test("Environment System Integration Tests", async (t) => {
   // Set up test environment files
   await t.step("setup test environment", async () => {
     await createTestFile(
-      ".env.client.example",
-      `# Client variables
+      ".env.config.example",
+      `# Config variables
 POSTHOG_API_KEY=phc_test_key
 LOG_LEVEL=debug
 GOOGLE_OAUTH_CLIENT_ID=test.apps.googleusercontent.com
@@ -55,8 +55,8 @@ GOOGLE_OAUTH_CLIENT_ID=test.apps.googleusercontent.com
     );
 
     await createTestFile(
-      ".env.server.example",
-      `# Server variables
+      ".env.secrets.example",
+      `# Secret variables
 DATABASE_URL=postgresql://test:test@localhost:5432/test
 JWT_SECRET=test_secret_key_at_least_32_chars_long
 OPENAI_API_KEY=sk-test-key
@@ -113,11 +113,11 @@ ESCAPED="line1\\nline2"
   await t.step("env wrapper loads variables correctly", async () => {
     // Create test env files
     await createTestFile(
-      ".env.client",
+      ".env.config",
       "TEST_VAR=client_value\nCLIENT_ONLY=true",
     );
     await createTestFile(
-      ".env.server",
+      ".env.secrets",
       "TEST_VAR=server_value\nSERVER_ONLY=true",
     );
     await createTestFile(".env.local", "TEST_VAR=local_value\nLOCAL_ONLY=true");
@@ -169,7 +169,7 @@ console.log(JSON.stringify({
   });
 
   await t.step(
-    "bft secrets sync creates env files (SKIPPED - requires 1Password)",
+    "bft sitevar sync creates env files (SKIPPED - requires 1Password)",
     () => {
       // Skip this test as it requires 1Password authorization
       // deno-lint-ignore no-console
@@ -210,11 +210,11 @@ await Deno.writeTextFile("env.d.ts", types);
       // Check generated types
       const types = await readTestFile("env.d.ts");
 
-      // Should include client variables
+      // Should include config variables
       assertEquals(types.includes("readonly POSTHOG_API_KEY?: string;"), true);
       assertEquals(types.includes("readonly LOG_LEVEL?: string;"), true);
 
-      // Should include server variables
+      // Should include secret variables
       assertEquals(types.includes("readonly DATABASE_URL?: string;"), true);
       assertEquals(types.includes("readonly JWT_SECRET?: string;"), true);
 
@@ -230,7 +230,7 @@ await Deno.writeTextFile("env.d.ts", types);
     },
   );
 
-  await t.step("vite plugin only exposes client variables", async () => {
+  await t.step("vite plugin only exposes config variables", async () => {
     // This tests the security boundary
     const viteScript = `
 import { boltFoundryEnvPlugin } from "${
@@ -242,8 +242,8 @@ import { boltFoundryEnvPlugin } from "${
 Deno.chdir("${testDir}");
 
 // Create test env files
-await Deno.writeTextFile(".env.client", "CLIENT_VAR=client_value\\n");
-await Deno.writeTextFile(".env.server", "SERVER_SECRET=secret_value\\n");
+await Deno.writeTextFile(".env.config", "CLIENT_VAR=client_value\\n");
+await Deno.writeTextFile(".env.secrets", "SERVER_SECRET=secret_value\\n");
 
 // Mock Vite config
 const mockConfig = { base: "/" };
@@ -252,7 +252,7 @@ const plugin = boltFoundryEnvPlugin();
 // Call the config hook
 const result = plugin.config(mockConfig, { mode: "development" });
 
-// Check that only client vars are defined
+// Check that only config vars are defined
 const hasClientVar = "import.meta.env.CLIENT_VAR" in result.define;
 const hasServerVar = "import.meta.env.SERVER_SECRET" in result.define;
 
@@ -278,11 +278,11 @@ console.log(JSON.stringify({
 
     const output = JSON.parse(result.stdout);
 
-    // Client var should be included
+    // Config var should be included
     assertEquals(output.hasClientVar, true);
     assertEquals(output.clientValue, '"client_value"'); // JSON stringified
 
-    // Server var should NOT be included (security boundary)
+    // Secret var should NOT be included (security boundary)
     assertEquals(output.hasServerVar, false);
   });
 
@@ -295,11 +295,11 @@ console.log(JSON.stringify({
 
 // This should compile without errors showing that types work
 function testTypes() {
-  // Client-safe types should be available
-  const clientVar: string | undefined = undefined as unknown as ImportMetaEnv.Client['POSTHOG_API_KEY'];
+  // Config-safe types should be available
+  const clientVar: string | undefined = undefined as unknown as ImportMetaEnv.Client['GOOGLE_OAUTH_CLIENT_ID'];
   
-  // Server types should be available
-  const serverVar: string | undefined = undefined as unknown as ImportMetaEnv.Server['DATABASE_URL'];
+  // Secret types should be available
+  const serverVar: string | undefined = undefined as unknown as ImportMetaEnv.Server['GOOGLE_OAUTH_CLIENT_SECRET'];
   
   // This compiling means the types are properly set up
   console.log("Type compilation successful");

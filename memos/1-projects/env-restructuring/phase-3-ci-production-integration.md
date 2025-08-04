@@ -20,7 +20,7 @@
 
 2. Update GitHub Actions workflows to handle new env structure:
    - Use `OP_SERVICE_ACCOUNT_TOKEN` to authenticate with 1Password
-   - Run `bft secrets sync --vault=ci` to generate `.env.config` and
+   - Run `bft sitevar sync --vault=ci` to generate `.env.config` and
      `.env.secrets` files during CI runs
    - If vault sync fails, CI should create empty env files (current behavior)
    - Continue using existing deployment patterns during transition
@@ -29,7 +29,7 @@
 
 1. Update deployment scripts to:
    - Use production service account token
-   - Run `bft secrets sync --vault=production` during deployment
+   - Run `bft sitevar sync --vault=production` during deployment
    - Continue using existing patterns for now (gradual migration)
    - Ensure backwards compatibility with `getConfigurationVariable`
    - Validate that only client-safe variables are in `window.__ENVIRONMENT__`

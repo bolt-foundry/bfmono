@@ -25,7 +25,7 @@ The restructuring will migrate from the current system to a unified
 - Implement vault-based approach with environment-specific vaults in 1Password
 - Add tag-based querying (`BF_PUBLIC_CONFIG` and `BF_PRIVATE_SECRET`) within
   each vault
-- Update `bft secrets` command to support new tagging system
+- Update `bft sitevar` command to support new tagging system
 - Improve sync behavior to handle missing secrets gracefully
 
 **Prerequisites**: None
