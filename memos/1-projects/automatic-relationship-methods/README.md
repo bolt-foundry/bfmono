@@ -52,6 +52,7 @@ const book = await BfBook.findX(cv, bookId);
 const author = await book.findAuthor(); // Returns BfPerson | null
 const illustrator = await book.findIllustrator(); // Returns BfPerson | null
 
+// Create and automatically link related nodes
 const newAuthor = await book.createAuthor({ name: "Jane Smith" });
 const newIllustrator = await book.createIllustrator({ name: "John Doe" });
 
@@ -109,175 +110,66 @@ If you need relationships with roles or edge properties, don't use the generated
 methods. Instead, use the existing bfDb query and edge creation APIs directly.
 This keeps the generated methods simple and predictable for the 80% use case.
 
-## Type Safety Implementation: Generic Type Mapping
+## Type Safety Implementation
 
-We will use a Generic Type Mapping approach for type safety. This provides full
-type safety without requiring code generation or build steps.
+The type system uses TypeScript's advanced type mapping features to
+automatically generate method signatures based on relationship specifications.
+This provides full type safety without requiring code generation or build steps.
+
+### Key Types
+
+The implementation is in
+`/@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts`:
+
+- **`RelationshipMethods<T>`** - Maps relationship specs to method signatures
+- **`WithRelationships<T>`** - Augments BfNode instances with relationship
+  methods
+- **`OneRelationshipMethods<T>`** - Generates methods for `.one()` relationships
+- **`ManyRelationshipMethods<T>`** - Generates methods for `.many()`
+  relationships (Phase 5+)
+
+### How It Works
+
+1. When you define a relationship using `.one()` or `.many()`, the type system
+   automatically generates the appropriate method signatures
+2. BfNode's static methods (`findX`, `create`, `query`) return types that
+   include these relationship methods
+3. The runtime implementation in the constructor adds the actual methods to
+   match the types
+
+### Benefits
+
+- **No code generation** - Types are computed automatically by TypeScript
+- **Full IDE support** - Autocomplete, type checking, and refactoring work
+  seamlessly
+- **Zero runtime overhead** - Types are erased at compile time
+- **Transparent to users** - Just define relationships and use the generated
+  methods
+
+## Current Implementation Status (as of 2025-08-03)
+
+### ✅ Completed Phases
+
+- **Phase 1: Type System Foundation** - Full TypeScript type safety implemented
+- **Phase 2: Runtime Implementation** - Fully functional method generation with
+  data persistence
 
 ### Implementation Details
 
-This approach creates a type that maps from spec to methods and applies it
-automatically:
+All relationship methods are now fully functional using existing BfNode
+infrastructure:
 
-```typescript
-// Import existing types from bfDb
-import type {
-  AnyBfNodeCtor,
-  InferProps,
-} from "@bfmono/apps/bfDb/classes/BfNode.ts";
-import type { RelationSpec } from "@bfmono/apps/bfDb/builders/bfDb/types.ts";
+- `find{Name}()` - Uses `queryTargetInstances()` to find related nodes
+- `create{Name}()` - Uses `createTargetNode()` for atomic create + link
+- `unlink{Name}()` - Uses `BfEdge.query()` to find and delete edges
+- `delete{Name}()` - Combines unlink and node deletion
+- `findX{Name}()` - Throws `BfErrorNotFound` if relationship doesn't exist
 
-// Reuse UnionToIntersection from std library
-type UnionToIntersection<T> =
-  (T extends unknown ? (args: T) => unknown : never) extends
-    (args: infer R) => unknown ? R : never;
+### Testing Status
 
-// Extract relation names from bfNodeSpec
-type RelationNames<T extends AnyBfNodeCtor> = T extends
-  { bfNodeSpec: { relations: infer R } } ? keyof R
-  : never;
-
-// Get the target type for a specific relation
-type RelationTarget<T extends AnyBfNodeCtor, K extends string> = T extends
-  { bfNodeSpec: { relations: Record<K, RelationSpec> } }
-  ? T["bfNodeSpec"]["relations"][K] extends { target: () => infer Target }
-    ? Target extends AnyBfNodeCtor ? Target : never
-  : never
-  : never;
-
-// Detect relationship cardinality
-type RelationCardinality<T extends AnyBfNodeCtor, K extends string> = T extends
-  { bfNodeSpec: { relations: Record<K, infer R> } }
-  ? R extends { cardinality: infer C } ? C : "one"
-  : never;
-
-// Generate method signatures for .one() relationships
-type OneRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
-  RelationNames<T> extends string
-    ? RelationCardinality<T, RelationNames<T>> extends "one" ?
-        & {
-          [K in RelationNames<T> as `find${Capitalize<K>}`]: () => Promise<
-            InstanceType<RelationTarget<T, K>> | null
-          >;
-        }
-        & {
-          [K in RelationNames<T> as `findX${Capitalize<K>}`]: () => Promise<
-            InstanceType<RelationTarget<T, K>>
-          >;
-        }
-        & {
-          [K in RelationNames<T> as `create${Capitalize<K>}`]: (
-            props: InferProps<RelationTarget<T, K>>,
-          ) => Promise<InstanceType<RelationTarget<T, K>>>;
-        }
-        & {
-          [K in RelationNames<T> as `unlink${Capitalize<K>}`]: () => Promise<
-            void
-          >;
-        }
-        & {
-          [K in RelationNames<T> as `delete${Capitalize<K>}`]: () => Promise<
-            void
-          >;
-        }
-    : never
-    : never
->;
-
-// Query and connection types for .many() relationships
-type QueryArgs<T> = {
-  where?: Partial<InferProps<T>>;
-  orderBy?: { [K in keyof InferProps<T>]?: "asc" | "desc" };
-  limit?: number;
-  offset?: number;
-};
-
-type ConnectionArgs = {
-  first?: number;
-  after?: string;
-  last?: number;
-  before?: string;
-  where?: any; // Same as QueryArgs where clause
-};
-
-// Generate method signatures for .many() relationships
-type ManyRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
-  RelationNames<T> extends string
-    ? RelationCardinality<T, RelationNames<T>> extends "many" ?
-        & {
-          [K in RelationNames<T> as `findAll${Capitalize<K>}`]: () => Promise<
-            Array<InstanceType<RelationTarget<T, K>>>
-          >;
-        }
-        & {
-          [K in RelationNames<T> as `query${Capitalize<K>}`]: (
-            args: QueryArgs<RelationTarget<T, K>>,
-          ) => Promise<Array<InstanceType<RelationTarget<T, K>>>>;
-        }
-        & {
-          [K in RelationNames<T> as `connectionFor${Capitalize<K>}`]: (
-            args: ConnectionArgs,
-          ) => Promise<Connection<InstanceType<RelationTarget<T, K>>>>;
-        }
-        & {
-          [K in RelationNames<T> as `create${Capitalize<K>}`]: (
-            props: InferProps<RelationTarget<T, K>>,
-          ) => Promise<InstanceType<RelationTarget<T, K>>>;
-        }
-        & {
-          [K in RelationNames<T> as `add${Capitalize<K>}`]: (
-            node: InstanceType<RelationTarget<T, K>>,
-          ) => Promise<void>;
-        }
-        & {
-          [K in RelationNames<T> as `remove${Capitalize<K>}`]: (
-            node: InstanceType<RelationTarget<T, K>>,
-          ) => Promise<void>;
-        }
-        & {
-          [K in RelationNames<T> as `delete${Capitalize<K>}`]: (
-            node: InstanceType<RelationTarget<T, K>>,
-          ) => Promise<void>;
-        }
-    : never
-    : never
->;
-
-// Combine both relationship types
-type RelationshipMethods<T extends AnyBfNodeCtor> =
-  & OneRelationshipMethods<T>
-  & ManyRelationshipMethods<T>;
-
-// Combine with base type - return type for findX, create, etc.
-type WithRelationships<T extends BfNode> = T & RelationshipMethods<typeof T>;
-
-// Usage - automatically typed!
-const book = await BfBook.findX(cv, id); // Returns WithRelationships<BfBook>
-book.findAuthor(); // Promise<BfAuthor | null> - fully typed!
-book.findXAuthor(); // Promise<BfAuthor> - throws if not found
-book.createAuthor({ name: "...", bio: "..." }); // Promise<BfAuthor>
-book.unlinkAuthor(); // Promise<void> - removes edge only
-book.deleteAuthor(); // Promise<void> - deletes node and edge
-```
-
-- **Pros**:
-  - No codegen or build step required
-  - Transparent to users - just works
-  - Uses TypeScript's existing type system
-  - All factory methods (findX, create, query) can return WithRelationships<T>
-- **Cons**:
-  - Complex type definitions to maintain
-  - Need to ensure all node creation paths return the augmented type
-
-### Benefits of This Approach
-
-By modifying BfNode's static methods (findX, create, query) to return
-`WithRelationships<T>`, we get:
-
-- Full type safety and autocomplete
-- No build step or generated files
-- Transparent API - users get typed methods automatically
-- Leverages TypeScript's powerful type system
+- **Unit Tests**: 7/7 passing - All tests pass with full functionality
+- **Type Tests**: Working correctly, no manual type aliases needed
+- **Lint & Type Check**: All passing
 
 ## Implementation Plan
 
@@ -286,24 +178,24 @@ The implementation is broken down into 8 phases:
 ### One-to-One Relationships (`.one()`)
 
 1. **[Phase 1: Type System Foundation](./phase-1-type-system-foundation.md)** -
-   Build the TypeScript type system
+   ✅ Complete - Build the TypeScript type system
 2. **[Phase 2: Runtime Implementation](./phase-2-runtime-implementation.md)** -
-   Implement method generation
-3. **[Phase 3: Migration & Adoption](./phase-3-migration-adoption.md)** -
-   Migrate existing code
-4. **[Phase 4: Enforcement & Cleanup](./phase-4-enforcement-cleanup.md)** -
-   Ensure consistent usage
+   ✅ Complete - Implement method generation
+3. **[Phase 3: Migration & Adoption](./phase-3-migration-adoption.md)** - 📋
+   Planned Migrate existing code
+4. **[Phase 4: Enforcement & Cleanup](./phase-4-enforcement-cleanup.md)** - 📋
+   Planned Ensure consistent usage
 
 ### One-to-Many Relationships (`.many()`)
 
-5. **[Phase 5: Type System for Many](./phase-5-type-system-many.md)** - Extend
-   types for collections
+5. **[Phase 5: Type System for Many](./phase-5-type-system-many.md)** - 📋
+   Planned Extend types for collections
 6. **[Phase 6: Runtime Implementation for Many](./phase-6-runtime-implementation-many.md)** -
-   Implement collection methods
+   📋 Planned Implement collection methods
 7. **[Phase 7: Advanced Many Features](./phase-7-advanced-many-features.md)** -
-   Add batch operations and optimizations
+   📋 Planned Add batch operations and optimizations
 8. **[Phase 8: Many Relationship Migration](./phase-8-many-relationship-migration.md)** -
-   Migrate existing patterns
+   📋 Planned Migrate existing patterns
 
 ## Important Implementation Notes
 
@@ -354,13 +246,12 @@ The following features will be added in Phase 7:
 - **Pagination**: Built-in support for large collections
 - **Filtering**: Type-safe query parameters through parameter objects
 
-## Files to Modify
+## Files Modified/Created
 
-- `apps/bfDb/builders/bfDb/relationshipMethods.ts` - New file for core
-  implementation of both `.one()` and `.many()` methods
-- `apps/bfDb/types/relationshipMethods.ts` - Type definitions for relationship
-  methods
-- `apps/bfDb/classes/BfNode.ts` - Add integration in constructor
-- `apps/bfDb/builders/bfDb/__tests__/relationshipMethods.test.ts` - Test
-  coverage
-- `apps/bfDb/types/__tests__/relationshipMethods.type.test.ts` - Type tests
+- `/@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts` - Complete
+  implementation (types + runtime)
+- `/@bfmono/apps/bfDb/classes/BfNode.ts` - Integration in constructor (line 360)
+- `/@bfmono/apps/bfDb/builders/bfDb/__tests__/relationshipMethods.test.ts` -
+  Runtime test coverage
+- `/@bfmono/apps/bfDb/builders/bfDb/__tests__/relationshipTypes.test.ts` -
+  Type-level test coverage

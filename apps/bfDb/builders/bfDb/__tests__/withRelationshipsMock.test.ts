@@ -78,8 +78,8 @@ Deno.test("WithRelationships handles nodes without relationships", () => {
     const _props: { name: string; bio: string } = author.props;
 
     // No relationship methods should exist
-    // TypeScript correctly prevents accessing non-existent methods
-    // const _invalid = author.findBook; // ✗ This would be a compile error
+    // @ts-expect-error - findBook doesn't exist on BfAuthor
+    const _invalid = author.findBook;
   };
 
   assertEquals(true, true, "Nodes without relationships work correctly");

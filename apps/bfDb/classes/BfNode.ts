@@ -21,6 +21,9 @@ import type {
 import type {
   RelationshipMethods,
 } from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
+import {
+  generateRelationshipMethods,
+} from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
 import { makeBfDbSpec } from "@bfmono/apps/bfDb/builders/bfDb/makeBfDbSpec.ts";
 
 const logger = getLogger(import.meta);
@@ -352,6 +355,9 @@ export abstract class BfNode<TProps extends PropsBase = {}>
       metadata,
     );
     this.currentViewer = currentViewer;
+
+    // Generate relationship methods
+    generateRelationshipMethods(this);
   }
 
   get props(): TProps {
@@ -628,6 +634,42 @@ export abstract class BfNode<TProps extends PropsBase = {}>
       targetIds,
       cache,
     );
+  }
+
+  /**
+   * Unlinks (deletes edges) between this node and specified target nodes
+   * @param targetIds - Array of target node IDs to unlink
+   * @param role - Optional role filter for the edges
+   */
+  async unlinkTargetInstances(
+    targetIds: BfGid[],
+    role?: string,
+  ): Promise<void> {
+    const { BfEdge } = await import("@bfmono/apps/bfDb/nodeTypes/BfEdge.ts");
+
+    for (const targetId of targetIds) {
+      const edgeMetadata: Partial<BfEdgeMetadata> = {
+        bfSid: this.metadata.bfGid,
+        bfTid: targetId,
+        bfOid: this.cv.orgBfOid,
+      };
+
+      const edgeProps: Partial<PropsBase> = {};
+      if (role) {
+        edgeProps.role = role;
+      }
+
+      const edges = await BfEdge.query(
+        this.cv,
+        edgeMetadata,
+        edgeProps,
+        [],
+      );
+
+      for (const edge of edges) {
+        await edge.delete();
+      }
+    }
   }
 
   protected beforeCreate(): Promise<void> | void {}

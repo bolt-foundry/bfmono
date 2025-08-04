@@ -102,8 +102,8 @@ Deno.test("Type test - nodes without relationships work correctly", () => {
     const author = await BfAuthor.findX(cv, "test-id" as BfGid);
 
     // BfAuthor has no relationships, so no relationship methods should exist
-    // TypeScript correctly prevents accessing non-existent methods
-    // const _shouldNotExist = author.findBook; // ✗ This would be a compile error
+    // @ts-expect-error - findBook doesn't exist on BfAuthor
+    const _shouldNotExist = author.findBook;
 
     // Regular BfNode methods should still work
     const _save = author.save;
