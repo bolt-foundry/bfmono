@@ -112,14 +112,14 @@
           }
 
           # Load environment files in order (later overrides earlier)
-          load_env_if_exists .env.config.example  # Safe defaults
-          load_env_if_exists .env.secrets.example # Safe defaults
-          load_env_if_exists .env.config          # From 1Password
-          load_env_if_exists .env.secrets         # From 1Password
-          load_env_if_exists .env.local           # User overrides
+          load_env_if_exists "$BF_ROOT/.env.config.example"  # Safe defaults
+          load_env_if_exists "$BF_ROOT/.env.secrets.example" # Safe defaults
+          load_env_if_exists "$BF_ROOT/.env.config"          # From 1Password
+          load_env_if_exists "$BF_ROOT/.env.secrets"         # From 1Password
+          load_env_if_exists "$BF_ROOT/.env.local"           # User overrides
 
-          if [ ! -f ".env.config" ] && [ ! -f ".env.secrets" ]; then
-            echo "No .env.config or .env.secrets found. Run 'bft sitevar sync' to load secrets from 1Password."
+          if [ ! -f "$BF_ROOT/.env.config" ] && [ ! -f "$BF_ROOT/.env.secrets" ]; then
+            echo "No .env.config or .env.secrets found in $BF_ROOT. Run 'bft sitevar sync' to load secrets from 1Password."
           fi
 
           ${shellHookExtra}
