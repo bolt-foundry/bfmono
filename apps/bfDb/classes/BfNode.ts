@@ -5,10 +5,10 @@ import { GraphQLInterface } from "@bfmono/apps/bfDb/graphql/decorators.ts";
 import type { BfGid } from "@bfmono/lib/types.ts";
 import type { GraphqlNode } from "@bfmono/apps/bfDb/graphql/helpers.ts";
 import type { CurrentViewer } from "@bfmono/apps/bfDb/classes/CurrentViewer.ts";
-import { BfErrorNotImplemented } from "@bfmono/lib/BfError.ts";
 import { storage } from "@bfmono/apps/bfDb/storage/storage.ts";
 import type { DbItem } from "@bfmono/apps/bfDb/bfDb.ts";
 import type { JSONValue } from "@bfmono/apps/bfDb/bfDb.ts";
+import { bfDeleteItem } from "@bfmono/apps/bfDb/bfDb.ts";
 import { BfErrorNodeNotFound } from "@bfmono/apps/bfDb/classes/BfErrorsBfNode.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { generateUUID } from "@bfmono/lib/generateUUID.ts";
@@ -422,8 +422,23 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     return this;
   }
 
-  delete(): Promise<boolean> {
-    throw new BfErrorNotImplemented();
+  /**
+   * Delete this node from the database.
+   *
+   * NOTE: Phase 1 implementation - does NOT clean up edges.
+   * This is sufficient for relationship methods which handle edges separately.
+   * Full network delete with edge cleanup will be added in Phase 2.
+   *
+   * @returns true if the node was successfully deleted
+   */
+  async delete(): Promise<boolean> {
+    try {
+      await bfDeleteItem(this.metadata.bfOid, this.metadata.bfGid);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to delete node ${this.metadata.bfGid}:`, error);
+      throw error;
+    }
   }
 
   async load(): Promise<this> {
