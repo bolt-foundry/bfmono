@@ -6,7 +6,7 @@ import { type BotConfig, runBot } from "../lib/container-bot-base.ts";
 const docsbotConfig: BotConfig = {
   name: "docsbot",
   envVar: "DOCSBOT_CONTAINER",
-  // No special GitHub token for docsbot
+  githubTokenVar: "CODEBOT_GITHUB_PAT",
   helpExamples: `
 DOCSBOT - Documentation bot in isolated container
 
