@@ -181,55 +181,51 @@ async function cleanupStoppedContainers(): Promise<void> {
 async function ensureDnsServer(): Promise<void> {
   ui.output("🌐 Checking DNS server for *.codebot.local...");
 
+  const dnsServerPath = join(
+    dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+    "apps",
+    "codebot",
+    "dns-server.ts",
+  );
+
   try {
-    const checkCmd = new Deno.Command("container", {
-      args: ["ps", "--filter", "name=codebot-dns", "--format", "{{.Status}}"],
-      stdout: "piped",
+    // Check if DNS server is already running
+    const checkCmd = new Deno.Command("pgrep", {
+      args: ["-f", "dns-server.ts"],
+      stdout: "null",
       stderr: "null",
     });
 
     const checkResult = await checkCmd.output();
-    const status = new TextDecoder().decode(checkResult.stdout).trim();
 
-    if (status && status.includes("Up")) {
+    if (checkResult.success) {
       ui.output("✅ DNS server already running");
       return;
     }
 
     // Start DNS server
-    const startCmd = new Deno.Command("container", {
+    const startCmd = new Deno.Command("deno", {
       args: [
         "run",
-        "-d",
-        "--rm",
-        "--name",
-        "codebot-dns",
-        "-p",
-        "127.0.0.1:15353:53/udp",
-        "-p",
-        "127.0.0.1:15353:53/tcp",
-        "strm/dnsmasq",
-        "--address=/codebot.local/127.0.0.1",
-        "--no-resolv",
-        "--server=1.1.1.1",
-        "--server=8.8.8.8",
+        "--allow-net",
+        "--allow-run",
+        dnsServerPath,
       ],
       stdout: "null",
       stderr: "null",
     });
 
-    const startResult = await startCmd.output();
+    startCmd.spawn();
 
-    if (startResult.success) {
-      ui.output("✅ DNS server started successfully");
-    } else {
-      ui.warn(
-        "⚠️ Could not start DNS server - *.codebot.local URLs may not work",
-      );
-    }
+    // Give it a moment to start
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    ui.output("✅ DNS server started");
   } catch (error) {
     logger.debug(`DNS server check failed: ${error}`);
-    ui.warn("⚠️ Could not check DNS server status");
+    ui.warn(
+      "⚠️ Could not start DNS server - *.codebot.local URLs may not work",
+    );
   }
 }
 
@@ -303,9 +299,30 @@ async function generateRandomName(): Promise<string> {
       throw new Error("No names found in codebot-names.txt");
     }
 
-    // Pick a random name
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    return randomName;
+    // Build separate lists for first and last names
+    const firstNames: string[] = [];
+    const lastNames: string[] = [];
+
+    for (const name of names) {
+      const firstHyphenIndex = name.indexOf("-");
+      if (firstHyphenIndex > 0) {
+        // Hyphenated name: split at first hyphen
+        const firstName = name.substring(0, firstHyphenIndex);
+        const lastName = name.substring(firstHyphenIndex + 1);
+        firstNames.push(firstName);
+        lastNames.push(lastName);
+      } else {
+        // Single name: can be used as either first or last
+        firstNames.push(name);
+        lastNames.push(name);
+      }
+    }
+
+    // Pick random first and last names
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+
+    return `${firstName}-${lastName}`;
   } catch (error) {
     // Fallback to generic names if file read fails
     logger.debug(`Failed to read codebot names: ${error}`);
@@ -573,21 +590,34 @@ OPTIONS:
       await Deno.mkdir(`${workspacePath}`, { recursive: true });
       await Deno.mkdir(`${workspacePath}/tmp`, { recursive: true });
 
-      // Copy Claude config if exists
-      const claudeJsonPath = `${claudeDir}/.claude.json`;
-      try {
-        await Deno.stat(claudeJsonPath);
-        const copyClaudeJson = new Deno.Command("cp", {
-          args: [
-            "--reflink=auto",
-            claudeJsonPath,
-            `${workspacePath}/tmp/.claude.json`,
-          ],
-        });
-        await copyClaudeJson.output();
-        ui.output("📋 CoW copied .claude.json to tmp");
-      } catch {
-        // File doesn't exist, skip
+      // Copy Claude config if exists - check multiple locations
+      const homeDir = getConfigurationVariable("HOME");
+      const possiblePaths = [
+        `${homeDir}/.claude.json`,
+        `${claudeDir}/.claude.json`,
+        `${homeDir}/.config/claude/.claude.json`,
+      ];
+
+      for (const claudeJsonPath of possiblePaths) {
+        try {
+          await Deno.stat(claudeJsonPath);
+          const copyClaudeJson = new Deno.Command("cp", {
+            args: [
+              "--reflink=auto",
+              claudeJsonPath,
+              `${workspacePath}/tmp/.claude.json`,
+            ],
+          });
+          const result = await copyClaudeJson.output();
+          if (result.success) {
+            ui.output(
+              `📋 CoW copied .claude.json from ${claudeJsonPath} to tmp`,
+            );
+            break;
+          }
+        } catch {
+          // File doesn't exist at this path, continue
+        }
       }
 
       // Copy workspace files
