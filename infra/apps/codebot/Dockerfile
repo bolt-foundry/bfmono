@@ -108,8 +108,8 @@ RUN set -ex && \
 ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
 
 # Copy flake files for caching
-COPY flake.nix flake.lock /@bfmono/
-WORKDIR /@bfmono
+COPY flake.nix flake.lock /internalbf/
+WORKDIR /internalbf
 
 # Install development tools from flake (includes gh, deno, sapling, etc.)
 RUN nix profile install .#codebot-env --accept-flake-config
@@ -152,11 +152,11 @@ fi\n\
 # Start container bridge in background if not running a specific command\n\
 if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
     # Only start bridge for interactive sessions\n\
-    if [ -f "/@bfmono/infra/apps/codebot/container-bridge.ts" ]; then\n\
+    if [ -f "/internalbf/infra/apps/codebot/container-bridge.ts" ]; then\n\
         # Set WORKSPACE_ID from hostname\n\
         export WORKSPACE_ID="${HOSTNAME}"\n\
         # Start container bridge in background\n\
-        cd /@bfmono && deno run --allow-net --allow-run --allow-env --allow-read infra/apps/codebot/container-bridge.ts > /tmp/container-bridge.log 2>&1 &\n\
+        cd /internalbf && deno run --allow-net --allow-run --allow-env --allow-read infra/apps/codebot/container-bridge.ts > /tmp/container-bridge.log 2>&1 &\n\
         echo "Container bridge started in background (PID: $!)"\n\
     fi\n\
 fi\n\
@@ -219,9 +219,11 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
     git config --global url."https://x-access-token:\${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
   fi
   
-  # Change to @bfmono directory
-  if [ -d "/@bfmono" ]; then
-    cd /@bfmono
+  # Change to appropriate directory based on bot type
+  if [ -n "$CODEBOT_CONTAINER" ] && [ -d "/internalbf/bfmono" ]; then
+    cd /internalbf/bfmono
+  elif [ -d "/internalbf" ]; then
+    cd /internalbf
   fi
 fi
 
@@ -238,8 +240,8 @@ export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_DISABLE_DEV_SHM_USAGE=true
 
 # Source shared environment setup
-if [ -f "/@bfmono/infra/env-setup.sh" ]; then
-  source /@bfmono/infra/env-setup.sh
+if [ -f "/internalbf/infra/env-setup.sh" ]; then
+  source /internalbf/infra/env-setup.sh
 fi
 EOF
 

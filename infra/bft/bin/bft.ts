@@ -81,6 +81,15 @@ function createDeckRunner(
 }
 
 async function main(): Promise<number> {
+  // Change to the @bfmono directory before doing anything
+  const bfmonoDir = new URL(import.meta.resolve("@bfmono/")).pathname;
+  try {
+    Deno.chdir(bfmonoDir);
+  } catch (error) {
+    ui.error(`Failed to change to @bfmono directory: ${error}`);
+    return 1;
+  }
+
   // Load all available tasks
   await loadBftTasks();
 
