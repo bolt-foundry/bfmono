@@ -192,9 +192,9 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   export CODEBOT_INITIALIZED=1
   
   # .claude directory is mounted directly from host
-  # Copy .claude.json from @bfmono/tmp if it exists
-  if [ -f "/@bfmono/tmp/.claude.json" ]; then
-    cp /@bfmono/tmp/.claude.json /home/codebot/.claude.json
+  # Copy .claude.json from /internalbf/tmp if it exists
+  if [ -f "/internalbf/tmp/.claude.json" ]; then
+    cp /internalbf/tmp/.claude.json /home/codebot/.claude.json
   fi
   
   # Configure Sapling identity for codebot

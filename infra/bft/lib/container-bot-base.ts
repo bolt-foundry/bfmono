@@ -788,9 +788,9 @@ OPTIONS:
 
     await child.status;
   } else {
-    // Default interactive mode
+    // Default interactive mode - launch Claude CLI
     const containerArgs = buildContainerArgs(containerConfig, botConfig);
-    containerArgs.push("codebot");
+    containerArgs.push("codebot", "-c", "claude");
 
     const child = new Deno.Command("container", {
       args: containerArgs,
