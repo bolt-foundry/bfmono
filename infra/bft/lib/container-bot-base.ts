@@ -590,8 +590,7 @@ OPTIONS:
       await Deno.mkdir(`${workspacePath}`, { recursive: true });
       await Deno.mkdir(`${workspacePath}/tmp`, { recursive: true });
 
-      // Copy Claude config if exists - check multiple locations
-      const homeDir = getConfigurationVariable("HOME");
+      // Copy Claude config if exists - try multiple locations
       const possiblePaths = [
         `${homeDir}/.claude.json`,
         `${claudeDir}/.claude.json`,
@@ -608,15 +607,11 @@ OPTIONS:
               `${workspacePath}/tmp/.claude.json`,
             ],
           });
-          const result = await copyClaudeJson.output();
-          if (result.success) {
-            ui.output(
-              `📋 CoW copied .claude.json from ${claudeJsonPath} to tmp`,
-            );
-            break;
-          }
+          await copyClaudeJson.output();
+          ui.output(`📋 CoW copied .claude.json from ${claudeJsonPath} to tmp`);
+          break; // Stop after first successful copy
         } catch {
-          // File doesn't exist at this path, continue
+          // File doesn't exist, try next location
         }
       }
 
@@ -818,9 +813,13 @@ OPTIONS:
 
     await child.status;
   } else {
-    // Default interactive mode - launch Claude CLI
+    // Default interactive mode - launch Claude CLI then drop to shell
     const containerArgs = buildContainerArgs(containerConfig, botConfig);
-    containerArgs.push("codebot", "-c", "claude");
+    containerArgs.push(
+      "codebot",
+      "-c",
+      "claude; exec bash -l",
+    );
 
     const child = new Deno.Command("container", {
       args: containerArgs,

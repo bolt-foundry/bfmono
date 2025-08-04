@@ -191,8 +191,8 @@ COPY <<EOF /home/codebot/.bash_profile
 if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   export CODEBOT_INITIALIZED=1
   
-  # .claude directory is mounted directly from host
-  # Copy .claude.json from /internalbf/tmp if it exists
+  # .claude directory is mounted directly from host with credentials
+  # Copy .claude.json from /internalbf/tmp if it exists to skip onboarding
   if [ -f "/internalbf/tmp/.claude.json" ]; then
     cp /internalbf/tmp/.claude.json /home/codebot/.claude.json
   fi
