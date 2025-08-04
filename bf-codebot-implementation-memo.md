@@ -17,7 +17,7 @@ use a dedicated GitHub account for AI-generated commits.
 
 - Create GitHub account: `bf-codebot`
 - Generate personal access token with repo permissions
-- Store token in bft secrets as `BF_CODEBOT_GITHUB_TOKEN`
+- Store token in bft secrets as `CODEBOT_GITHUB_PAT`
 
 ### 2. Update Codebot Container Configuration
 
@@ -44,17 +44,17 @@ With:
 
 ```bash
 # Get bf-codebot GitHub token from secrets
-BF_CODEBOT_TOKEN=\$(bft secrets get BF_CODEBOT_GITHUB_TOKEN 2>/dev/null || echo "")
+CODEBOT_PAT=\$(bft secrets get CODEBOT_GITHUB_PAT 2>/dev/null || echo "")
 
 # Configure GitHub authentication for bf-codebot
-if [ -n "\$BF_CODEBOT_TOKEN" ]; then
+if [ -n "\$CODEBOT_PAT" ]; then
   # Configure git identity as bf-codebot
   git config --global user.name "bf-codebot"
   git config --global user.email "bf-codebot@users.noreply.github.com"
   
   # Configure git to use the bf-codebot token for GitHub
-  git config --global credential.helper '!f() { echo "username=bf-codebot"; echo "password=\$BF_CODEBOT_TOKEN"; }; f'
-  git config --global url."https://bf-codebot:\${BF_CODEBOT_TOKEN}@github.com/".insteadOf "https://github.com/"
+  git config --global credential.helper '!f() { echo "username=bft-codebot"; echo "password=\$CODEBOT_PAT"; }; f'
+  git config --global url."https://bft-codebot:\${CODEBOT_PAT}@github.com/".insteadOf "https://github.com/"
 fi
 ```
 
@@ -63,7 +63,7 @@ fi
 Store the bf-codebot token securely:
 
 ```bash
-bft secrets set BF_CODEBOT_GITHUB_TOKEN <token_value>
+bft secrets set CODEBOT_GITHUB_PAT <token_value>
 ```
 
 ### 4. Testing

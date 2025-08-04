@@ -8,7 +8,7 @@ import { dirname, join } from "@std/path";
 const codebotConfig: BotConfig = {
   name: "codebot",
   envVar: "CODEBOT_CONTAINER",
-  githubTokenVar: "BF_CODEBOT_GITHUB_TOKEN",
+  githubTokenVar: "CODEBOT_GITHUB_PAT",
   workingDir: "/internalbf/bfmono",
   helpExamples: `
 CODEBOT - Claude Code CLI container

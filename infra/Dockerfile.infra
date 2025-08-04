@@ -198,21 +198,41 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   fi
   
   # Configure Sapling identity for codebot
-  sl config --user ui.username "bft codebot <codebot@boltfoundry.com>"
+  sl config --user ui.username "bft-codebot <support@boltfoundry.com>"
   sl config --user isl.changedFilesDisplayType "tree"
   
-  # Get bf-codebot GitHub token from secrets
-  BF_CODEBOT_TOKEN=\$(bft sitevar get BF_CODEBOT_GITHUB_TOKEN 2>/dev/null || echo "")
-  
-  # Configure GitHub authentication for bf-codebot
-  if [ -n "\$BF_CODEBOT_TOKEN" ]; then
-    # Configure git identity as bf-codebot
-    git config --global user.name "bf-codebot"
-    git config --global user.email "bf-codebot@users.noreply.github.com"
+  # Configure GitHub authentication for bft-codebot
+  # CODEBOT_GITHUB_PAT should be available in environment from sitevars
+  if [ -n "\$CODEBOT_GITHUB_PAT" ]; then
+    # Configure git identity as bft-codebot
+    git config --global user.name "bft-codebot"
+    git config --global user.email "support@boltfoundry.com"
     
-    # Configure git to use the bf-codebot token for GitHub
-    git config --global credential.helper '!f() { echo "username=bf-codebot"; echo "password=\$BF_CODEBOT_TOKEN"; }; f'
-    git config --global url."https://bf-codebot:\${BF_CODEBOT_TOKEN}@github.com/".insteadOf "https://github.com/"
+    # Configure git to use the bft-codebot token for GitHub
+    git config --global credential.helper '!f() { echo "username=bft-codebot"; echo "password=\$CODEBOT_GITHUB_PAT"; }; f'
+    git config --global url."https://bft-codebot:\${CODEBOT_GITHUB_PAT}@github.com/".insteadOf "https://github.com/"
+    
+    # Configure SSH signing for verified commits
+    # CODEBOT_SSH_SIGNING_KEY should be available in environment from sitevars
+    if [ -n "\$CODEBOT_SSH_SIGNING_KEY" ]; then
+      # Create SSH directory
+      mkdir -p /home/codebot/.ssh
+      chmod 700 /home/codebot/.ssh
+      
+      # Write the SSH signing key
+      echo "\$CODEBOT_SSH_SIGNING_KEY" > /home/codebot/.ssh/signing_key
+      chmod 600 /home/codebot/.ssh/signing_key
+      
+      # Configure git to use SSH signing
+      git config --global gpg.format ssh
+      git config --global user.signingkey /home/codebot/.ssh/signing_key
+      git config --global commit.gpgsign true
+      git config --global tag.gpgsign true
+      
+      echo "✅ SSH commit signing configured"
+    else
+      echo "⚠️  No SSH signing key found - commits will not be signed"
+    fi
   elif [ -n "\$GITHUB_TOKEN" ]; then
     # Fallback to existing GITHUB_TOKEN approach for backward compatibility
     git config --global credential.helper '!f() { echo "username=x-access-token"; echo "password=\$GITHUB_TOKEN"; }; f'
