@@ -185,6 +185,13 @@ ENV PUPPETEER_DISABLE_DEV_SHM_USAGE=true
 ENV TMPDIR=/home/codebot/tmp
 ENV CHROME_DEVEL_SANDBOX=/opt/google/chrome/chrome-sandbox
 
+# Set BF_ROOT directly since containers always mount at the same location
+ENV BF_ROOT=/internalbf/bfmono
+ENV INTERNALBF_ROOT=/internalbf
+ENV PATH="$BF_ROOT/infra/bin:$PATH"
+ENV DENO_DIR="${HOME}/.cache/deno"
+ENV GH_REPO="bolt-foundry/bolt-foundry"
+
 # Create .bash_profile with initialization
 COPY <<EOF /home/codebot/.bash_profile
 # Claude Code environment initialization
@@ -253,11 +260,6 @@ elif [ -x "/usr/bin/chromium" ]; then
 fi
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_DISABLE_DEV_SHM_USAGE=true
-
-# Source shared environment setup
-if [ -f "/internalbf/bfmono/infra/env-setup.sh" ]; then
-  source /internalbf/bfmono/infra/env-setup.sh
-fi
 EOF
 
 # Health check to ensure Chrome/Chromium is available

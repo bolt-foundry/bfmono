@@ -68,7 +68,9 @@ function buildContainerArgs(
   const homeDir = getConfigurationVariable("HOME");
   const googleDrivePaths = [
     `${homeDir}/Google Drive`,
-    `${homeDir}/Library/CloudStorage/GoogleDrive-${getConfigurationVariable("USER")}@gmail.com`,
+    `${homeDir}/Library/CloudStorage/GoogleDrive-${
+      getConfigurationVariable("USER")
+    }@gmail.com`,
     `${homeDir}/Library/CloudStorage/GoogleDrive`,
   ];
 
@@ -327,8 +329,8 @@ async function generateRandomName(): Promise<string> {
     }
 
     // Build separate lists for first and last names
-    const firstNames: string[] = [];
-    const lastNames: string[] = [];
+    const firstNames: Array<string> = [];
+    const lastNames: Array<string> = [];
 
     for (const name of names) {
       const firstHyphenIndex = name.indexOf("-");
