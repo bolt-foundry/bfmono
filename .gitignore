@@ -40,3 +40,6 @@ tmp/codebot-workspaces/
 
 # Codebot metadata
 .codebot-metadata/
+
+# Shared folder for host-container communication
+shared/

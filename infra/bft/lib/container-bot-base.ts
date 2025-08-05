@@ -41,6 +41,7 @@ interface ContainerConfig {
   cpus: string;
   interactive: boolean;
   removeOnExit: boolean;
+  sharedPath?: string;
 }
 
 function buildContainerArgs(
@@ -64,27 +65,10 @@ function buildContainerArgs(
     botConfig.workingDir || "/internalbf",
   ];
 
-  // Check for Google Drive and mount it if available
-  const homeDir = getConfigurationVariable("HOME");
-  const googleDrivePaths = [
-    `${homeDir}/Google Drive`,
-    `${homeDir}/Library/CloudStorage/GoogleDrive-${
-      getConfigurationVariable("USER")
-    }@gmail.com`,
-    `${homeDir}/Library/CloudStorage/GoogleDrive`,
-  ];
-
-  for (const gdPath of googleDrivePaths) {
-    try {
-      const stat = Deno.statSync(gdPath);
-      if (stat.isDirectory) {
-        baseArgs.push("--volume", `${gdPath}:/home/codebot/google-drive`);
-        ui.output(`📁 Mounting Google Drive from: ${gdPath}`);
-        break;
-      }
-    } catch {
-      // Path doesn't exist, continue checking
-    }
+  // Mount the shared folder from the host if provided
+  if (config.sharedPath) {
+    baseArgs.push("--volume", `${config.sharedPath}:/internalbf/bfmono/shared`);
+    ui.output(`📁 Mounting shared folder: ${config.sharedPath}`);
   }
 
   baseArgs.push(
@@ -667,16 +651,41 @@ OPTIONS:
           entry.name === "codebot-workspaces"
         ) continue;
 
-        const copyCmd = new Deno.Command("cp", {
-          args: [
-            "--reflink=auto",
-            "-R",
-            join(internalbfDir, entry.name),
-            `${workspacePath}/`,
-          ],
-        });
+        // Special handling for bfmono directory
+        if (entry.name === "bfmono") {
+          // Copy bfmono but exclude the shared folder
+          const bfmonoSrc = join(internalbfDir, "bfmono");
+          const bfmonoDst = join(workspacePath, "bfmono");
 
-        copyPromises.push(copyCmd.output());
+          // Create bfmono directory in workspace
+          await Deno.mkdir(bfmonoDst, { recursive: true });
+
+          // Copy each subdirectory except shared
+          for await (const bfmonoEntry of Deno.readDir(bfmonoSrc)) {
+            if (bfmonoEntry.name === "shared") continue;
+
+            const copyCmd = new Deno.Command("cp", {
+              args: [
+                "--reflink=auto",
+                "-R",
+                join(bfmonoSrc, bfmonoEntry.name),
+                bfmonoDst,
+              ],
+            });
+            copyPromises.push(copyCmd.output());
+          }
+        } else {
+          // Copy other directories normally
+          const copyCmd = new Deno.Command("cp", {
+            args: [
+              "--reflink=auto",
+              "-R",
+              join(internalbfDir, entry.name),
+              `${workspacePath}/`,
+            ],
+          });
+          copyPromises.push(copyCmd.output());
+        }
       }
 
       const copyResults = await Promise.all(copyPromises);
@@ -798,6 +807,28 @@ OPTIONS:
     return 1;
   }
 
+  // Setup shared directory path
+  const currentPath = dirname(
+    dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+  );
+  let internalbfDir: string;
+  if (currentPath.includes("/bfmono")) {
+    internalbfDir = currentPath.substring(
+      0,
+      currentPath.lastIndexOf("/bfmono"),
+    );
+  } else {
+    internalbfDir = currentPath;
+  }
+  const sharedPath = join(internalbfDir, "bfmono", "shared");
+
+  // Ensure shared directory exists
+  try {
+    await Deno.mkdir(sharedPath, { recursive: true });
+  } catch {
+    // Directory might already exist
+  }
+
   // Build container configuration
   const containerConfig: ContainerConfig = {
     workspaceId,
@@ -808,6 +839,7 @@ OPTIONS:
     cpus: parsed.cpus || autoCpus,
     interactive: parsed.shell || !parsed.exec,
     removeOnExit: true,
+    sharedPath,
   };
 
   // Handle different execution modes
