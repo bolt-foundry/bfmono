@@ -62,6 +62,30 @@ function buildContainerArgs(
     `${config.workspacePath}:/internalbf`,
     "-w",
     botConfig.workingDir || "/internalbf",
+  ];
+
+  // Check for Google Drive and mount it if available
+  const homeDir = getConfigurationVariable("HOME");
+  const googleDrivePaths = [
+    `${homeDir}/Google Drive`,
+    `${homeDir}/Library/CloudStorage/GoogleDrive-${getConfigurationVariable("USER")}@gmail.com`,
+    `${homeDir}/Library/CloudStorage/GoogleDrive`,
+  ];
+
+  for (const gdPath of googleDrivePaths) {
+    try {
+      const stat = Deno.statSync(gdPath);
+      if (stat.isDirectory) {
+        baseArgs.push("--volume", `${gdPath}:/home/codebot/google-drive`);
+        ui.output(`📁 Mounting Google Drive from: ${gdPath}`);
+        break;
+      }
+    } catch {
+      // Path doesn't exist, continue checking
+    }
+  }
+
+  baseArgs.push(
     "--volume",
     "/tmp:/dev/shm", // Use host /tmp as shared memory for Chrome
     "-e",
@@ -82,7 +106,7 @@ function buildContainerArgs(
     "TERM=xterm-truecolor", // Enable 24-bit true color support in terminal
     "-e",
     "BF_ROOT=/internalbf/bfmono", // Set BF_ROOT to bfmono subdirectory
-  ];
+  );
 
   if (config.interactive) {
     baseArgs.push("-it");
