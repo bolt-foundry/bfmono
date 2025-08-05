@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       target_branch:
-        description: 'Target branch in internalbf repo'
+        description: "Target branch in internalbf repo"
         required: false
-        default: 'main'
+        default: "main"
         type: string
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
 
             # Determine target branch
             TARGET_BRANCH=\"${{ github.event.inputs.target_branch || 'main' }}\"
-            
+
             # Trigger the internalbf workflow
             curl -X POST \
               -H \"Accept: application/vnd.github+json\" \
