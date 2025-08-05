@@ -79,7 +79,9 @@ function buildContainerArgs(
     "-e",
     `${botConfig.envVar}=true`, // Bot-specific container identifier
     "-e",
-    "TERM=xterm-256color", // Enable proper color support in terminal
+    "TERM=xterm-truecolor", // Enable 24-bit true color support in terminal
+    "-e",
+    "BF_ROOT=/internalbf/bfmono", // Set BF_ROOT to bfmono subdirectory
   ];
 
   if (config.interactive) {
