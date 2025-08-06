@@ -41,6 +41,9 @@ export async function testCommand(options: Array<string>): Promise<number> {
   // Exclude Sapling backup files
   args.push("--ignore=.sl/**");
 
+  // Exclude shared folder
+  args.push("--ignore=shared/**");
+
   // Pass through remaining arguments to deno test
   args.push(...remainingArgs);
 

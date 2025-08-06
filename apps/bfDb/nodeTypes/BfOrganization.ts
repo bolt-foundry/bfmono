@@ -6,12 +6,18 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
     node
       .string("name")
       .string("domain")
+      .connection("decks", () => BfDeck, {
+        resolve: async (org, args) => {
+          return await org.connectionForDeck(args);
+        },
+      })
     // Removing the members relationship for now to focus on 1:1
   );
   static override bfNodeSpec = this.defineBfNode((node) =>
     node
       .string("name")
       .string("domain")
+      .many("deck", () => BfDeck)
   );
 
   /**
