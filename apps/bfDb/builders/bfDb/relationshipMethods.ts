@@ -6,6 +6,7 @@ import type {
   InferProps,
 } from "@bfmono/apps/bfDb/classes/BfNode.ts";
 import type { RelationSpec } from "@bfmono/apps/bfDb/builders/bfDb/types.ts";
+import type { Connection, ConnectionArguments } from "graphql-relay";
 
 // Helper type that converts union types to intersection types
 // e.g., { a: 1 } | { b: 2 } becomes { a: 1 } & { b: 2 }
@@ -61,12 +62,30 @@ type OneRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
   }[RelationNames<T>]
 >;
 
-// Placeholder for many relationships (Phase 5+)
-// TODO(@bfmono/memos/1-projects/automatic-relationship-methods/phase-5-many-relationships-type-system.md): Implement many relationship types
+// Generate method signatures for .many() relationships
+type ManyRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
+  {
+    [K in RelationNames<T>]: RelationCardinality<T, K> extends "many" ?
+        & {
+          [P in K as `findAll${Capitalize<P>}`]: () => Promise<
+            Array<InstanceType<RelationTarget<T, P>>>
+          >;
+        }
+        & {
+          [P in K as `connectionFor${Capitalize<P>}`]: (
+            args?: ConnectionArguments & {
+              where?: Partial<InferProps<RelationTarget<T, P>>>;
+            },
+          ) => Promise<Connection<InstanceType<RelationTarget<T, P>>>>;
+        }
+      : never;
+  }[RelationNames<T>]
+>;
 
-// For now, RelationshipMethods only includes one-to-one relationships
+// Main type includes both one and many relationships
 export type RelationshipMethods<T extends AnyBfNodeCtor> =
-  OneRelationshipMethods<T>;
+  & OneRelationshipMethods<T>
+  & ManyRelationshipMethods<T>;
 
 // Combine with base type - return type for findX, create, etc.
 export type WithRelationships<T extends AnyBfNodeCtor> =
@@ -74,9 +93,10 @@ export type WithRelationships<T extends AnyBfNodeCtor> =
   & RelationshipMethods<T>;
 
 // Runtime method generation
-import type { BfNode, PropsBase } from "@bfmono/apps/bfDb/classes/BfNode.ts";
+import { BfNode, type PropsBase } from "@bfmono/apps/bfDb/classes/BfNode.ts";
 import { BfErrorNotFound, BfErrorNotImplemented } from "@bfmono/lib/BfError.ts";
 import type { BfGid } from "@bfmono/lib/types.ts";
+import type { JSONValue } from "@bfmono/apps/bfDb/bfDb.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -99,8 +119,7 @@ export function generateRelationshipMethods(node: BfNode): void {
     if (typedRelationSpec.cardinality === "one") {
       generateOneRelationshipMethods(node, relationName, typedRelationSpec);
     } else if (typedRelationSpec.cardinality === "many") {
-      // TODO: Implement in Phase 5-6
-      // generateManyRelationshipMethods(node, relationName, typedRelationSpec);
+      generateManyRelationshipMethods(node, relationName, typedRelationSpec);
     }
   }
 }
@@ -256,6 +275,54 @@ function generateOneRelationshipMethods(
           }
         }
       }
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+}
+
+/**
+ * Generates methods for a .many() relationship
+ */
+function generateManyRelationshipMethods(
+  node: BfNode,
+  relationName: string,
+  relationSpec: RelationSpec,
+): void {
+  const capitalizedName = capitalize(relationName);
+  const targetClass = relationSpec.target() as typeof BfNode;
+
+  // findAll{RelationName}() - Find all related nodes
+  Object.defineProperty(node, `findAll${capitalizedName}`, {
+    value: async function () {
+      return await node.queryTargetInstances(
+        targetClass,
+        {}, // no filtering
+        { role: relationName }, // filter by relationship name
+      );
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+
+  // connectionFor{RelationName}(args) - GraphQL connection support
+  Object.defineProperty(node, `connectionFor${capitalizedName}`, {
+    value: async function (
+      args: ConnectionArguments & { where?: Record<string, JSONValue> } = {},
+    ) {
+      const { where = {}, ...connectionArgs } = args;
+
+      // Query and filter nodes
+      const results = await node.queryTargetInstances(
+        targetClass,
+        where, // Apply where filtering
+        { role: relationName }, // filter by relationship name
+      );
+
+      // Use existing BfNode.connection for cursor-based pagination
+      return BfNode.connection(results, connectionArgs);
     },
     writable: false,
     enumerable: false,

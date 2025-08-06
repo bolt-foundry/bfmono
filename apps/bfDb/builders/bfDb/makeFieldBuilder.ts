@@ -40,6 +40,7 @@ export type FieldBuilder<
   ): FieldBuilder<F & { [K in N]: { kind: "enum"; values: V } }, R>;
 
   one: RelationAdder<"out", "one", F, R>;
+  many: RelationAdder<"out", "many", F, R>;
 
   readonly _spec: { fields: F; relations: R };
 };
@@ -149,6 +150,7 @@ export function makeFieldBuilder<
     json,
     enum: enumField,
     one: addRel("out", "one"),
+    many: addRel("out", "many"),
     _spec: out,
   } as FieldBuilder<F, R>;
 }
