@@ -249,8 +249,8 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   # Working directory is set by container -w flag, not here
 fi
 
-# Add Nix to PATH
-export PATH="/nix/var/nix/profiles/default/bin:\$PATH"
+# Add Nix and BF_ROOT to PATH
+export PATH="/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
 
 # Set Puppeteer executable path for e2e tests (use Chrome/Chromium based on what's available)
 if [ -x "/usr/bin/google-chrome-stable" ]; then
