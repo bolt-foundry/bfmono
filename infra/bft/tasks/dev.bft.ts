@@ -42,7 +42,15 @@ Examples:
 
   // Handle boltfoundry.com app in development mode
   const flags = parseArgs(devArgs, {
-    boolean: ["build", "no-open", "help", "no-log", "foreground", "stop"],
+    boolean: [
+      "build",
+      "no-open",
+      "help",
+      "no-log",
+      "foreground",
+      "stop",
+      "restart",
+    ],
     string: ["port", "log-file"],
     default: {
       port: "8000",
@@ -57,6 +65,7 @@ Launch the Bolt Foundry landing page in development mode
 Options:
   --build            Build assets without starting server
   --stop             Stop the running development server
+  --restart          Stop and restart the development server
   --port             Specify server port (default: 8000)
   --no-open          Don't auto-open browser on startup
   --log-file         Write logs to specified file instead of default tmp location
@@ -67,12 +76,56 @@ Options:
 Examples:
   bft dev boltfoundry-com                          # Run in background (logs to tmp/boltfoundry-com-dev.log)
   bft dev boltfoundry-com --stop                   # Stop the running server
+  bft dev boltfoundry-com --restart                # Restart the server
   bft dev boltfoundry-com --build                  # Build assets only
   bft dev boltfoundry-com --port 4000              # Run on port 4000
   bft dev boltfoundry-com --log-file dev.log       # Log to custom file
   bft dev boltfoundry-com --foreground             # Run in foreground
   bft dev boltfoundry-com --no-log --foreground    # Run in foreground with console output`);
     return 0;
+  }
+
+  // Handle --restart flag
+  if (flags.restart) {
+    ui.output("Restarting boltfoundry-com development server...");
+
+    // First stop the server
+    const psCommand = new Deno.Command("sh", {
+      args: [
+        "-c",
+        "ps aux | grep -E '(bft dev boltfoundry-com|vite.*8080|server\\.tsx.*8000)' | grep -v grep | awk '{print $2}'",
+      ],
+      stdout: "piped",
+    });
+
+    const psResult = await psCommand.output();
+    const pids = new TextDecoder().decode(psResult.stdout).trim().split("\n")
+      .filter(Boolean);
+
+    if (pids.length > 0) {
+      // Kill the processes
+      for (const pid of pids) {
+        try {
+          const killCommand = new Deno.Command("kill", {
+            args: [pid],
+          });
+          await killCommand.output();
+        } catch {
+          // Process might have already exited
+        }
+      }
+      ui.output(`Stopped ${pids.length} process(es).`);
+
+      // Wait a moment for processes to fully terminate
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    // Now continue with starting the server
+    // Remove --restart from devArgs to avoid infinite loop
+    const argsWithoutRestart = devArgs.filter((arg) => arg !== "--restart");
+
+    // Recursively call dev with the remaining args
+    return await dev([appName, ...argsWithoutRestart]);
   }
 
   // Handle --stop flag
