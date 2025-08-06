@@ -79,6 +79,8 @@ function buildContainerArgs(
     "-e",
     "BF_E2E_MODE=true", // Enable E2E mode features
     "-e",
+    "BF_ENV=development", // Enable dev mode features
+    "-e",
     "PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable",
     "-e",
     "PUPPETEER_DISABLE_DEV_SHM_USAGE=true",

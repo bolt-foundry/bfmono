@@ -181,7 +181,9 @@ Examples:
       return 1;
     }
 
+    const hostname = Deno.hostname();
     ui.output(`Background server started on http://localhost:${port}`);
+    ui.output(`Also available at http://${hostname}.codebot.local:${port}`);
     ui.output("Logs are being written to tmp/boltfoundry-com-dev.log");
     ui.output(
       "Use 'bft dev boltfoundry-com --foreground' to run in foreground",
