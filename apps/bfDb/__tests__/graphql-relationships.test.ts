@@ -3,6 +3,7 @@ import { CurrentViewer } from "@bfmono/apps/bfDb/classes/CurrentViewer.ts";
 import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
 import { BfGrader } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfGrader.ts";
+import { BfSample } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfSample.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import type { BfGid } from "@bfmono/lib/types.ts";
 import type { WithRelationships } from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
@@ -52,15 +53,15 @@ Deno.test("GraphQL Relationships - Organization → Decks (many)", async () => {
   });
 
   // Verify the many relationship methods were generated
-  assertEquals(typeof org.findAllDeck, "function");
-  assertEquals(typeof org.connectionForDeck, "function");
+  assertEquals(typeof org.findAllDecks, "function");
+  assertEquals(typeof org.connectionForDecks, "function");
 
   // Debug: Check if relationship methods were generated
-  logger.debug("org.findAllDeck type:", typeof org.findAllDeck);
-  logger.debug("org.connectionForDeck type:", typeof org.connectionForDeck);
+  logger.debug("org.findAllDecks type:", typeof org.findAllDecks);
+  logger.debug("org.connectionForDecks type:", typeof org.connectionForDecks);
 
   // Initially should have demo deck (auto-created in afterCreate lifecycle)
-  const initialDecks = await org.findAllDeck();
+  const initialDecks = await org.findAllDecks();
   logger.debug("Initial decks count:", initialDecks.length);
   assertEquals(initialDecks.length >= 0, true); // At least 0 decks (demo deck may or may not be created)
 
@@ -70,14 +71,14 @@ Deno.test("GraphQL Relationships - Organization → Decks (many)", async () => {
     slug: "test-deck-1",
     description: "First test deck",
     content: "Test deck content 1",
-  }, { role: "deck" }); // Specify the relationship role
+  }, { role: "decks" }); // Specify the relationship role
 
   const deck2 = await org.createTargetNode(BfDeck, {
     name: "Test Deck 2",
     slug: "test-deck-2",
     description: "Second test deck",
     content: "Test deck content 2",
-  }, { role: "deck" }); // Specify the relationship role
+  }, { role: "decks" }); // Specify the relationship role
 
   logger.debug("Created deck1:", deck1.id, deck1.props);
   logger.debug("Created deck2:", deck2.id, deck2.props);
@@ -86,13 +87,13 @@ Deno.test("GraphQL Relationships - Organization → Decks (many)", async () => {
   assertInstanceOf(deck2, BfDeck);
 
   // Now should have initial decks + 2 created
-  const allDecks = await org.findAllDeck();
+  const allDecks = await org.findAllDecks();
   logger.debug("All decks after creation:", allDecks.length);
   const expectedCount = initialDecks.length + 2;
   assertEquals(allDecks.length, expectedCount);
 
   // Test the GraphQL connection
-  const connection = await org.connectionForDeck({ first: 10 });
+  const connection = await org.connectionForDecks({ first: 10 });
 
   // Verify connection structure
   assertEquals(typeof connection, "object");
@@ -119,10 +120,10 @@ Deno.test("GraphQL Relationships - Connection with pagination", async () => {
   });
 
   // Get total deck count first
-  const totalDecks = await org.findAllDeck();
+  const totalDecks = await org.findAllDecks();
 
   // Test pagination with first: 1
-  const limitedConnection = await org.connectionForDeck({ first: 1 });
+  const limitedConnection = await org.connectionForDecks({ first: 1 });
 
   // Should limit to 1 edge if there are any decks
   if (totalDecks.length > 0) {
@@ -150,7 +151,7 @@ Deno.test("GraphQL Relationships - Deck → Graders (many)", async () => {
     slug: "test-deck-graders",
     description: "Deck for testing grader relationships",
     content: "Test deck content for graders",
-  }, { role: "deck" }) as WithRelationships<typeof BfDeck>;
+  }, { role: "decks" }) as WithRelationships<typeof BfDeck>;
 
   // Verify the many relationship methods were generated
   assertEquals(typeof deck.findAllGrader, "function");
@@ -209,4 +210,91 @@ Deno.test("GraphQL Relationships - Deck → Graders (many)", async () => {
     graderTexts.includes("Assess tone and professionalism of the response"),
     true,
   );
+});
+
+Deno.test("GraphQL Relationships - Deck → Samples (many)", async () => {
+  const cv = CurrentViewer.__DANGEROUS_USE_IN_SCRIPTS_ONLY__createLoggedIn(
+    import.meta,
+    "test@example.com",
+    "deck-samples-org",
+  );
+
+  // Create organization and deck
+  const org = await BfOrganization.__DANGEROUS__createUnattached(cv, {
+    name: "Samples Test Org",
+    domain: "samples.com",
+  });
+
+  const deck = await org.createTargetNode(BfDeck, {
+    name: "Test Deck with Samples",
+    slug: "test-deck-samples",
+    description: "Deck for testing sample relationships",
+    content: "Test deck content for samples",
+  }, { role: "decks" }) as WithRelationships<typeof BfDeck>;
+
+  // Verify the many relationship methods were generated
+  assertEquals(typeof deck.findAllSample, "function");
+  assertEquals(typeof deck.connectionForSample, "function");
+
+  // Initially should have no samples
+  const initialSamples = await deck.findAllSample();
+  assertEquals(initialSamples.length, 0);
+
+  // Create samples using the relationship method with edge role
+  const sample1 = await deck.createTargetNode(BfSample, {
+    completionData: {
+      id: "test-1",
+      object: "chat.completion",
+      created: Date.now(),
+      model: "gpt-4",
+      choices: [{
+        index: 0,
+        message: { role: "assistant", content: "Sample response 1" },
+        finish_reason: "stop",
+      }],
+      messages: [{ role: "user", content: "Test prompt 1" }],
+    },
+    collectionMethod: "manual",
+    name: "Test Sample 1",
+  }, { role: "sample" });
+
+  const sample2 = await deck.createTargetNode(BfSample, {
+    completionData: {
+      id: "test-2",
+      object: "chat.completion",
+      created: Date.now(),
+      model: "gpt-4",
+      choices: [{
+        index: 0,
+        message: { role: "assistant", content: "Sample response 2" },
+        finish_reason: "stop",
+      }],
+      messages: [{ role: "user", content: "Test prompt 2" }],
+    },
+    collectionMethod: "telemetry",
+    name: "Test Sample 2",
+  }, { role: "sample" });
+
+  assertInstanceOf(sample1, BfSample);
+  assertInstanceOf(sample2, BfSample);
+
+  // Now should have 2 samples
+  const allSamples = await deck.findAllSample();
+  assertEquals(allSamples.length, 2);
+
+  // Test the GraphQL connection
+  const connection = await deck.connectionForSample({ first: 10 });
+
+  // Verify connection structure
+  assertEquals(typeof connection, "object");
+  assertEquals(Array.isArray(connection.edges), true);
+  assertEquals(typeof connection.pageInfo, "object");
+  assertEquals(connection.edges.length, 2);
+
+  // Verify the samples in the connection match what we created
+  const sampleNames = connection.edges.map((
+    edge: { node: { props: { name: string } } },
+  ) => edge.node.props.name).sort();
+  assertEquals(sampleNames.includes("Test Sample 1"), true);
+  assertEquals(sampleNames.includes("Test Sample 2"), true);
 });

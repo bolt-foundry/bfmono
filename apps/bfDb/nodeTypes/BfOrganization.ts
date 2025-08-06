@@ -8,7 +8,7 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
       .string("domain")
       .connection("decks", () => BfDeck, {
         resolve: async (org, args) => {
-          return await org.connectionForDeck(args);
+          return await org.connectionForDecks(args);
         },
       })
     // Removing the members relationship for now to focus on 1:1
@@ -17,7 +17,7 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
     node
       .string("name")
       .string("domain")
-      .many("deck", () => BfDeck)
+      .many("decks", () => BfDeck)
   );
 
   /**
