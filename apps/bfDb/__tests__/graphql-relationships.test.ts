@@ -2,8 +2,10 @@ import { assertEquals, assertInstanceOf } from "@std/assert";
 import { CurrentViewer } from "@bfmono/apps/bfDb/classes/CurrentViewer.ts";
 import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
+import { BfGrader } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfGrader.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import type { BfGid } from "@bfmono/lib/types.ts";
+import type { WithRelationships } from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
 
 const logger = getLogger(import.meta);
 
@@ -128,4 +130,83 @@ Deno.test("GraphQL Relationships - Connection with pagination", async () => {
   }
   assertEquals(typeof limitedConnection.pageInfo.hasNextPage, "boolean");
   assertEquals(typeof limitedConnection.pageInfo.hasPreviousPage, "boolean");
+});
+
+Deno.test("GraphQL Relationships - Deck → Graders (many)", async () => {
+  const cv = CurrentViewer.__DANGEROUS_USE_IN_SCRIPTS_ONLY__createLoggedIn(
+    import.meta,
+    "test@example.com",
+    "deck-graders-org",
+  );
+
+  // Create organization and deck
+  const org = await BfOrganization.__DANGEROUS__createUnattached(cv, {
+    name: "Graders Test Org",
+    domain: "graders.com",
+  });
+
+  const deck = await org.createTargetNode(BfDeck, {
+    name: "Test Deck with Graders",
+    slug: "test-deck-graders",
+    description: "Deck for testing grader relationships",
+    content: "Test deck content for graders",
+  }, { role: "deck" }) as WithRelationships<typeof BfDeck>;
+
+  // Verify the many relationship methods were generated
+  assertEquals(typeof deck.findAllGrader, "function");
+  assertEquals(typeof deck.connectionForGrader, "function");
+
+  logger.debug("deck.findAllGrader type:", typeof deck.findAllGrader);
+  logger.debug(
+    "deck.connectionForGrader type:",
+    typeof deck.connectionForGrader,
+  );
+
+  // Initially should have no graders
+  const initialGraders = await deck.findAllGrader();
+  logger.debug("Initial graders count:", initialGraders.length);
+  assertEquals(initialGraders.length, 0);
+
+  // Create graders using the relationship method with edge role
+  const grader1 = await deck.createTargetNode(BfGrader, {
+    graderText: "Evaluate response accuracy and completeness",
+  }, { role: "grader" });
+
+  const grader2 = await deck.createTargetNode(BfGrader, {
+    graderText: "Assess tone and professionalism of the response",
+  }, { role: "grader" });
+
+  logger.debug("Created grader1:", grader1.id, grader1.props);
+  logger.debug("Created grader2:", grader2.id, grader2.props);
+
+  assertInstanceOf(grader1, BfGrader);
+  assertInstanceOf(grader2, BfGrader);
+
+  // Now should have 2 graders
+  const allGraders = await deck.findAllGrader();
+  logger.debug("All graders after creation:", allGraders.length);
+  assertEquals(allGraders.length, 2);
+
+  // Test the GraphQL connection
+  const connection = await deck.connectionForGrader({ first: 10 });
+
+  // Verify connection structure
+  assertEquals(typeof connection, "object");
+  assertEquals(Array.isArray(connection.edges), true);
+  assertEquals(typeof connection.pageInfo, "object");
+  assertEquals(connection.edges.length, 2);
+
+  // Verify the graders in the connection match what we created
+  const graderTexts = connection.edges.map((
+    edge: { node: { props: { graderText: string } } },
+  ) => edge.node.props.graderText)
+    .sort();
+  assertEquals(
+    graderTexts.includes("Evaluate response accuracy and completeness"),
+    true,
+  );
+  assertEquals(
+    graderTexts.includes("Assess tone and professionalism of the response"),
+    true,
+  );
 });

@@ -1,6 +1,7 @@
 import { BfNode, type InferProps } from "@bfmono/apps/bfDb/classes/BfNode.ts";
 import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { readLocalDeck } from "@bolt-foundry/bolt-foundry";
+import { BfGrader } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfGrader.ts";
 
 /**
  * BfDeck represents a deck of cards/prompts used for RLHF evaluation.
@@ -21,6 +22,11 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
       .string("content")
       .string("description")
       .nonNull.string("slug")
+      .connection("graders", () => BfGrader, {
+        resolve: async (deck, args) => {
+          return await deck.connectionForGrader(args);
+        },
+      })
       .typedMutation("createDeck", {
         args: (a) =>
           a
@@ -65,6 +71,7 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
       .string("content")
       .string("description")
       .string("slug")
+      .many("grader", () => BfGrader)
   );
 
   /**
