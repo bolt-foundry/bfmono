@@ -105,6 +105,55 @@ function buildContainerArgs(
   return baseArgs;
 }
 
+async function isContainerRunning(containerName: string): Promise<boolean> {
+  try {
+    const cmd = new Deno.Command("container", {
+      args: [
+        "ps",
+        "--format",
+        "{{.Names}}",
+        "--filter",
+        `name=^${containerName}$`,
+      ],
+      stdout: "piped",
+      stderr: "null",
+    });
+
+    const result = await cmd.output();
+    if (result.success) {
+      const output = new TextDecoder().decode(result.stdout).trim();
+      return output === containerName;
+    }
+  } catch {
+    // Ignore errors
+  }
+  return false;
+}
+
+async function execInContainer(
+  containerName: string,
+  command: Array<string>,
+  interactive: boolean = true,
+): Promise<number> {
+  const execArgs = ["exec"];
+
+  if (interactive) {
+    execArgs.push("-it");
+  }
+
+  execArgs.push(containerName, ...command);
+
+  const child = new Deno.Command("container", {
+    args: execArgs,
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
+  }).spawn();
+
+  const status = await child.status;
+  return status.code;
+}
+
 async function getGithubToken(botConfig: BotConfig): Promise<string> {
   // First, check for bot-specific GitHub token if configured
   if (botConfig.githubTokenVar) {
@@ -598,10 +647,19 @@ OPTIONS:
     ui.output(`📁 Creating workspace: ${workspaceId}`);
   }
 
+  // Check if container already exists
+  const containerAlreadyExists = await isContainerRunning(workspaceId);
+
+  if (containerAlreadyExists && !reusingWorkspace) {
+    ui.output(
+      `📦 Container ${workspaceId} already exists, will join it instead of creating new one`,
+    );
+  }
+
   // Create workspace and prepare container
   const abortController = new AbortController();
 
-  const copyWorkspacePromise = reusingWorkspace
+  const copyWorkspacePromise = reusingWorkspace || containerAlreadyExists
     ? Promise.resolve()
     : (async () => {
       await Deno.mkdir(`${workspacePath}`, { recursive: true });
@@ -797,18 +855,20 @@ OPTIONS:
   })();
 
   // Wait for both operations
-  try {
-    ui.output(`⚡ Starting parallel workspace copy and container prep...`);
-    await Promise.all([copyWorkspacePromise, containerReadyPromise]);
-    ui.output(`✅ Workspace ready: ${workspaceId}`);
-  } catch (error) {
-    ui.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+  if (!containerAlreadyExists) {
     try {
-      await Deno.remove(workspacePath, { recursive: true });
-    } catch {
-      // Ignore cleanup errors
+      ui.output(`⚡ Starting parallel workspace copy and container prep...`);
+      await Promise.all([copyWorkspacePromise, containerReadyPromise]);
+      ui.output(`✅ Workspace ready: ${workspaceId}`);
+    } catch (error) {
+      ui.error(`❌ ${error instanceof Error ? error.message : String(error)}`);
+      try {
+        await Deno.remove(workspacePath, { recursive: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+      return 1;
     }
-    return 1;
   }
 
   // Setup shared directory path
@@ -846,54 +906,78 @@ OPTIONS:
     sharedPath,
   };
 
-  // Handle different execution modes
-  if (parsed.shell) {
-    const containerArgs = buildContainerArgs(containerConfig, botConfig);
-    containerArgs.push("codebot");
+  // Check if container already exists and is running
+  const containerExists = await isContainerRunning(workspaceId);
 
-    const child = new Deno.Command("container", {
-      args: containerArgs,
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    }).spawn();
+  if (containerExists) {
+    ui.output(`📦 Container ${workspaceId} is already running, joining it...`);
 
-    await child.status;
-  } else if (parsed.exec) {
-    const containerArgs = buildContainerArgs(containerConfig, botConfig);
-    containerArgs.push("codebot", "-c", parsed.exec);
-
-    if (parsed["debug-logs"]) {
-      ui.output(
-        `🔍 DEBUG: Container command: container ${containerArgs.join(" ")}`,
-      );
+    // Handle different execution modes
+    if (parsed.shell) {
+      await execInContainer(workspaceId, ["bash", "-l"]);
+    } else if (parsed.exec) {
+      await execInContainer(workspaceId, ["bash", "-c", parsed.exec], false);
+    } else {
+      // Default interactive mode - launch Claude CLI
+      await execInContainer(workspaceId, [
+        "bash",
+        "-c",
+        "claude; exec bash -l",
+      ]);
     }
-
-    const child = new Deno.Command("container", {
-      args: containerArgs,
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    }).spawn();
-
-    await child.status;
   } else {
-    // Default interactive mode - launch Claude CLI then drop to shell
-    const containerArgs = buildContainerArgs(containerConfig, botConfig);
-    containerArgs.push(
-      "codebot",
-      "-c",
-      "claude; exec bash -l",
-    );
+    // Container doesn't exist, create a new one
+    ui.output(`📦 Creating new container ${workspaceId}...`);
 
-    const child = new Deno.Command("container", {
-      args: containerArgs,
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    }).spawn();
+    // Handle different execution modes
+    if (parsed.shell) {
+      const containerArgs = buildContainerArgs(containerConfig, botConfig);
+      containerArgs.push("codebot");
 
-    await child.status;
+      const child = new Deno.Command("container", {
+        args: containerArgs,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      }).spawn();
+
+      await child.status;
+    } else if (parsed.exec) {
+      const containerArgs = buildContainerArgs(containerConfig, botConfig);
+      containerArgs.push("codebot", "-c", parsed.exec);
+
+      if (parsed["debug-logs"]) {
+        ui.output(
+          `🔍 DEBUG: Container command: container ${containerArgs.join(" ")}`,
+        );
+      }
+
+      const child = new Deno.Command("container", {
+        args: containerArgs,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      }).spawn();
+
+      await child.status;
+    } else {
+      // Default interactive mode - launch Claude CLI then drop to shell
+      const containerArgs = buildContainerArgs(containerConfig, botConfig);
+      containerArgs.push(
+        "codebot",
+        "-c",
+        "claude; exec bash -l",
+      );
+
+      const child = new Deno.Command("container", {
+        args: containerArgs,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      }).spawn();
+
+      await child.status;
+    }
   }
 
   // Cleanup or preserve workspace

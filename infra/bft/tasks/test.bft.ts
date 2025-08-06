@@ -1,3 +1,4 @@
+import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import { runShellCommand } from "@bfmono/infra/bff/shellBase.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import type { TaskDefinition } from "@bfmono/infra/bft/bft.ts";
@@ -55,6 +56,10 @@ export async function testCommand(options: Array<string>): Promise<number> {
       args: args.slice(1),
       stdout: "piped",
       stderr: "piped",
+      env: {
+        ...Deno.env.toObject(),
+        DENO_DIR: "/internalbf/bfmono/.deno",
+      },
     });
 
     const process = command.spawn();
@@ -124,7 +129,17 @@ export async function testCommand(options: Array<string>): Promise<number> {
     return result;
   } else {
     // Verbose mode: show all output
+    const originalDenoDir = getConfigurationVariable("DENO_DIR");
+    Deno.env.set("DENO_DIR", "/internalbf/bfmono/.deno");
+
     const result = await runShellCommand(args);
+
+    // Restore original DENO_DIR if it was set
+    if (originalDenoDir) {
+      Deno.env.set("DENO_DIR", originalDenoDir);
+    } else {
+      Deno.env.delete("DENO_DIR");
+    }
 
     if (result === 0) {
       logger.info("✨ All tests passed!");
