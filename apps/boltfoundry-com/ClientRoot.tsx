@@ -11,7 +11,9 @@ export interface ClientRootProps {
 }
 
 export function ClientRoot({ environment }: ClientRootProps) {
-  return <App initialPath={environment.currentPath as string} />;
+  return (
+    <App initialPath={environment.currentPath as string} {...environment} />
+  );
 }
 
 export function rehydrate(environment: Record<string, unknown>) {
@@ -59,6 +61,8 @@ if (isDev) {
           // In codebot, always enable E2E mode
           (typeof window !== "undefined" &&
             globalThis.location.hostname.includes(".codebot.local")),
+        // @ts-expect-error Development global
+        BF_ENV: globalThis.__ENVIRONMENT__?.BF_ENV || "development",
       };
       createRoot(root).render(<ClientRoot environment={devEnvironment} />);
     }

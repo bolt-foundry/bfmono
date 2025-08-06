@@ -241,6 +241,7 @@ const handler = async (request: Request): Promise<Response> => {
           "GOOGLE_OAUTH_CLIENT_ID",
         ),
         BF_E2E_MODE: getConfigurationVariable("BF_E2E_MODE") === "true",
+        BF_ENV: getConfigurationVariable("BF_ENV"),
       };
 
       // Create server-side Isograph environment

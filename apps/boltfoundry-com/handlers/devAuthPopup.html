@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Auth - Select Test User</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .container {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        width: 100%;
+      }
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 24px;
+        color: #1a73e8;
+      }
+      .subtitle {
+        color: #5f6368;
+        margin-bottom: 24px;
+        font-size: 14px;
+      }
+      .user-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .user-button {
+        background: white;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+      }
+      .user-button:hover {
+        background: #f8f9fa;
+        border-color: #1a73e8;
+      }
+      .user-name {
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 4px;
+      }
+      .user-email {
+        font-size: 14px;
+        color: #5f6368;
+      }
+      .dev-badge {
+        background: #fef7e0;
+        color: #ea8600;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Development Login</h1>
+      <div class="dev-badge">DEV MODE</div>
+      <p class="subtitle">Select a test user to continue:</p>
+
+      <div class="user-list">
+        <button
+          class="user-button"
+          onclick="selectUser('test-user-1', 'Test User', 'test@example.com')"
+        >
+          <div class="user-name">Test User</div>
+          <div class="user-email">test@example.com</div>
+        </button>
+
+        <button
+          class="user-button"
+          onclick="selectUser('test-admin-1', 'Admin User', 'admin@example.com')"
+        >
+          <div class="user-name">Admin User</div>
+          <div class="user-email">admin@example.com</div>
+        </button>
+
+        <button
+          class="user-button"
+          onclick="selectUser('test-readonly-1', 'Readonly User', 'readonly@example.com')"
+        >
+          <div class="user-name">Readonly User</div>
+          <div class="user-email">readonly@example.com</div>
+        </button>
+
+        <button
+          class="user-button"
+          onclick="selectUser('test-munch-1', 'Munch Demo User', 'munch@example.com')"
+        >
+          <div class="user-name">Munch Demo User</div>
+          <div class="user-email">munch@example.com</div>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function selectUser(userId, name, email) {
+        // Create a mock JWT-like token that includes user info
+        const mockCredential = btoa(JSON.stringify({
+          dev: true,
+          sub: userId,
+          email: email,
+          name: name,
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        }));
+
+        // Send message back to parent window
+        if (window.opener) {
+          window.opener.postMessage({
+            type: "dev-auth-response",
+            credential: mockCredential,
+          }, "*");
+
+          // Close popup after a brief delay
+          setTimeout(() => {
+            window.close();
+          }, 100);
+        }
+      }
+
+      // Close popup if user clicks outside or presses escape
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          window.close();
+        }
+      });
+    </script>
+  </body>
+</html>

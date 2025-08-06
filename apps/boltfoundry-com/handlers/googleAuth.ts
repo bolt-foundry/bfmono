@@ -30,6 +30,53 @@ export async function handleGoogleAuthRequest(
 
     logger.info("Processing Google authentication request");
 
+    // Check if this is a dev token (only in dev mode)
+    const bfEnv = getConfigurationVariable("BF_ENV");
+    if (bfEnv === "development" || bfEnv === "dev") {
+      try {
+        // Try to decode the token as base64 JSON
+        const decodedToken = atob(idToken);
+        const tokenData = JSON.parse(decodedToken);
+
+        if (tokenData.dev === true) {
+          logger.info("🔧 Detected dev auth token, using mock authentication", {
+            email: tokenData.email,
+            name: tokenData.name,
+          });
+
+          // Set mock authentication cookies for dev
+          const headers = new Headers({ "Content-Type": "application/json" });
+          headers.append(
+            "Set-Cookie",
+            `bf_access=dev-access-${tokenData.sub}; HttpOnly; SameSite=Lax; Path=/; Max-Age=900`,
+          );
+          headers.append(
+            "Set-Cookie",
+            `bf_refresh=dev-refresh-${tokenData.sub}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`,
+          );
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Dev authentication successful",
+              redirectTo: "/",
+              user: {
+                email: tokenData.email,
+                name: tokenData.name,
+              },
+            }),
+            {
+              status: 200,
+              headers,
+            },
+          );
+        }
+      } catch (_e) {
+        // Not a dev token, continue with normal flow
+        logger.debug("Token is not a dev token, continuing with Google auth");
+      }
+    }
+
     // Check if this is a test token for E2E testing (only in E2E test mode)
     if (
       idToken === "mock.jwt.token.for.testing" &&
