@@ -108,21 +108,26 @@ function buildContainerArgs(
 async function isContainerRunning(containerName: string): Promise<boolean> {
   try {
     const cmd = new Deno.Command("container", {
-      args: [
-        "ps",
-        "--format",
-        "{{.Names}}",
-        "--filter",
-        `name=^${containerName}$`,
-      ],
+      args: ["list"],
       stdout: "piped",
       stderr: "null",
     });
 
     const result = await cmd.output();
     if (result.success) {
-      const output = new TextDecoder().decode(result.stdout).trim();
-      return output === containerName;
+      const output = new TextDecoder().decode(result.stdout);
+      // Parse container list output
+      // Format: NAME    IMAGE    OS    ARCH    STATUS    IP
+      const lines = output.split("\n");
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        if (
+          parts.length >= 5 && parts[0] === containerName &&
+          parts[4] === "running"
+        ) {
+          return true;
+        }
+      }
     }
   } catch {
     // Ignore errors
