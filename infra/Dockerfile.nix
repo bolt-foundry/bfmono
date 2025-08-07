@@ -18,6 +18,9 @@ COPY flake.nix flake.lock ./
 # Pre-download dependencies (cache layer)
 RUN nix develop .#container --accept-flake-config --command echo "Dependencies cached"
 
+# Copy env example files needed for sitevar
+COPY .env.config.example .env.secrets.example ./
+
 # Copy the entire workspace
 COPY . .
 
