@@ -124,6 +124,42 @@ function findAvailablePort(defaultPort: number): number {
 }
 
 /**
+ * Check if a server is already running on common ports
+ */
+async function checkExistingServer(
+  server: ServerConfig,
+  verbose = false,
+): Promise<string | undefined> {
+  // Check multiple common ports for the server
+  const portsToCheck = [server.defaultPort];
+
+  // Add common dev server ports for boltfoundry-com
+  if (server.name === "boltfoundry-com") {
+    portsToCheck.push(8000); // Common dev server port
+  }
+
+  for (const port of portsToCheck) {
+    const url = `http://localhost:${port}`;
+    try {
+      if (verbose) {
+        logger.info(`🔍 Checking for existing ${server.name} server at ${url}`);
+      }
+      const response = await fetch(`${url}/health`);
+      if (response.ok) {
+        if (verbose) {
+          logger.info(`✅ Found existing ${server.name} server at ${url}`);
+        }
+        return url;
+      }
+    } catch {
+      // Server not running on this port, try next
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * Start a server and wait for it to be ready
  */
 async function startServer(
@@ -411,11 +447,20 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
 
       // Start all required servers (unless already specified via environment)
       for (const server of requiredServers) {
-        const existingUrl = getConfigurationVariable(server.envVar);
+        // First check if URL is explicitly set via environment variable
+        let existingUrl = getConfigurationVariable(server.envVar);
+
+        // If not explicitly set, check if server is already running
+        if (!existingUrl) {
+          existingUrl = await checkExistingServer(server, verbose);
+        }
+
         if (existingUrl) {
           logger.info(
             `🔗 Using existing ${server.name} server at ${existingUrl}`,
           );
+          // Set the environment variable so tests can access it
+          Deno.env.set(server.envVar, existingUrl);
           logger.debug(`✅ ${server.name} ready at ${existingUrl}`);
         } else {
           const serverUrl = await startServer(server, verbose);
