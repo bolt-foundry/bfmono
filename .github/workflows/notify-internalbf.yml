@@ -34,7 +34,7 @@ jobs:
             export OP_SERVICE_ACCOUNT_TOKEN=\"$OP_SERVICE_ACCOUNT_TOKEN\"
 
             # Load secrets from 1Password
-            bft sitevar sync --secret-only
+            bft sitevar sync --force
 
             # Source the secrets file to get CODEBOT_GITHUB_PAT
             source .env.secrets
