@@ -1,17 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  useHud,
-  useHudButtons,
-  useHudConsole,
-  useHudInputs,
-} from "@bfmono/apps/boltfoundry-com/contexts/HudContext.tsx";
+  useBfDsHud,
+  useBfDsHudButtons,
+  useBfDsHudConsole,
+  useBfDsHudInputs,
+} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+import { BfDsToggle } from "@bfmono/apps/bfDs/components/BfDsToggle.tsx";
 
-export function HudExample() {
-  const { addButton, removeButton } = useHudButtons();
-  const { sendMessage } = useHudConsole();
-  const { getInputs } = useHudInputs();
-  const { showHud, hideHud, isVisible } = useHud();
+export function BfDsHudExample() {
+  const { addButton, removeButton } = useBfDsHudButtons();
+  const { sendMessage } = useBfDsHudConsole();
+  const { getInputs } = useBfDsHudInputs();
+  const { showHud, hideHud, isVisible } = useBfDsHud();
+
+  // State for toggle examples
+  const [debugMode, setDebugMode] = useState(false);
+  const [apiEnabled, setApiEnabled] = useState(true);
 
   useEffect(() => {
     // Add example buttons
@@ -66,6 +71,43 @@ export function HudExample() {
       },
     });
 
+    // Add toggleable buttons
+    addButton({
+      id: "btn-6",
+      label: "Debug Mode",
+      toggleable: true,
+      value: debugMode,
+      variant: "ghost",
+      onToggle: (newValue) => {
+        setDebugMode(newValue);
+        sendMessage(
+          `Debug mode ${newValue ? "enabled" : "disabled"}`,
+          newValue ? "success" : "info",
+        );
+      },
+      onClick: () => {
+        // Optional: Additional action on click
+      },
+    });
+
+    addButton({
+      id: "btn-7",
+      label: "API Access",
+      toggleable: true,
+      value: apiEnabled,
+      variant: "outline",
+      onToggle: (newValue) => {
+        setApiEnabled(newValue);
+        sendMessage(
+          `API access ${newValue ? "enabled" : "disabled"}`,
+          newValue ? "success" : "warning",
+        );
+      },
+      onClick: () => {
+        // Optional: Additional action on click
+      },
+    });
+
     // Cleanup function to remove buttons
     return () => {
       removeButton("btn-1");
@@ -73,8 +115,10 @@ export function HudExample() {
       removeButton("btn-3");
       removeButton("btn-4");
       removeButton("btn-5");
+      removeButton("btn-6");
+      removeButton("btn-7");
     };
-  }, [addButton, removeButton, sendMessage, getInputs]);
+  }, [addButton, removeButton, sendMessage, getInputs, debugMode, apiEnabled]);
 
   return (
     <div className="bfds-example">
@@ -87,22 +131,22 @@ export function HudExample() {
         <h3>Usage</h3>
         <pre className="bfds-example__code">
 {`// 1. First, wrap your app with HudProvider (already done in App.tsx)
-import { HudProvider } from "@bfmono/apps/boltfoundry-com/contexts/HudContext.tsx";
-import { Hud } from "@bfmono/apps/boltfoundry-com/components/Hud/Hud.tsx";
+import { BfDsHudProvider } from "@bfmono/apps/boltfoundry-com/contexts/HudContext.tsx";
+import { BfDsHud } from "@bfmono/apps/bfDs/components/BfDsHud.tsx";
 
-<HudProvider>
+<BfDsHudProvider>
   <YourApp />
-  <Hud />
-</HudProvider>
+  <BfDsHud />
+</BfDsHudProvider>
 
 // 2. Use the hooks in your components
-import { useHud, useHudButtons, useHudConsole, useHudInputs } from "@bfmono/apps/boltfoundry-com/contexts/HudContext.tsx";
+import { useBfDsHud, useBfDsHudButtons, useBfDsHudConsole, useBfDsHudInputs } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 // Show/hide the HUD
-const { showHud, hideHud, toggleHud } = useHud();
+const { showHud, hideHud, toggleHud } = useBfDsHud();
 
 // Add action buttons
-const { addButton, removeButton } = useHudButtons();
+const { addButton, removeButton } = useBfDsHudButtons();
 
 useEffect(() => {
   addButton({
@@ -119,8 +163,25 @@ useEffect(() => {
   return () => removeButton("my-action");
 }, []);
 
+// Add toggleable buttons
+const [featureEnabled, setFeatureEnabled] = useState(false);
+
+addButton({
+  id: "toggle-feature",
+  label: "Feature Flag",
+  toggleable: true,
+  value: featureEnabled,
+  onToggle: (newValue) => {
+    setFeatureEnabled(newValue);
+    sendMessage(\`Feature \${newValue ? "enabled" : "disabled"}\`, "success");
+  },
+  onClick: () => {
+    // Optional additional action
+  }
+});
+
 // Send console messages
-const { sendMessage, clearMessages } = useHudConsole();
+const { sendMessage, clearMessages } = useBfDsHudConsole();
 
 sendMessage("Operation started", "info");
 sendMessage("Success!", "success");
@@ -128,7 +189,7 @@ sendMessage("Warning: Check config", "warning");
 sendMessage("Error occurred", "error");
 
 // Access input values
-const { input1, input2, setInput1, setInput2, getInputs } = useHudInputs();
+const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHudInputs();
 
 // Read current values
 const values = getInputs(); // { input1: string, input2: string }
@@ -149,6 +210,10 @@ setInput2("auth-token-123");`}
           <li>
             <strong>Action Buttons</strong>{" "}
             - Persistent buttons on the left panel
+          </li>
+          <li>
+            <strong>Toggleable Buttons</strong>{" "}
+            - Boolean state buttons with toggleLeft/Right icons
           </li>
           <li>
             <strong>Console Messages</strong> - Message history with navigation
@@ -186,12 +251,50 @@ setInput2("auth-token-123");`}
           </BfDsButton>
         </div>
 
+        {/* State display card */}
+        <div
+          className="bfds-card"
+          style={{ marginTop: "1rem", padding: "1rem" }}
+        >
+          <h4 style={{ marginTop: 0 }}>Toggle Button States</h4>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
+            <BfDsToggle
+              label="Debug Mode"
+              checked={debugMode}
+              onChange={(checked) => {
+                setDebugMode(checked);
+                sendMessage(
+                  `Debug mode ${checked ? "enabled" : "disabled"}`,
+                  checked ? "success" : "info",
+                );
+              }}
+            />
+            <BfDsToggle
+              label="API Access"
+              checked={apiEnabled}
+              onChange={(checked) => {
+                setApiEnabled(checked);
+                sendMessage(
+                  `API access ${checked ? "enabled" : "disabled"}`,
+                  checked ? "success" : "warning",
+                );
+              }}
+            />
+          </div>
+        </div>
+
         <div style={{ marginTop: "1rem" }}>
           <h4>Try these interactions:</h4>
           <ol>
             <li>Type your name in Input 1 and click "Say Hello"</li>
             <li>Enter values in both inputs and click "Log Inputs"</li>
             <li>Test different message types with the colored buttons</li>
+            <li>
+              Toggle "Debug Mode" and "API Access" buttons to see the toggle
+              icons change
+            </li>
             <li>Navigate through message history with arrow buttons</li>
           </ol>
         </div>

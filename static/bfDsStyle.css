@@ -3427,9 +3427,6 @@ a.bfds-button:hover {
 
 /* HUD Styles */
 .hud-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
   width: 600px;
   max-width: calc(100vw - 40px);
   background: var(--bfds-background-08);
@@ -3443,18 +3440,43 @@ a.bfds-button:hover {
 }
 
 .hud-header {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--bfds-border);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-drag-handle {
+  cursor: grab;
+  padding: 0 0.5rem;
+  margin-left: -0.5rem;
+  display: flex;
+  align-items: center;
+  color: var(--bfds-text-secondary);
+  transition: color 0.15s ease;
+}
+
+.hud-drag-handle:hover {
+  color: var(--bfds-text);
+}
+
+.hud-drag-handle:active {
+  cursor: grabbing;
 }
 
 .hud-header h3 {
   margin: 0;
   font-size: 1rem;
+  flex: 1;
   font-weight: 600;
   color: var(--bfds-text);
+  cursor: grab;
+  user-select: none;
+}
+
+.hud-header h3:active {
+  cursor: grabbing;
 }
 
 .hud-body {
@@ -3486,6 +3508,10 @@ a.bfds-button:hover {
 .hud-button {
   width: 100%;
   justify-content: flex-start;
+}
+
+.hud-button--toggle {
+  /* Optional: Add any special styling for toggle buttons */
 }
 
 .hud-no-buttons {

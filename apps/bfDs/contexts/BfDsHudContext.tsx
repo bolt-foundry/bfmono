@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { ReactNode } from "react";
 
-export interface HudButton {
+export interface BfDsHudButton {
   id: string;
   label: string;
   onClick: () => void;
@@ -13,25 +13,28 @@ export interface HudButton {
     | "outline"
     | "outline-secondary"
     | "ghost-primary";
+  toggleable?: boolean;
+  value?: boolean;
+  onToggle?: (value: boolean) => void;
 }
 
-export interface HudMessage {
+export interface BfDsHudMessage {
   id: string;
   content: string;
   timestamp: number;
   type?: "info" | "success" | "warning" | "error";
 }
 
-interface HudContextType {
+interface BfDsHudContextType {
   // Button management
-  buttons: Array<HudButton>;
-  addButton: (button: HudButton) => void;
+  buttons: Array<BfDsHudButton>;
+  addButton: (button: BfDsHudButton) => void;
   removeButton: (id: string) => void;
 
   // Console messages
-  messages: Array<HudMessage>;
+  messages: Array<BfDsHudMessage>;
   currentMessageIndex: number;
-  sendMessage: (content: string, type?: HudMessage["type"]) => void;
+  sendMessage: (content: string, type?: BfDsHudMessage["type"]) => void;
   clearMessages: () => void;
   navigateMessages: (direction: "prev" | "next") => void;
 
@@ -49,22 +52,24 @@ interface HudContextType {
   getInputs: () => { input1: string; input2: string };
 }
 
-const HudContext = createContext<HudContextType | undefined>(undefined);
+const BfDsHudContext = createContext<BfDsHudContextType | undefined>(undefined);
 
-interface HudProviderProps {
+interface BfDsHudProviderProps {
   children: ReactNode;
   maxMessages?: number;
 }
 
-export function HudProvider({ children, maxMessages = 100 }: HudProviderProps) {
-  const [buttons, setButtons] = useState<Array<HudButton>>([]);
-  const [messages, setMessages] = useState<Array<HudMessage>>([]);
+export function BfDsHudProvider(
+  { children, maxMessages = 100 }: BfDsHudProviderProps,
+) {
+  const [buttons, setButtons] = useState<Array<BfDsHudButton>>([]);
+  const [messages, setMessages] = useState<Array<BfDsHudMessage>>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [input1, setInput1] = useState("");
   const [input2, setInput2] = useState("");
 
-  const addButton = useCallback((button: HudButton) => {
+  const addButton = useCallback((button: BfDsHudButton) => {
     setButtons((prev) => {
       // Check if button with this ID already exists
       const exists = prev.some((b) => b.id === button.id);
@@ -82,8 +87,8 @@ export function HudProvider({ children, maxMessages = 100 }: HudProviderProps) {
   }, []);
 
   const sendMessage = useCallback(
-    (content: string, type: HudMessage["type"] = "info") => {
-      const newMessage: HudMessage = {
+    (content: string, type: BfDsHudMessage["type"] = "info") => {
+      const newMessage: BfDsHudMessage = {
         id: `msg-${Date.now()}-${Math.random()}`,
         content,
         timestamp: Date.now(),
@@ -130,7 +135,7 @@ export function HudProvider({ children, maxMessages = 100 }: HudProviderProps) {
   const getInputs = useCallback(() => ({ input1, input2 }), [input1, input2]);
 
   return (
-    <HudContext.Provider
+    <BfDsHudContext.Provider
       value={{
         buttons,
         addButton,
@@ -152,30 +157,30 @@ export function HudProvider({ children, maxMessages = 100 }: HudProviderProps) {
       }}
     >
       {children}
-    </HudContext.Provider>
+    </BfDsHudContext.Provider>
   );
 }
 
-export function useHud() {
-  const context = useContext(HudContext);
+export function useBfDsHud() {
+  const context = useContext(BfDsHudContext);
   if (context === undefined) {
-    throw new Error("useHud must be used within a HudProvider");
+    throw new Error("useBfDsHud must be used within a BfDsHudProvider");
   }
   return context;
 }
 
 // Convenience hooks
-export function useHudButtons() {
-  const { addButton, removeButton } = useHud();
+export function useBfDsHudButtons() {
+  const { addButton, removeButton } = useBfDsHud();
   return { addButton, removeButton };
 }
 
-export function useHudConsole() {
-  const { sendMessage, clearMessages } = useHud();
+export function useBfDsHudConsole() {
+  const { sendMessage, clearMessages } = useBfDsHud();
   return { sendMessage, clearMessages };
 }
 
-export function useHudInputs() {
-  const { input1, input2, setInput1, setInput2, getInputs } = useHud();
+export function useBfDsHudInputs() {
+  const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHud();
   return { input1, input2, setInput1, setInput2, getInputs };
 }
