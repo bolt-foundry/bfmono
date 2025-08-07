@@ -4,6 +4,7 @@ import type { TaskDefinition } from "../bft.ts";
 import { ui } from "@bfmono/packages/tui/tui.ts";
 import { parseArgs } from "@std/cli";
 import { getLogger } from "@bolt-foundry/logger";
+import { debounce } from "@std/async/debounce";
 
 const logger = getLogger(import.meta);
 
@@ -50,6 +51,7 @@ Examples:
       "foreground",
       "stop",
       "restart",
+      "no-codegen", // New flag to disable automatic code generation
     ],
     string: ["port", "log-file"],
     default: {
@@ -71,6 +73,7 @@ Options:
   --log-file         Write logs to specified file instead of default tmp location
   --no-log           Disable logging to file (output to console)
   --foreground       Run in foreground instead of background (default: background)
+  --no-codegen       Disable automatic code generation (genGqlTypes and iso)
   --help             Show this help message
 
 Examples:
@@ -81,7 +84,8 @@ Examples:
   bft dev boltfoundry-com --port 4000              # Run on port 4000
   bft dev boltfoundry-com --log-file dev.log       # Log to custom file
   bft dev boltfoundry-com --foreground             # Run in foreground
-  bft dev boltfoundry-com --no-log --foreground    # Run in foreground with console output`);
+  bft dev boltfoundry-com --no-log --foreground    # Run in foreground with console output
+  bft dev boltfoundry-com --no-codegen             # Disable automatic code generation`);
     return 0;
   }
 
@@ -173,7 +177,7 @@ Examples:
   }
 
   const appPath =
-    new URL(import.meta.resolve("../../../apps/boltfoundry-com")).pathname;
+    new URL(import.meta.resolve("@bfmono/apps/boltfoundry-com")).pathname;
 
   // Check if we should run in background (default) or foreground
   const runInBackground = !flags.foreground;
@@ -186,7 +190,8 @@ Examples:
     await Deno.mkdir("tmp", { recursive: true });
 
     // Build the command to run
-    const bftPath = new URL(import.meta.resolve("../bin/bft.ts")).pathname;
+    const bftPath =
+      new URL(import.meta.resolve("@bfmono/infra/bft/bin/bft.ts")).pathname;
     const logPath = "tmp/boltfoundry-com-dev.log";
 
     // Construct the full command with nohup
@@ -299,6 +304,27 @@ Examples:
     return 0;
   }
 
+  // Set up automatic code generation watchers unless disabled
+  let schemaWatcher: Deno.FsWatcher | null = null;
+  let isoWatcher: Deno.FsWatcher | null = null;
+
+  if (!flags["no-codegen"]) {
+    const watcherMessage = "Setting up automatic code generation watchers...";
+    ui.output(watcherMessage);
+    if (logFile) {
+      const encoder = new TextEncoder();
+      await logFile.write(
+        encoder.encode(`[${new Date().toISOString()}] ${watcherMessage}\n`),
+      );
+    }
+
+    // Watch for GraphQL schema changes
+    schemaWatcher = await watchGraphQLSchema(port, logFile);
+
+    // Watch for Isograph file changes
+    isoWatcher = await watchIsographFiles(appName, port, logFile);
+  }
+
   // Start Vite dev server (always in development mode)
   const vitePort = 8080; // Fixed Vite port
 
@@ -389,14 +415,13 @@ Examples:
 
   ui.output("Vite dev server ready");
 
-  // Start the backend server in development mode
+  // Start the backend server in development mode with smart watching
   ui.output(`Starting boltfoundry-com server on http://localhost:${port}`);
 
   const serverArgs = [
     "run",
     "-A",
-    "--watch",
-    new URL(import.meta.resolve("../../../apps/boltfoundry-com/server.tsx"))
+    new URL(import.meta.resolve("@bfmono/apps/boltfoundry-com/server.tsx"))
       .pathname,
     "--port",
     String(port),
@@ -482,7 +507,26 @@ Examples:
     viteProcess.kill();
     serverProcess.kill();
     if (logFile) {
-      logFile.close();
+      try {
+        logFile.close();
+      } catch (_) {
+        // Ignore errors closing log file
+      }
+    }
+    // Clean up watchers
+    if (schemaWatcher) {
+      try {
+        schemaWatcher.close();
+      } catch (_) {
+        // Ignore errors closing watchers
+      }
+    }
+    if (isoWatcher) {
+      try {
+        isoWatcher.close();
+      } catch (_) {
+        // Ignore errors closing watchers
+      }
     }
   };
 
@@ -498,6 +542,271 @@ Examples:
   viteProcess.kill();
 
   return serverResult.success ? 0 : 1;
+}
+
+// Helper function to restart the backend server
+async function restartBackendServer(port: number) {
+  ui.output("Restarting backend server...");
+
+  // Find and kill the server process
+  const psCommand = new Deno.Command("sh", {
+    args: [
+      "-c",
+      `ps aux | grep -E 'server\\.tsx.*--port.*${port}' | grep -v grep | awk '{print $2}'`,
+    ],
+    stdout: "piped",
+  });
+
+  const psResult = await psCommand.output();
+  const pids = new TextDecoder().decode(psResult.stdout).trim().split("\n")
+    .filter(Boolean);
+
+  if (pids.length > 0) {
+    for (const pid of pids) {
+      try {
+        await new Deno.Command("kill", {
+          args: [pid],
+        }).output();
+      } catch {
+        // Process might have already exited
+      }
+    }
+
+    // Wait a moment for process to terminate
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Restart the server
+    const serverArgs = [
+      "run",
+      "-A",
+      new URL(import.meta.resolve("@bfmono/apps/boltfoundry-com/server.tsx"))
+        .pathname,
+      "--port",
+      String(port),
+      "--mode",
+      "development",
+      "--vite-port",
+      "8080",
+    ];
+
+    const serverCommand = new Deno.Command("deno", {
+      args: serverArgs,
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+
+    serverCommand.spawn();
+    ui.output("Backend server restarted successfully");
+  }
+}
+
+// Helper function to watch GraphQL schema changes
+async function watchGraphQLSchema(
+  port: number,
+  logFile?: Deno.FsFile,
+): Promise<Deno.FsWatcher> {
+  const message =
+    "Watching GraphQL schema files for automatic type generation...";
+  ui.output(message);
+  if (logFile) {
+    const encoder = new TextEncoder();
+    await logFile.write(
+      encoder.encode(`[${new Date().toISOString()}] ${message}\n`),
+    );
+  }
+
+  const debouncedGenGqlTypes = debounce(async () => {
+    ui.output("GraphQL schema changed, regenerating types...");
+
+    const bftPath =
+      new URL(import.meta.resolve("@bfmono/infra/bft/bin/bft.ts")).pathname;
+    const process = new Deno.Command("deno", {
+      args: [
+        "run",
+        "-A",
+        bftPath,
+        "genGqlTypes",
+      ],
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+
+    const child = process.spawn();
+    const status = await child.status;
+
+    if (status.success) {
+      ui.output("GraphQL types regenerated successfully");
+      // Restart the backend server to pick up new types
+      await restartBackendServer(port);
+    } else {
+      ui.error("Failed to regenerate GraphQL types");
+    }
+  }, 500);
+
+  const watchPaths: Array<string> = [];
+  try {
+    await Deno.stat("apps/bfDb/graphql");
+    watchPaths.push("apps/bfDb/graphql");
+  } catch {
+    // Directory doesn't exist, skip
+  }
+
+  try {
+    await Deno.stat("apps/bfDb/nodeTypes");
+    watchPaths.push("apps/bfDb/nodeTypes");
+  } catch {
+    // Directory doesn't exist, skip
+  }
+
+  try {
+    await Deno.stat("packages/bfDb");
+    watchPaths.push("packages/bfDb");
+  } catch {
+    // Directory doesn't exist, skip
+  }
+
+  if (watchPaths.length === 0) {
+    ui.output("No GraphQL schema directories found to watch");
+    return {
+      close: () => {},
+      [Symbol.asyncIterator]: async function* () {
+        // Empty iterator
+      },
+      [Symbol.dispose]: () => {},
+    } as Deno.FsWatcher;
+  }
+
+  const watcher = Deno.watchFs(watchPaths, { recursive: true });
+
+  (async () => {
+    for await (const event of watcher) {
+      // Log all events for debugging
+      if (logFile && event.kind !== "access") {
+        const encoder = new TextEncoder();
+        await logFile.write(
+          encoder.encode(
+            `[${
+              new Date().toISOString()
+            }] GraphQL Watcher Event: ${event.kind} - ${
+              event.paths.join(", ")
+            }\n`,
+          ),
+        );
+      }
+
+      // Only watch for GraphQL-related files
+      const relevantFiles = event.paths.filter((path) =>
+        path.endsWith(".ts") &&
+        !path.includes("__generated__") &&
+        !path.includes("node_modules") &&
+        (path.includes("schema") || path.includes("types") ||
+          path.includes("resolvers") || path.includes("nodeTypes") ||
+          path.includes("graphql"))
+      );
+
+      if (
+        relevantFiles.length > 0 &&
+        (event.kind === "modify" || event.kind === "create")
+      ) {
+        if (logFile) {
+          const encoder = new TextEncoder();
+          await logFile.write(
+            encoder.encode(
+              `[${new Date().toISOString()}] GraphQL Watcher Triggered for: ${
+                relevantFiles.join(", ")
+              }\n`,
+            ),
+          );
+        }
+        debouncedGenGqlTypes();
+      }
+    }
+  })();
+
+  return watcher;
+}
+
+// Helper function to watch Isograph files
+async function watchIsographFiles(
+  app: string,
+  port: number,
+  logFile?: Deno.FsFile,
+): Promise<Deno.FsWatcher> {
+  const message = `Watching Isograph files for automatic compilation...`;
+  ui.output(message);
+  if (logFile) {
+    const encoder = new TextEncoder();
+    await logFile.write(
+      encoder.encode(`[${new Date().toISOString()}] ${message}\n`),
+    );
+  }
+
+  const debouncedIso = debounce(async () => {
+    ui.output("Isograph files changed, recompiling...");
+
+    const bftPath =
+      new URL(import.meta.resolve("@bfmono/infra/bft/bin/bft.ts")).pathname;
+    const process = new Deno.Command("deno", {
+      args: [
+        "run",
+        "-A",
+        bftPath,
+        "iso",
+      ],
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+
+    const child = process.spawn();
+    const status = await child.status;
+
+    if (status.success) {
+      ui.output("Isograph compilation completed successfully");
+      // Restart the backend server to pick up new generated code
+      await restartBackendServer(port);
+    } else {
+      ui.error("Failed to compile Isograph files");
+    }
+  }, 500);
+
+  const watchPaths: Array<string> = [];
+  const appPath = `apps/${app}`;
+
+  try {
+    await Deno.stat(appPath);
+    watchPaths.push(appPath);
+  } catch {
+    ui.output(`App directory ${appPath} not found, skipping Isograph watch`);
+    return {
+      close: () => {},
+      [Symbol.asyncIterator]: async function* () {
+        // Empty iterator
+      },
+      [Symbol.dispose]: () => {},
+    } as Deno.FsWatcher;
+  }
+
+  const watcher = Deno.watchFs(watchPaths, { recursive: true });
+
+  (async () => {
+    for await (const event of watcher) {
+      // Watch for .iso files and component files that might contain @component
+      const relevantFiles = event.paths.filter((path) =>
+        (path.endsWith(".iso") ||
+          (path.endsWith(".tsx") && !path.includes("__generated__"))) &&
+        !path.includes("node_modules")
+      );
+
+      if (
+        relevantFiles.length > 0 &&
+        (event.kind === "modify" || event.kind === "create")
+      ) {
+        debouncedIso();
+      }
+    }
+  })();
+
+  return watcher;
 }
 
 // Export the task definition for autodiscovery
