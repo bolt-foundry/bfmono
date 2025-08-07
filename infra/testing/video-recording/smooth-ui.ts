@@ -1,5 +1,5 @@
 import type { Page } from "puppeteer-core";
-import { setCursorStyle } from "./cursor-overlay.ts";
+import { setCursorStyle } from "./cursor-overlay-page-injection.ts";
 import { smoothMoveTo } from "./smooth-mouse.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 

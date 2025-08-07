@@ -17,9 +17,9 @@ import type {
   VideoConversionResult,
 } from "../video-recording/video-converter.ts";
 import {
-  injectCursorOverlay,
+  injectCursorOverlayOnAllPages,
   removeCursorOverlay,
-} from "../video-recording/cursor-overlay.ts";
+} from "../video-recording/cursor-overlay-page-injection.ts";
 
 const logger = getLogger(import.meta);
 
@@ -346,16 +346,8 @@ export async function setupE2ETest(options: {
           timeout: 30000,
         });
 
-        // Re-inject cursor overlay after navigation since DOM gets replaced
-        try {
-          await injectCursorOverlay(page);
-          logger.debug("Cursor overlay re-injected after navigation");
-        } catch (error) {
-          logger.warn(
-            "Failed to re-inject cursor overlay after navigation:",
-            error,
-          );
-        }
+        // Note: cursor overlay is automatically re-injected after navigation
+        // by injectCursorOverlayOnAllPages using evaluateOnNewDocument
 
         // Re-inject recording throbber after navigation since DOM gets replaced
         try {
@@ -380,8 +372,10 @@ export async function setupE2ETest(options: {
 
         // Inject cursor overlay for better video visibility
         try {
-          await injectCursorOverlay(page);
-          logger.debug("Cursor overlay injected for annotated video recording");
+          await injectCursorOverlayOnAllPages(page);
+          logger.debug(
+            "Cursor overlay injected for annotated video recording with auto-persistence",
+          );
         } catch (error) {
           logger.warn("Failed to inject cursor overlay:", error);
         }

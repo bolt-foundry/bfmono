@@ -1,6 +1,9 @@
 import type { Page } from "puppeteer-core";
 import type { CursorGlobals } from "./cursor-types.ts";
-import { setCursorStyle, updateCursorPosition } from "./cursor-overlay.ts";
+import {
+  setCursorStyle,
+  updateCursorPosition,
+} from "./cursor-overlay-page-injection.ts";
 
 export async function smoothMoveTo(
   page: Page,

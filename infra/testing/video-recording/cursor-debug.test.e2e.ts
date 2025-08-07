@@ -5,11 +5,11 @@ import {
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import {
-  injectCursorOverlay,
+  injectCursorOverlayOnAllPages,
   setCursorStyle,
   showCursor,
   updateCursorPosition,
-} from "./cursor-overlay.ts";
+} from "./cursor-overlay-page-injection.ts";
 import { smoothClick, smoothMoveTo } from "./smooth-mouse.ts";
 
 const logger = getLogger(import.meta);
@@ -25,7 +25,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
 
     // Manually inject cursor overlay to debug
     logger.info("Step 2: Injecting cursor overlay");
-    await injectCursorOverlay(context.page);
+    await injectCursorOverlayOnAllPages(context.page);
 
     // Give it a moment
     await new Promise<void>((resolve) => setTimeout(resolve, 500));

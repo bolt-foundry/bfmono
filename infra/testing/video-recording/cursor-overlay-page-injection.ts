@@ -196,6 +196,31 @@ export async function ensureCursorVisible(page: Page): Promise<void> {
   });
 }
 
+export async function showCursor(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    // First ensure cursor exists
+    if (typeof (globalThis as CursorGlobals).__recreateCursor === "function") {
+      (globalThis as CursorGlobals).__recreateCursor!();
+    }
+
+    const cursor = document.getElementById("e2e-cursor-overlay");
+    if (cursor) {
+      cursor.style.display = "block";
+      cursor.style.visibility = "visible";
+      cursor.style.opacity = "1";
+    }
+  });
+}
+
+export async function hideCursor(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const cursor = document.getElementById("e2e-cursor-overlay");
+    if (cursor) {
+      cursor.style.display = "none";
+    }
+  });
+}
+
 export async function removeCursorOverlay(page: Page): Promise<void> {
   await page.evaluate(() => {
     // Clear persistence interval
