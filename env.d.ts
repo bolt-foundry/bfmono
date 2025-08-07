@@ -25,6 +25,7 @@ interface ServerEnvVars {
   readonly GOOGLE_OAUTH_CLIENT_SECRET?: string;
   readonly CODEBOT_GITHUB_PAT?: string;
   readonly JWT_SECRET?: string;
+  readonly OPENROUTER_API_KEY?: string;
 }
 
 // Environment-aware typing

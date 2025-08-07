@@ -22,8 +22,19 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/flakehub-cache-action@main
 
-      - name: Build binary
-        run: nix develop --impure --command bft compile boltfoundry-com
+      - name: Build binary and sync production env
+        run: |
+          nix develop .#production --accept-flake-config --command bash -c "
+            # Sync environment variables from vault accessible by service account
+            # The OP_SERVICE_ACCOUNT_TOKEN determines which vault is used
+            if [ -n \"${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}\" ]; then
+              bft sitevar sync --force
+            fi
+            # Build the binary
+            bft compile boltfoundry-com
+          "
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin

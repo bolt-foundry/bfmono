@@ -70,11 +70,38 @@
       # 2b.  Helpers
       ##################################################################
       # mkShellWith extras → dev-shell whose buildInputs = baseDeps ++ extras
+      # Helper function to sync sitevars if needed
+      syncSitevarsIfNeeded = { pkgs, bfRoot }:
+        ''
+          # Check if we have 1Password CLI and token
+          if command -v op >/dev/null 2>&1 && [ -n "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+            # Check if env files exist and are recent (less than 1 hour old)
+            env_refresh_needed=0
+            
+            if [ ! -f "${bfRoot}/.env.config" ] || [ ! -f "${bfRoot}/.env.secrets" ]; then
+              env_refresh_needed=1
+            else
+              # Check if files are older than 1 hour
+              if [ "$(find "${bfRoot}/.env.config" -mmin +60 2>/dev/null)" ] || \
+                 [ "$(find "${bfRoot}/.env.secrets" -mmin +60 2>/dev/null)" ]; then
+                env_refresh_needed=1
+              fi
+            fi
+            
+            if [ $env_refresh_needed -eq 1 ]; then
+              echo "🔄 Syncing environment variables from 1Password vault..."
+              echo "   (Vault determined by OP_SERVICE_ACCOUNT_TOKEN)"
+              (cd "${bfRoot}" && bft sitevar sync --force 2>/dev/null || true)
+            fi
+          fi
+        '';
+
       mkShellWith = { pkgs, system
         , extras ? [ ]
         , hookName ? "Shell"
         , env ? { }
         , shellHookExtra ? ""
+        , autoSyncSitevars ? true
         }:
       let
         baseDeps = mkBaseDeps { inherit pkgs system; };
@@ -102,10 +129,13 @@
             export INTERNALBF_ROOT="$PWD"
           fi
 
+          # Auto-sync sitevars from 1Password if enabled
+          ${if autoSyncSitevars then syncSitevarsIfNeeded { inherit pkgs; bfRoot = "$BF_ROOT"; } else ""}
+
           # Function to load env file if it exists
           load_env_if_exists() {
             if [ -f "$1" ]; then
-              echo "Loading $1..."
+              echo "📄 Loading $1..."
               set -a  # automatically export all variables
               source "$1"
               set +a
@@ -119,8 +149,13 @@
           load_env_if_exists "$BF_ROOT/.env.secrets"         # From 1Password
           load_env_if_exists "$BF_ROOT/.env.local"           # User overrides
 
+          # Only warn if we couldn't sync and files don't exist
           if [ ! -f "$BF_ROOT/.env.config" ] && [ ! -f "$BF_ROOT/.env.secrets" ]; then
-            echo "No .env.config or .env.secrets found in $BF_ROOT. Run 'bft sitevar sync' to load secrets from 1Password."
+            if [ -z "$OP_SERVICE_ACCOUNT_TOKEN" ]; then
+              echo "⚠️  No .env files found and OP_SERVICE_ACCOUNT_TOKEN not set."
+              echo "   Run 'bft sitevar sync' to load secrets from 1Password,"
+              echo "   or set OP_SERVICE_ACCOUNT_TOKEN to enable auto-sync."
+            fi
           fi
 
           ${shellHookExtra}
@@ -146,7 +181,28 @@
           # full tool-chain variants
           everything      = mkShellWith { inherit pkgs system; extras = everythingExtra; hookName = "Everything shell"; };
           replit          = mkShellWith { inherit pkgs system; extras = everythingExtra; hookName = "Replit shell"; };
-          github-actions  = mkShellWith { inherit pkgs system; extras = everythingExtra; hookName = "GitHub-Actions shell"; };
+          
+          # CI environment (vault determined by OP_SERVICE_ACCOUNT_TOKEN)
+          github-actions  = mkShellWith { 
+            inherit pkgs system; 
+            extras = everythingExtra; 
+            hookName = "GitHub-Actions shell";
+          };
+
+          # Production environment (vault determined by OP_SERVICE_ACCOUNT_TOKEN)
+          production = mkShellWith {
+            inherit pkgs system;
+            extras = everythingExtra;
+            hookName = "Production shell";
+          };
+
+          # Container environment (minimal, no auto-sync)
+          container = mkShellWith {
+            inherit pkgs system;
+            extras = everythingExtra;
+            hookName = "Container shell";
+            autoSyncSitevars = false;  # Container should have pre-baked env
+          };
 
           # legacy alias
           default         = everything;

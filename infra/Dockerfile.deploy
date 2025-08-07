@@ -17,6 +17,14 @@ RUN useradd -m -s /bin/false app
 # Create data directory if needed (some apps might require it)
 RUN mkdir -p /data && chown app:app /data
 
+# Create app directory for env files
+RUN mkdir -p /app && chown app:app /app
+WORKDIR /app
+
+# Copy environment files if they exist (optional)
+# These should be generated during CI from 1Password
+COPY --chown=app:app .env.config* .env.secrets* ./
+
 USER app
 
 # Default port (can be overridden)
@@ -25,5 +33,12 @@ EXPOSE 8000
 # Set the binary name as environment variable from build arg
 ENV BINARY_NAME=${BINARY_NAME}
 
-# Use shell form to allow variable expansion
-CMD /usr/local/bin/${BINARY_NAME}
+# Load env files if they exist, then run the binary
+CMD sh -c '\
+    if [ -f .env.config ]; then \
+        set -a; . ./.env.config; set +a; \
+    fi; \
+    if [ -f .env.secrets ]; then \
+        set -a; . ./.env.secrets; set +a; \
+    fi; \
+    exec /usr/local/bin/${BINARY_NAME}'
