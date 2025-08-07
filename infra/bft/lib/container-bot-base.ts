@@ -787,9 +787,36 @@ OPTIONS:
     // Check for container image
     ui.output("🌐 Checking for pre-built container image...");
 
+    // Try to authenticate with GitHub Container Registry using gh CLI
+    const ghAuthCmd = new Deno.Command("gh", {
+      args: ["auth", "token"],
+      stdout: "piped",
+      stderr: "null",
+    });
+
+    const ghAuthResult = await ghAuthCmd.output();
+    if (ghAuthResult.success) {
+      const token = new TextDecoder().decode(ghAuthResult.stdout).trim();
+      if (token) {
+        // Login to ghcr.io using the gh token
+        const loginCmd = new Deno.Command("sh", {
+          args: [
+            "-c",
+            `echo "${token}" | container registry login ghcr.io --username $(gh api user --jq .login) --password-stdin`,
+          ],
+          stdout: "null",
+          stderr: "null",
+        });
+        const loginResult = await loginCmd.output();
+        if (loginResult.success) {
+          ui.output("✅ Authenticated with ghcr.io");
+        }
+      }
+    }
+
     // Try to pull from GitHub Container Registry
     const pullCmd = new Deno.Command("container", {
-      args: ["pull", "ghcr.io/bolt-foundry/codebot:latest"],
+      args: ["images", "pull", "ghcr.io/bolt-foundry/bfmono/codebot:latest"],
       stdout: "null",
       stderr: "null",
       signal: abortController.signal,
@@ -802,7 +829,12 @@ OPTIONS:
 
       // Tag it as 'codebot' for local use
       const tagCmd = new Deno.Command("container", {
-        args: ["tag", "ghcr.io/bolt-foundry/codebot:latest", "codebot"],
+        args: [
+          "images",
+          "tag",
+          "ghcr.io/bolt-foundry/bfmono/codebot:latest",
+          "codebot",
+        ],
         stdout: "null",
         stderr: "null",
       });
