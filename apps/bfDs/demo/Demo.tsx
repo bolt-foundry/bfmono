@@ -25,6 +25,7 @@ import { BfDsEmptyStateExample } from "../components/__examples__/BfDsEmptyState
 import { BfDsCardExample } from "../components/__examples__/BfDsCard.example.tsx";
 import { BfDsBadgeExample } from "../components/__examples__/BfDsBadge.example.tsx";
 import { BfDsListBarExample } from "../components/__examples__/BfDsListBar.example.tsx";
+import { HudExample } from "@bfmono/apps/boltfoundry-com/components/Hud/HudExample.tsx";
 
 type ComponentSection = {
   id: string;
@@ -195,6 +196,13 @@ const componentSections: Array<ComponentSection> = [
     name: "Badge",
     description: "Small status indicators and labels with variants and actions",
     component: BfDsBadgeExample,
+    category: "Core",
+  },
+  {
+    id: "hud",
+    name: "HUD (Heads-Up Display)",
+    description: "Floating console with action buttons and message history",
+    component: HudExample,
     category: "Core",
   },
 ];

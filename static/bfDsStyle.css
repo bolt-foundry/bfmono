@@ -3424,3 +3424,201 @@ a.bfds-button:hover {
 .bfds-badge--clickable.bfds-badge--outlined.bfds-badge--info:hover {
   background: var(--bfds-info-01);
 }
+
+/* HUD Styles */
+.hud-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 600px;
+  max-width: calc(100vw - 40px);
+  background: var(--bfds-background-08);
+  border: 1px solid var(--bfds-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+}
+
+.hud-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--bfds-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hud-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bfds-text);
+}
+
+.hud-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.hud-buttons-panel {
+  width: 180px;
+  border-right: 1px solid var(--bfds-border);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.hud-buttons-panel h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bfds-text-secondary);
+}
+
+.hud-buttons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hud-button {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.hud-no-buttons {
+  color: var(--bfds-text-secondary);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.hud-console-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hud-inputs {
+  padding: 1rem;
+  border-bottom: 1px solid var(--bfds-border);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.hud-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: var(--bfds-background);
+  border: 1px solid var(--bfds-border);
+  border-radius: 4px;
+  color: var(--bfds-text);
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease;
+}
+
+.hud-input:focus {
+  outline: none;
+  border-color: var(--bfds-primary);
+}
+
+.hud-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hud-messages-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bfds-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hud-messages-header h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bfds-text-secondary);
+}
+
+.hud-messages-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.hud-message-counter {
+  font-size: 0.75rem;
+  color: var(--bfds-text-secondary);
+  padding: 0 0.5rem;
+}
+
+.hud-messages-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.hud-no-messages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--bfds-text-secondary);
+}
+
+.hud-no-messages p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+}
+
+.hud-message {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: var(--bfds-background);
+  border: 1px solid var(--bfds-border);
+}
+
+.hud-message--info {
+  border-color: var(--bfds-primary-02);
+  background: var(--bfds-primary-01);
+}
+
+.hud-message--success {
+  border-color: var(--bfds-success-02);
+  background: var(--bfds-success-01);
+}
+
+.hud-message--warning {
+  border-color: var(--bfds-warning-02);
+  background: var(--bfds-warning-01);
+}
+
+.hud-message--error {
+  border-color: var(--bfds-error-02);
+  background: var(--bfds-error-01);
+}
+
+.hud-message-body {
+  flex: 1;
+}
+
+.hud-message-content {
+  color: var(--bfds-text);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.hud-message-timestamp {
+  color: var(--bfds-text-secondary);
+  font-size: 0.75rem;
+}
