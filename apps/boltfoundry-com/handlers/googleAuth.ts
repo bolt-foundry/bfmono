@@ -59,7 +59,7 @@ export async function handleGoogleAuthRequest(
             JSON.stringify({
               success: true,
               message: "Dev authentication successful",
-              redirectTo: "/",
+              redirectTo: "/eval",
               user: {
                 email: tokenData.email,
                 name: tokenData.name,
@@ -101,7 +101,7 @@ export async function handleGoogleAuthRequest(
         JSON.stringify({
           success: true,
           message: "E2E test authentication successful",
-          redirectTo: "/",
+          redirectTo: "/eval",
         }),
         {
           status: 200,
@@ -128,7 +128,7 @@ export async function handleGoogleAuthRequest(
       JSON.stringify({
         success: true,
         message: "Authentication successful",
-        redirectTo: "/", // Redirect to home page after successful login
+        redirectTo: "/eval", // Redirect to eval page after successful login
       }),
       {
         status: 200,

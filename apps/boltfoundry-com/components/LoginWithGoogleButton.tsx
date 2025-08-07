@@ -133,8 +133,8 @@ export function LoginWithGoogleButton() {
       const result = await loginResponse.json();
       logger.info("Login successful", result);
 
-      // Redirect to dashboard or reload page
-      globalThis.location.href = "/";
+      // Redirect to the specified location from the server response
+      globalThis.location.href = result.redirectTo || "/";
     } catch (err) {
       setIsLoading(false);
       setError("Failed to sign in with Google. Please try again.");
