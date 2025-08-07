@@ -12,17 +12,27 @@ interface GradingInboxProps {
   deckId: string;
   deckName: string;
   onClose: () => void;
+  onComplete?: (gradedSampleIds: Array<string>, avgScore: number) => void;
 }
 
 export function GradingInbox({
   deckId,
   deckName,
   onClose,
+  onComplete,
 }: GradingInboxProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [gradedSampleIds, setGradedSampleIds] = useState<Array<string>>([]);
+  const [humanScores, setHumanScores] = useState<Array<number>>([]);
   const [draftGrades, setDraftGrades] = useState<
-    Record<string, Record<string, { rating: -3 | 3 | null; comment: string }>>
+    Record<
+      string,
+      Record<
+        string,
+        { rating: -3 | -2 | -1 | 1 | 2 | 3 | null; comment: string }
+      >
+    >
   >({});
 
   // Use the Isograph hook to fetch and manage samples
@@ -112,7 +122,7 @@ export function GradingInbox({
 
   const handleHumanRatingChange = (
     graderId: string,
-    rating: -3 | 3 | null,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
   ) => {
     // Store draft grades locally
@@ -130,7 +140,7 @@ export function GradingInbox({
   const existingGrades = currentSample?.humanGrade?.grades || [];
   const currentSampleRatings: Record<
     string,
-    { rating: -3 | 3 | null; comment: string }
+    { rating: -3 | -2 | -1 | 1 | 2 | 3 | null; comment: string }
   > = {};
 
   // Populate with existing grades first
@@ -171,6 +181,12 @@ export function GradingInbox({
       // Save via GraphQL mutation
       await saveGrade(currentSample.id, gradesToSave);
 
+      // Track graded sample and scores
+      setGradedSampleIds((prev) => [...prev, currentSample.id]);
+      const avgHumanScore = gradesToSave.reduce((sum, g) => sum + g.score, 0) /
+        gradesToSave.length;
+      setHumanScores((prev) => [...prev, avgHumanScore]);
+
       // Clear draft for this sample
       setDraftGrades((prev) => {
         const updated = { ...prev };
@@ -184,11 +200,21 @@ export function GradingInbox({
       if (currentIndex < samples.length - 1) {
         setCurrentIndex((prev) => prev + 1);
       } else {
-        // All samples graded
+        // All samples graded - trigger completion callback
         logger.info("All samples graded", {
           deckId,
           completedCount: completedCount + 1,
         });
+
+        if (onComplete) {
+          const finalGradedIds = [...gradedSampleIds, currentSample.id];
+          const finalScores = [...humanScores, avgHumanScore];
+          const overallAvg = finalScores.reduce((sum, s) => sum + s, 0) /
+            finalScores.length;
+          onComplete(finalGradedIds, overallAvg);
+        } else {
+          onClose();
+        }
       }
     } catch (error) {
       logger.error("Failed to save grade", error);

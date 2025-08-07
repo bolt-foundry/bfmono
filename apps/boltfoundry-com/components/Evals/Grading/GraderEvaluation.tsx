@@ -9,7 +9,7 @@ interface GraderEvaluationProps {
     score: number;
     reason: string;
     humanGrade?: {
-      score: -3 | 3;
+      score: -3 | -2 | -1 | 1 | 2 | 3;
       comment: string;
       gradedBy: string;
       gradedAt: string;
@@ -17,10 +17,10 @@ interface GraderEvaluationProps {
   };
   onHumanRatingChange: (
     graderId: string,
-    rating: -3 | 3 | null,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
   ) => void;
-  currentRating?: { rating: -3 | 3 | null; comment: string };
+  currentRating?: { rating: -3 | -2 | -1 | 1 | 2 | 3 | null; comment: string };
 }
 
 export function GraderEvaluation(

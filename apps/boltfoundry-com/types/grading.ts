@@ -46,7 +46,7 @@ export interface GradingSample {
   humanGrade?: {
     grades: Array<{
       graderId: string;
-      score: -3 | 3;
+      score: -3 | -2 | -1 | 1 | 2 | 3;
       reason: string;
     }>;
     gradedBy: string;

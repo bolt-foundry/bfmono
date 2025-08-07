@@ -5,11 +5,11 @@ import { BfDsTextArea } from "@bfmono/apps/bfDs/components/BfDsTextArea.tsx";
 interface GraderHumanRatingProps {
   graderId: string;
   graderName: string;
-  initialRating?: -3 | 3 | null;
+  initialRating?: -3 | -2 | -1 | 1 | 2 | 3 | null;
   initialComment?: string;
   onRatingChange: (
     graderId: string,
-    rating: -3 | 3 | null,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
   ) => void;
 }
@@ -21,7 +21,9 @@ export function GraderHumanRating({
   initialComment = "",
   onRatingChange,
 }: GraderHumanRatingProps) {
-  const [selectedScore, setSelectedScore] = useState<-3 | 3 | null>(
+  const [selectedScore, setSelectedScore] = useState<
+    -3 | -2 | -1 | 1 | 2 | 3 | null
+  >(
     initialRating,
   );
   const [comment, setComment] = useState(initialComment);
@@ -32,7 +34,7 @@ export function GraderHumanRating({
     setComment(initialComment);
   }, [initialRating, initialComment, graderId]);
 
-  const handleScoreSelect = (score: -3 | 3) => {
+  const handleScoreSelect = (score: -3 | -2 | -1 | 1 | 2 | 3) => {
     const newScore = selectedScore === score ? null : score;
     setSelectedScore(newScore);
     onRatingChange(graderId, newScore, comment);
@@ -55,9 +57,44 @@ export function GraderHumanRating({
           size="small"
           onClick={() => handleScoreSelect(-3)}
           className="human-rating-button negative"
-          icon={selectedScore === -3 ? "thumbDownSolid" : "thumbDown"}
         >
           <span>-3</span>
+        </BfDsButton>
+
+        <BfDsButton
+          variant={selectedScore === -2 ? "primary" : "outline"}
+          size="small"
+          onClick={() => handleScoreSelect(-2)}
+          className="human-rating-button negative"
+        >
+          <span>-2</span>
+        </BfDsButton>
+
+        <BfDsButton
+          variant={selectedScore === -1 ? "primary" : "outline"}
+          size="small"
+          onClick={() => handleScoreSelect(-1)}
+          className="human-rating-button negative"
+        >
+          <span>-1</span>
+        </BfDsButton>
+
+        <BfDsButton
+          variant={selectedScore === 1 ? "primary" : "outline"}
+          size="small"
+          onClick={() => handleScoreSelect(1)}
+          className="human-rating-button positive"
+        >
+          <span>+1</span>
+        </BfDsButton>
+
+        <BfDsButton
+          variant={selectedScore === 2 ? "primary" : "outline"}
+          size="small"
+          onClick={() => handleScoreSelect(2)}
+          className="human-rating-button positive"
+        >
+          <span>+2</span>
         </BfDsButton>
 
         <BfDsButton
@@ -65,7 +102,6 @@ export function GraderHumanRating({
           size="small"
           onClick={() => handleScoreSelect(3)}
           className="human-rating-button positive"
-          icon={selectedScore === 3 ? "thumbUpSolid" : "thumbUp"}
         >
           <span>+3</span>
         </BfDsButton>

@@ -1,7 +1,7 @@
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useEffect, useRef } from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
-import { GradingInbox } from "../Grading/GradingInbox.tsx";
+import { GradingContainer } from "../Grading/GradingContainer.tsx";
 
 export function RightSidebar() {
   const {
@@ -106,7 +106,7 @@ export function RightSidebar() {
       <div className={sidebarClass}>
         {rightSidebarMode === "grading" && gradingDeckId && gradingDeckName
           ? (
-            <GradingInbox
+            <GradingContainer
               deckId={gradingDeckId}
               deckName={gradingDeckName}
               onClose={exitGrading}

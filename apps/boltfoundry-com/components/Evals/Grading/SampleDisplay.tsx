@@ -11,17 +11,20 @@ interface SampleDisplayProps {
   displaySchema?: unknown; // TODO: Use DeckDisplaySchema when available
   onHumanRatingChange: (
     graderId: string,
-    rating: -3 | 3 | null,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
   ) => void;
-  currentRatings?: Record<string, { rating: -3 | 3 | null; comment: string }>;
+  currentRatings?: Record<
+    string,
+    { rating: -3 | -2 | -1 | 1 | 2 | 3 | null; comment: string }
+  >;
 }
 
 export function SampleDisplay(
   { sample, displaySchema, onHumanRatingChange, currentRatings = {} }:
     SampleDisplayProps,
 ) {
-  const [showRawJson, setShowRawJson] = useState(false);
+  const [showRawJson, setShowRawJson] = useState(true);
 
   // Extract the final assistant response
   const finalResponse = sample.response.body?.choices?.[0]?.message?.content;

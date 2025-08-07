@@ -1,0 +1,239 @@
+import { useEffect, useState } from "react";
+import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
+import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
+import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
+import { getLogger } from "@bfmono/packages/logger/logger.ts";
+
+const logger = getLogger(import.meta);
+
+interface GradingSamplesListProps {
+  deckId: string;
+  deckName: string;
+  onStartGrading: () => void;
+  onViewSample: (sample: GradingSample) => void;
+  justCompletedIds?: Array<string>;
+  completionSummary?: {
+    totalGraded: number;
+    averageScore: number;
+  };
+}
+
+// Generate mock historical samples
+function generateMockHistoricalSamples(count: number): Array<GradingSample> {
+  const samples: Array<GradingSample> = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const timestamp = new Date(now - (i + 1) * 86400000).toISOString(); // Days ago
+    samples.push({
+      id: `historical-${i + 1}`,
+      timestamp,
+      provider: ["gpt-4", "claude-3", "gpt-3.5-turbo"][i % 3],
+      duration: Math.floor(Math.random() * 2000) + 500,
+      request: {
+        body: {
+          messages: [
+            { role: "user", content: `Historical prompt ${i + 1}` },
+          ],
+        },
+      },
+      response: {
+        body: {
+          choices: [{
+            message: {
+              content: {
+                result: `Historical response ${i + 1}`,
+                score: Math.random(),
+              },
+            },
+          }],
+        },
+      },
+      graderEvaluations: [
+        {
+          graderId: "grader-1",
+          graderName: "Accuracy Grader",
+          score: [-3, -2, -1, 1, 2, 3][Math.floor(Math.random() * 6)],
+          reason: "Historical evaluation",
+        },
+      ],
+      humanGrade: {
+        grades: [{
+          graderId: "grader-1",
+          score: [-3, -2, -1, 1, 2, 3][Math.floor(Math.random() * 6)] as
+            | -3
+            | -2
+            | -1
+            | 1
+            | 2
+            | 3,
+          reason: "Historical human grade",
+        }],
+        gradedBy: "user123",
+        gradedAt: timestamp,
+      },
+      bfMetadata: {
+        deckName: "Test Deck",
+        deckContent: "Sample deck content",
+        contextVariables: {},
+      },
+    });
+  }
+
+  return samples;
+}
+
+export function GradingSamplesList({
+  deckId,
+  deckName,
+  onStartGrading,
+  onViewSample,
+  justCompletedIds = [],
+  completionSummary,
+}: GradingSamplesListProps) {
+  const [loading, setLoading] = useState(true);
+  const [gradedSamples, setGradedSamples] = useState<Array<GradingSample>>([]);
+  const [ungradedCount, setUngradedCount] = useState(0);
+
+  useEffect(() => {
+    // Simulate loading samples
+    logger.info("Loading samples list for deck", { deckId });
+    setLoading(true);
+
+    setTimeout(() => {
+      // Generate mock data
+      const historicalSamples = generateMockHistoricalSamples(10);
+      setGradedSamples(historicalSamples);
+      setUngradedCount(Math.floor(Math.random() * 5) + 3); // 3-7 ungraded samples
+      setLoading(false);
+    }, 500);
+  }, [deckId]);
+
+  if (loading) {
+    return (
+      <div className="grading-samples-list grading-loading">
+        <div className="grading-header">
+          <h2>Loading samples for {deckName}...</h2>
+        </div>
+        <div className="grading-loading-content">
+          <BfDsSpinner size={48} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grading-samples-list">
+      <div className="grading-header">
+        <h2>{deckName} - Grading Overview</h2>
+      </div>
+
+      {/* Completion summary callout */}
+      {completionSummary && (
+        <div className="grading-summary-callout success">
+          <BfDsIcon name="checkCircle" size="medium" />
+          <div className="callout-content">
+            <h3>Grading Session Complete!</h3>
+            <p>
+              You graded {completionSummary.totalGraded}{" "}
+              samples with an average human score of{" "}
+              {completionSummary.averageScore > 0 ? "+" : ""}
+              {completionSummary.averageScore.toFixed(1)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Ungraded samples callout */}
+      {ungradedCount > 0 && !completionSummary && (
+        <div className="grading-summary-callout">
+          <BfDsIcon name="bell" size="medium" />
+          <div className="callout-content">
+            <h3>{ungradedCount} New Samples to Grade</h3>
+            <p>New samples are ready for human evaluation</p>
+          </div>
+          <BfDsButton
+            variant="primary"
+            onClick={onStartGrading}
+            icon="play"
+          >
+            Start Grading
+          </BfDsButton>
+        </div>
+      )}
+
+      <div className="samples-list-section">
+        <h3>Graded Samples History</h3>
+        <div className="samples-list">
+          {gradedSamples.map((sample) => {
+            const isJustCompleted = justCompletedIds.includes(sample.id);
+            const avgScore = (sample.graderEvaluations?.reduce(
+              (sum, e) => sum + e.score,
+              0,
+            ) || 0) / (sample.graderEvaluations?.length || 1);
+
+            return (
+              <div
+                key={sample.id}
+                className={`sample-list-item ${
+                  isJustCompleted ? "sample-list-item--starred" : ""
+                }`}
+                onClick={() => onViewSample(sample)}
+              >
+                {isJustCompleted && (
+                  <BfDsIcon
+                    name="star"
+                    size="small"
+                    className="star-indicator"
+                  />
+                )}
+                <div className="sample-info">
+                  <div className="sample-timestamp">
+                    {new Date(sample.timestamp).toLocaleString()}
+                  </div>
+                  <div className="sample-meta">
+                    <span className="provider">{sample.provider}</span>
+                    <span className="duration">{sample.duration}ms</span>
+                  </div>
+                </div>
+                <div className="sample-scores">
+                  <div className="ai-score">
+                    <span className="score-label">AI:</span>
+                    <span
+                      className={`score-value ${
+                        avgScore >= 2
+                          ? "positive"
+                          : avgScore <= -2
+                          ? "negative"
+                          : "neutral"
+                      }`}
+                    >
+                      {avgScore > 0 ? "+" : ""}
+                      {avgScore.toFixed(1)}
+                    </span>
+                  </div>
+                  {sample.humanGrade && (
+                    <div className="human-score">
+                      <span className="score-label">Human:</span>
+                      <span
+                        className={`score-value ${
+                          sample.humanGrade.grades[0].score > 0
+                            ? "positive"
+                            : "negative"
+                        }`}
+                      >
+                        {sample.humanGrade.grades[0].score > 0 ? "+" : ""}
+                        {sample.humanGrade.grades[0].score}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

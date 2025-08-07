@@ -10,7 +10,9 @@ interface UseGradingSamplesResult {
   error: string | null;
   saveGrade: (
     sampleId: string,
-    grades: Array<{ graderId: string; score: -3 | 3; reason: string }>,
+    grades: Array<
+      { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
+    >,
   ) => Promise<void>;
   saving: boolean;
 }
@@ -36,34 +38,8 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
           "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
         );
 
-        // Simulate some samples having existing human grades
-        const samplesWithGrades = mockGradingSamples.map((sample, index) => {
-          if (index === 0) {
-            // First sample already has grades
-            return {
-              ...sample,
-              humanGrade: {
-                grades: [
-                  {
-                    graderId: "grader-1",
-                    score: 3 as const,
-                    reason: "Accurate JSON conversion",
-                  },
-                  {
-                    graderId: "grader-2",
-                    score: 3 as const,
-                    reason: "All data preserved correctly",
-                  },
-                ],
-                gradedBy: "user-123",
-                gradedAt: new Date().toISOString(),
-              },
-            };
-          }
-          return sample;
-        });
-
-        setSamples(samplesWithGrades);
+        // All samples start ungraded
+        setSamples(mockGradingSamples);
         setLoading(false);
       } catch (err) {
         logger.error("Failed to fetch samples", err);
@@ -75,7 +51,9 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
 
   const saveGrade = async (
     sampleId: string,
-    grades: Array<{ graderId: string; score: -3 | 3; reason: string }>,
+    grades: Array<
+      { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
+    >,
   ) => {
     logger.info("Saving grade", { sampleId, grades });
     setSaving(true);
