@@ -112,9 +112,10 @@ COPY bfmono/flake.nix bfmono/flake.lock /internalbf/bfmono/
 WORKDIR /internalbf/bfmono
 
 # Install development tools from flake (includes gh, deno, sapling, etc.)
+# Install as root but make available system-wide
 RUN nix profile install .#codebot-env --accept-flake-config
 
-# Install Claude CLI globally
+# Install Claude CLI globally (as root, before user switch)
 RUN npm install -g @anthropic-ai/claude-code
 
 # Verify Chrome/Chromium installation
