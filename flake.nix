@@ -55,6 +55,7 @@
           pkgs.nettools
           pkgs.ripgrep
           pkgs.fd
+          pkgs.lsof
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
           # containerTool
