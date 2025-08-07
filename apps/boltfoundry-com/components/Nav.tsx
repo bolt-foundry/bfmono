@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { BfLogo } from "@bfmono/apps/cfDs/static/BfLogo.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+import { useBfDsHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 type Props = {
   page?: string;
@@ -12,6 +13,10 @@ type Props = {
 export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
   const [hoverLogo, setHoverLogo] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const { isVisible: hudOpen, toggleHud } = useBfDsHud();
+
+  // Temporary organization variable - replace with actual user org check
+  const organization = "boltfoundry";
 
   const NavButtons = () => {
     return (
@@ -104,7 +109,7 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
         )}
       </div>
       <div className="landing-content flexRow gapLarge">
-        <div className="flex1 flexRow alignItemsCenter">
+        <div className="flex1 flexRow alignItemsCenter gapMedium">
           <a
             className="header-logo clickable"
             href="/"
@@ -119,6 +124,13 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
               height={24}
             />
           </a>
+          {organization === "boltfoundry" && (
+            <BfDsButton
+              variant={hudOpen ? "primary" : "ghost"}
+              icon="hud"
+              onClick={toggleHud}
+            />
+          )}
         </div>
         <div className="mobile-hide">
           <nav className="alignItemsCenter flexRow gapLarge header-nav">
