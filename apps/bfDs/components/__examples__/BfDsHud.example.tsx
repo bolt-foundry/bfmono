@@ -316,14 +316,21 @@ addButton({
 });
 
 // Debugging Tools
+const [featureEnabled, setFeatureEnabled] = useState(false);
+
 addButton({
   id: "toggle-feature",
   label: "Toggle Feature",
-  icon: "toggleLeft",
-  onClick: () => {
+  toggleable: true,
+  value: featureEnabled,
+  onToggle: (newValue) => {
     const { input1: userId, input2: featureFlag } = getInputs();
-    sendMessage(\`Toggling \${featureFlag} for user \${userId}\`, "success");
-    // Toggle feature flag
+    setFeatureEnabled(newValue);
+    sendMessage(\`\${newValue ? "Enabled" : "Disabled"} \${featureFlag} for user \${userId}\`, "success");
+    // Toggle feature flag implementation here
+  },
+  onClick: () => {
+    // Optional additional action on click
   }
 });
 
