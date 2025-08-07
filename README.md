@@ -137,6 +137,23 @@ We offer credit-based pricing for customer success services:
 - **[Project Status](memos/guides/STATUS.md)** - Current project status and
   priorities
 
+## Licensing
+
+This repository is **public** so you can explore and understand how Bolt Foundry
+works. However, it is **not open source** at this time.
+
+- **License:** All rights reserved by Content Foundry, Inc.
+- You may **view** the code and use it for **reference**.
+- You may **not** copy, modify, redistribute, or use this code in any other way
+  without written permission.
+
+We are currently **evaluating our long-term licensing strategy**. In the future,
+we may adopt an open source or source-available license such as the Business
+Source License (BSL), Apache License 2.0, or similar, to balance transparency
+with sustainability.
+
+Older versions released under future licenses will remain under those licenses.
+
 ---
 
 **Contact**: Ready to improve your AI through customer success? Email us at
