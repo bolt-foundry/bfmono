@@ -60,17 +60,13 @@ export async function injectPersistentCursorOverlay(page: Page): Promise<void> {
     createCursor();
 
     // Re-inject cursor periodically to ensure persistence
-    const persistenceInterval = setInterval(() => {
+    setInterval(() => {
       const cursor = document.getElementById("e2e-cursor-overlay");
       if (!cursor || cursor.style.display === "none") {
         // Cursor missing, recreating
         createCursor();
       }
     }, 300); // Check every 300ms for faster recovery
-
-    // Store interval globally so we can clear it later
-    (globalThis as CursorGlobals).__cursorPersistenceInterval =
-      persistenceInterval;
 
     // Re-inject cursor when DOM changes (navigation, etc.)
     const observer = new MutationObserver((_mutations) => {
@@ -208,11 +204,7 @@ export async function setPersistentCursorStyle(
 
 export async function removePersistentCursorOverlay(page: Page): Promise<void> {
   await page.evaluate(() => {
-    // Clear persistence interval
-    if ((globalThis as CursorGlobals).__cursorPersistenceInterval) {
-      clearInterval((globalThis as CursorGlobals).__cursorPersistenceInterval!);
-      delete (globalThis as CursorGlobals).__cursorPersistenceInterval;
-    }
+    // Note: persistence interval cannot be cleared as it's not stored globally
 
     // Disconnect observer
     if ((globalThis as CursorGlobals).__cursorObserver) {

@@ -5,7 +5,6 @@ export interface CursorGlobals {
   __mousePosition?: { x: number; y: number };
   __recreateCursor?: () => HTMLElement;
   __updateCursorPosition?: () => void;
-  __cursorPersistenceInterval?: number;
   __cursorObserver?: MutationObserver;
 }
 

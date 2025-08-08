@@ -40,22 +40,26 @@ const CURSOR_SCRIPT = `
     // Store cursor element globally
     window.__e2eCursor = cursor;
 
-    // Initialize cursor in center of viewport
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    cursor.style.left = centerX + "px";
-    cursor.style.top = centerY + "px";
+    // Initialize cursor at last known position or center of viewport
+    const lastPosition = window.__mousePosition || { 
+      x: window.innerWidth / 2, 
+      y: window.innerHeight / 2 
+    };
+    cursor.style.left = lastPosition.x + "px";
+    cursor.style.top = lastPosition.y + "px";
 
-    // Store current mouse position globally
-    window.__mousePosition = { x: centerX, y: centerY };
+    // Store current mouse position globally if not already stored
+    if (!window.__mousePosition) {
+      window.__mousePosition = { x: lastPosition.x, y: lastPosition.y };
+    }
 
     // E2E Cursor created and positioned
     return cursor;
   }
 
-  // Track mouse position
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
+  // Track mouse position - use last known position or center
+  let mouseX = window.__mousePosition ? window.__mousePosition.x : window.innerWidth / 2;
+  let mouseY = window.__mousePosition ? window.__mousePosition.y : window.innerHeight / 2;
 
   document.addEventListener("mousemove", (e) => {
     mouseX = e.clientX;
@@ -81,26 +85,63 @@ const CURSOR_SCRIPT = `
   // Create initial cursor
   createCursor();
 
-  // Re-inject cursor periodically to ensure persistence
-  const persistenceInterval = setInterval(() => {
+  // Monitor for cursor removal and recreate only when needed
+  const observer = new MutationObserver((mutations) => {
     const cursor = document.getElementById("e2e-cursor-overlay");
-    if (!cursor || cursor.style.display === "none") {
-      // Cursor missing, recreating
+    if (!cursor) {
+      // Cursor was removed, recreate it
       createCursor();
+      // Update to current position after recreation
+      if (window.__mousePosition) {
+        const newCursor = document.getElementById("e2e-cursor-overlay");
+        if (newCursor) {
+          newCursor.style.left = window.__mousePosition.x + "px";
+          newCursor.style.top = window.__mousePosition.y + "px";
+        }
+      }
     }
-  }, 200); // Check every 200ms for very fast recovery
+  });
 
-  // Store interval globally so it persists across page loads
-  window.__cursorPersistenceInterval = persistenceInterval;
+  // Observe the body for child list changes
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  // Store observer globally so it persists
+  window.__cursorObserver = observer;
 })();
 `;
 
+// Store last known mouse position in page context
+let lastKnownMousePosition: { x: number; y: number } | null = null;
+
 export async function injectCursorOverlayOnAllPages(page: Page): Promise<void> {
+  // Initialize with center position if not set
+  if (!lastKnownMousePosition) {
+    const viewport = page.viewport();
+    if (viewport) {
+      lastKnownMousePosition = {
+        x: viewport.width / 2,
+        y: viewport.height / 2,
+      };
+    } else {
+      lastKnownMousePosition = { x: 640, y: 360 }; // Default for 1280x720
+    }
+  }
+
+  // Create a modified script that includes the last known position
+  const scriptWithPosition = `
+    // Set initial mouse position from last known position
+    window.__mousePosition = ${JSON.stringify(lastKnownMousePosition)};
+    ${CURSOR_SCRIPT}
+  `;
+
   // Inject cursor script on every page load/navigation
-  await page.evaluateOnNewDocument(CURSOR_SCRIPT);
+  await page.evaluateOnNewDocument(scriptWithPosition);
 
   // Also inject immediately on the current page
-  await page.evaluate(CURSOR_SCRIPT);
+  await page.evaluate(scriptWithPosition);
 
   // Set up event listeners for page navigation
   page.on("framenavigated", (frame) => {
@@ -108,7 +149,25 @@ export async function injectCursorOverlayOnAllPages(page: Page): Promise<void> {
       // Small delay to let the page settle, then inject cursor
       setTimeout(async () => {
         try {
-          await page.evaluate(CURSOR_SCRIPT);
+          // Get current mouse position before navigation completes
+          try {
+            const currentPos = await page.evaluate(() => {
+              return (globalThis as CursorGlobals).__mousePosition;
+            });
+            if (currentPos) {
+              lastKnownMousePosition = currentPos;
+            }
+          } catch {
+            // Page might be navigating, use last known position
+          }
+
+          // Re-inject with updated position
+          const updatedScript = `
+            // Set initial mouse position from last known position
+            window.__mousePosition = ${JSON.stringify(lastKnownMousePosition)};
+            ${CURSOR_SCRIPT}
+          `;
+          await page.evaluate(updatedScript);
           // Cursor re-injected after navigation
         } catch (_error) {
           // Failed to re-inject cursor after navigation
@@ -123,6 +182,9 @@ export async function updateCursorPosition(
   x: number,
   y: number,
 ): Promise<void> {
+  // Update our stored position
+  lastKnownMousePosition = { x, y };
+
   await page.evaluate((coords) => {
     // First ensure cursor exists
     if (typeof (globalThis as CursorGlobals).__recreateCursor === "function") {
@@ -223,10 +285,10 @@ export async function hideCursor(page: Page): Promise<void> {
 
 export async function removeCursorOverlay(page: Page): Promise<void> {
   await page.evaluate(() => {
-    // Clear persistence interval
-    if ((globalThis as CursorGlobals).__cursorPersistenceInterval) {
-      clearInterval((globalThis as CursorGlobals).__cursorPersistenceInterval!);
-      delete (globalThis as CursorGlobals).__cursorPersistenceInterval;
+    // Disconnect observer
+    if ((globalThis as CursorGlobals).__cursorObserver) {
+      (globalThis as CursorGlobals).__cursorObserver!.disconnect();
+      delete (globalThis as CursorGlobals).__cursorObserver;
     }
 
     // Remove cursor element
