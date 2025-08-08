@@ -49,19 +49,26 @@ async function maybeScreenshot(
   }
 }
 
-// Add recording throbber to keep screencast active during pauses
-export async function addRecordingThrobber(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    if (document.getElementById("recording-throbber")) {
-      // Recording throbber already exists
-      return; // Already exists
+// Script to inject recording throbber on every page
+const RECORDING_THROBBER_SCRIPT = `
+  (function injectRecordingThrobber() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectRecordingThrobber);
+      return;
     }
 
-    // Creating recording throbber
+    // Skip if throbber already exists
+    if (document.getElementById("recording-throbber")) {
+      return;
+    }
 
+    // Always show throbber when this script is injected (during e2e recording)
+
+    // Create throbber element
     const throbber = document.createElement("div");
     throbber.id = "recording-throbber";
-    throbber.style.cssText = `
+    throbber.style.cssText = \`
       position: fixed;
       width: 4px;
       height: 4px;
@@ -71,10 +78,11 @@ export async function addRecordingThrobber(page: Page): Promise<void> {
       animation: recording-pulse 1s infinite;
       pointer-events: none;
       transform: translate(-50%, -50%);
-    `;
+    \`;
 
+    // Create styles
     const style = document.createElement("style");
-    style.textContent = `
+    style.textContent = \`
       @keyframes recording-pulse {
         0% {
           opacity: 0;
@@ -86,8 +94,9 @@ export async function addRecordingThrobber(page: Page): Promise<void> {
           opacity: 0;
         }
       }
-    `;
+    \`;
 
+    // Append elements
     document.head.appendChild(style);
     document.body.appendChild(throbber);
 
@@ -117,15 +126,29 @@ export async function addRecordingThrobber(page: Page): Promise<void> {
     // Also update position periodically in case cursor moves programmatically
     const positionInterval = setInterval(updateThrobberPosition, 100);
 
-    // Store cleanup function globally
-    (globalThis as unknown as { __cleanupRecordingThrobber?: () => void })
-      .__cleanupRecordingThrobber = () => {
-        document.removeEventListener("mousemove", updateThrobberPosition);
-        clearInterval(positionInterval);
-      };
+    // Store cleanup function
+    globalThis.__cleanupRecordingThrobber = () => {
+      document.removeEventListener("mousemove", updateThrobberPosition);
+      clearInterval(positionInterval);
+    };
+  })();
+`;
 
-    // Recording throbber created and attached to cursor
-  });
+// Inject recording throbber on all pages (persists across navigation)
+export async function injectRecordingThrobberOnAllPages(
+  page: Page,
+): Promise<void> {
+  // Inject the script that will run on every page load
+  await page.evaluateOnNewDocument(RECORDING_THROBBER_SCRIPT);
+
+  // Also inject immediately on current page
+  await page.evaluate(RECORDING_THROBBER_SCRIPT);
+}
+
+// Add recording throbber to keep screencast active during pauses
+export async function addRecordingThrobber(page: Page): Promise<void> {
+  // Just inject the throbber script
+  await page.evaluate(RECORDING_THROBBER_SCRIPT);
 }
 
 export async function removeRecordingThrobber(page: Page): Promise<void> {

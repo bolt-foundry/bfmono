@@ -4,7 +4,7 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import {
-  addRecordingThrobber,
+  injectRecordingThrobberOnAllPages,
   removeRecordingThrobber,
 } from "../video-recording/smooth-ui.ts";
 import {
@@ -346,19 +346,8 @@ export async function setupE2ETest(options: {
           timeout: 30000,
         });
 
-        // Note: cursor overlay is automatically re-injected after navigation
-        // by injectCursorOverlayOnAllPages using evaluateOnNewDocument
-
-        // Re-inject recording throbber after navigation since DOM gets replaced
-        try {
-          await addRecordingThrobber(page);
-          logger.debug("Recording throbber re-injected after navigation");
-        } catch (error) {
-          logger.warn(
-            "Failed to re-inject recording throbber after navigation:",
-            error,
-          );
-        }
+        // Note: both cursor overlay and recording throbber are automatically
+        // re-injected after navigation using evaluateOnNewDocument
       },
       startAnnotatedVideoRecording: async (
         name: string,
@@ -382,8 +371,8 @@ export async function setupE2ETest(options: {
 
         const session = await startScreencastRecording(page, name, videosDir);
 
-        // Start throbber for entire recording session to keep screencast active
-        await addRecordingThrobber(page);
+        // Inject throbber on all pages to persist across navigations
+        await injectRecordingThrobberOnAllPages(page);
 
         return {
           stop: async (): Promise<VideoConversionResult | null> => {
