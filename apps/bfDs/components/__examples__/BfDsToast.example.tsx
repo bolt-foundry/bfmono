@@ -1,6 +1,9 @@
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { BfDsButton } from "../BfDsButton.tsx";
-import { BfDsToastProvider, useBfDsToast } from "../BfDsToastProvider.tsx";
+import {
+  BfDsToastProvider,
+  useBfDsToast,
+} from "@bfmono/apps/bfDs/contexts/BfDsToastContext.tsx";
 
 const logger = getLogger(import.meta);
 

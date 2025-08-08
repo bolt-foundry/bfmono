@@ -1,10 +1,15 @@
 import type * as React from "react";
-import { BfDsToastProvider } from "./BfDsToastProvider.tsx";
+import { BfDsToastProvider } from "../contexts/BfDsToastContext.tsx";
+import { BfDsHudProvider } from "../contexts/BfDsHudContext.tsx";
+import { BfDsHud } from "./BfDsHud.tsx";
 
 export function BfDsProvider({ children }: React.PropsWithChildren) {
   return (
     <BfDsToastProvider>
-      {children}
+      <BfDsHudProvider>
+        {children}
+        <BfDsHud />
+      </BfDsHudProvider>
     </BfDsToastProvider>
   );
 }

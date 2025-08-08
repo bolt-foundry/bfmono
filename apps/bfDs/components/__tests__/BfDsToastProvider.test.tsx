@@ -1,5 +1,5 @@
 import { assertThrows } from "@std/assert";
-import { useBfDsToast } from "../BfDsToastProvider.tsx";
+import { useBfDsToast } from "@bfmono/apps/bfDs/contexts/BfDsToastContext.tsx";
 import { render } from "@bfmono/infra/testing/ui-testing.ts";
 
 // Test component that tries to use toast context without provider

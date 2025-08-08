@@ -89,7 +89,7 @@ export type { BfDsToastItem } from "./components/BfDsToast.tsx";
 export {
   BfDsToastProvider,
   useBfDsToast,
-} from "./components/BfDsToastProvider.tsx";
+} from "./contexts/BfDsToastContext.tsx";
 
 export { BfDsPill } from "./components/BfDsPill.tsx";
 export type { BfDsPillProps, BfDsPillVariant } from "./components/BfDsPill.tsx";

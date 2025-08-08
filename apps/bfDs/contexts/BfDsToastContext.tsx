@@ -1,8 +1,8 @@
 import type * as React from "react";
 import { createContext, useCallback, useContext, useState } from "react";
-import { BfDsToastContainer } from "./BfDsToast.tsx";
-import type { BfDsToastItem } from "./BfDsToast.tsx";
-import type { BfDsCalloutVariant } from "./BfDsCallout.tsx";
+import { BfDsToastContainer } from "../components/BfDsToast.tsx";
+import type { BfDsToastItem } from "../components/BfDsToast.tsx";
+import type { BfDsCalloutVariant } from "../components/BfDsCallout.tsx";
 
 type ToastContextType = {
   showToast: (
