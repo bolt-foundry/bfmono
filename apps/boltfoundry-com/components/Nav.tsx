@@ -129,6 +129,7 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
               variant={hudOpen ? "primary" : "ghost"}
               icon="hud"
               onClick={toggleHud}
+              data-testid="header-hud"
             />
           )}
         </div>

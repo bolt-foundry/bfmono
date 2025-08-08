@@ -22,7 +22,7 @@ Deno.test("Eval page functionality", async (t) => {
 
     await t.step("Navigate to homepage and click login", async () => {
       // Navigate to homepage
-      logger.info("Navigating to homepage...");
+      logger.debug("Navigating to homepage...");
       await navigateTo(context, "/");
       await context.page.waitForNetworkIdle({ timeout: 3000 });
 
@@ -40,7 +40,7 @@ Deno.test("Eval page functionality", async (t) => {
       await showSubtitle("✅ Homepage loaded successfully");
 
       // Find and smooth click the login link
-      logger.info("Looking for login link...");
+      logger.debug("Looking for login link...");
 
       // Wait for the login link to be visible
       await context.page.waitForSelector('a[href="/login"]', {
@@ -51,7 +51,7 @@ Deno.test("Eval page functionality", async (t) => {
       await showSubtitle("👆 Clicking login link...");
 
       // Smooth click on login
-      logger.info("Clicking login link with smooth animation...");
+      logger.debug("Clicking login link with smooth animation...");
       await smoothClick(context, 'a[href="/login"]', {
         before: "eval-test-before-login-click",
         after: "eval-test-after-login-click",
@@ -75,14 +75,14 @@ Deno.test("Eval page functionality", async (t) => {
         "Login page should display Sign In text",
       );
 
-      logger.info("Successfully navigated to login page");
+      logger.debug("Successfully navigated to login page");
       await context.takeScreenshot("eval-test-login-page");
 
       await showSubtitle("🎉 Successfully navigated to login page!");
     });
 
     await t.step("Click Google login button", async () => {
-      logger.info("Waiting for Google Sign-In button to be ready...");
+      logger.debug("Waiting for Google Sign-In button to be ready...");
 
       // Wait for the Google button to be rendered
       await context.page.waitForSelector("#google-signin-button", {
@@ -103,7 +103,7 @@ Deno.test("Eval page functionality", async (t) => {
 
       // Check if we were redirected or if there's an auth cookie
       const currentUrl = context.page.url();
-      logger.info(`Current URL after auth: ${currentUrl}`);
+      logger.debug(`Current URL after auth: ${currentUrl}`);
 
       const cookies = await context.page.cookies();
       const authCookies = cookies.filter((cookie) =>
@@ -111,12 +111,12 @@ Deno.test("Eval page functionality", async (t) => {
       );
 
       if (authCookies.length > 0) {
-        logger.info(
+        logger.debug(
           `✅ Auth cookies found: ${authCookies.map((c) => c.name).join(", ")}`,
         );
         await showSubtitle("🍪 Authentication successful!");
       } else {
-        logger.info("❌ No auth cookies found after Google sign-in");
+        logger.debug("❌ No auth cookies found after Google sign-in");
       }
 
       // Verify we were redirected to /eval
@@ -133,8 +133,8 @@ Deno.test("Eval page functionality", async (t) => {
     // Stop video recording
     const videoResult = await stop();
     if (videoResult) {
-      logger.info(`🎬 Video saved: ${videoResult.videoPath}`);
-      logger.info(`📏 Duration: ${videoResult.duration}s`);
+      logger.debug(`🎬 Video saved: ${videoResult.videoPath}`);
+      logger.debug(`📏 Duration: ${videoResult.duration}s`);
     }
   } finally {
     await teardownE2ETest(context);
