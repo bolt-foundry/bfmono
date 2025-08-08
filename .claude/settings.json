@@ -5,9 +5,6 @@
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
-  "additionalDirectories": [
-    "../"
-  ],
   "permissions": {
     "allow": [
       "Bash(ls:*)",
