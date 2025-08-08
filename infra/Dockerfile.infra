@@ -250,6 +250,17 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   # Working directory is set by container -w flag, not here
 fi
 
+# Load environment files if they exist
+if [ -f "/internalbf/bfmono/.env.config" ]; then
+  source /internalbf/bfmono/.env.config
+  echo "✅ Loaded .env.config"
+fi
+
+if [ -f "/internalbf/bfmono/.env.secrets" ]; then
+  source /internalbf/bfmono/.env.secrets
+  echo "✅ Loaded .env.secrets"
+fi
+
 # Add Nix and BF_ROOT to PATH
 export PATH="/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
 
