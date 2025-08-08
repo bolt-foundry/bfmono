@@ -371,19 +371,37 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
     const requiredServers = getRequiredServers(testFiles);
 
     if (requiredServers.length > 0) {
-      // Check which servers need to be started vs using existing ones
-      const serversToStart = requiredServers.filter((server) =>
-        !getConfigurationVariable(server.envVar)
-      );
-      const existingServers = requiredServers.filter((server) =>
-        getConfigurationVariable(server.envVar)
-      );
+      // First, check which servers are already running (either via env var or on common ports)
+      const serversToStart: Array<ServerConfig> = [];
+      const existingServers: Array<{ server: ServerConfig; url: string }> = [];
+
+      for (const server of requiredServers) {
+        // Check if URL is explicitly set via environment variable
+        let existingUrl = getConfigurationVariable(server.envVar);
+
+        // If not explicitly set, check if server is already running on common ports
+        if (!existingUrl) {
+          existingUrl = await checkExistingServer(server, verbose);
+        }
+
+        if (existingUrl) {
+          existingServers.push({ server, url: existingUrl });
+          // Set the env var so it's available later
+          Deno.env.set(server.envVar, existingUrl);
+        } else {
+          serversToStart.push(server);
+        }
+      }
 
       if (existingServers.length > 0) {
         logger.info(
           `🔗 Using existing server${
             existingServers.length === 1 ? "" : "s"
-          }: ${existingServers.map((s) => s.name).join(", ")}`,
+          }: ${
+            existingServers.map((e) => `${e.server.name} at ${e.url}`).join(
+              ", ",
+            )
+          }`,
         );
       }
 
@@ -413,8 +431,8 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
         }
       }
 
-      // Check if any required servers need their binaries compiled
-      for (const server of requiredServers) {
+      // Check if any servers we need to start require binaries to be compiled
+      for (const server of serversToStart) {
         if (
           !server.serverPath.endsWith(".ts") &&
           !server.serverPath.endsWith(".tsx")
@@ -445,29 +463,12 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
         }
       }
 
-      // Start all required servers (unless already specified via environment)
-      for (const server of requiredServers) {
-        // First check if URL is explicitly set via environment variable
-        let existingUrl = getConfigurationVariable(server.envVar);
-
-        // If not explicitly set, check if server is already running
-        if (!existingUrl) {
-          existingUrl = await checkExistingServer(server, verbose);
-        }
-
-        if (existingUrl) {
-          logger.info(
-            `🔗 Using existing ${server.name} server at ${existingUrl}`,
-          );
-          // Set the environment variable so tests can access it
-          Deno.env.set(server.envVar, existingUrl);
-          logger.debug(`✅ ${server.name} ready at ${existingUrl}`);
-        } else {
-          const serverUrl = await startServer(server, verbose);
-          // Set environment variable for the server
-          Deno.env.set(server.envVar, serverUrl);
-          logger.debug(`✅ ${server.name} ready at ${serverUrl}`);
-        }
+      // Start servers that aren't already running
+      for (const server of serversToStart) {
+        const serverUrl = await startServer(server, verbose);
+        // Set environment variable for the server
+        Deno.env.set(server.envVar, serverUrl);
+        logger.debug(`✅ ${server.name} ready at ${serverUrl}`);
       }
     } else {
       logger.info("🎯 No servers required for these tests");

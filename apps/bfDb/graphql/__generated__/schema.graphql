@@ -1,10 +1,32 @@
 ### @generated 
 type BfDeck implements BfNode {
+  content: String
   description: String
+  graders(after: String, before: String, first: Int, last: Int): BfDeckGradersConnection
   id: ID!
   name: String
+  samples(after: String, before: String, first: Int, last: Int): BfDeckSamplesConnection
   slug: String!
-  systemPrompt: String
+}
+
+type BfDeckGradersConnection {
+  edges: [BfDeckGradersConnectionEdge]
+  pageInfo: PageInfo!
+}
+
+type BfDeckGradersConnectionEdge {
+  cursor: String!
+  node: BfGrader
+}
+
+type BfDeckSamplesConnection {
+  edges: [BfDeckSamplesConnectionEdge]
+  pageInfo: PageInfo!
+}
+
+type BfDeckSamplesConnectionEdge {
+  cursor: String!
+  node: BfSample
 }
 
 type BfEdge implements BfNode {
@@ -30,9 +52,20 @@ interface BfNode {
 }
 
 type BfOrganization implements BfNode {
+  decks(after: String, before: String, first: Int, last: Int): BfOrganizationDecksConnection
   domain: String
   id: ID!
   name: String
+}
+
+type BfOrganizationDecksConnection {
+  edges: [BfOrganizationDecksConnectionEdge]
+  pageInfo: PageInfo!
+}
+
+type BfOrganizationDecksConnectionEdge {
+  cursor: String!
+  node: BfDeck
 }
 
 type BfPerson implements BfNode {
@@ -77,12 +110,14 @@ interface CurrentViewer {
 type CurrentViewerLoggedIn implements CurrentViewer {
   id: ID
   orgBfOid: String
+  organization: BfOrganization
   personBfGid: String
 }
 
 type CurrentViewerLoggedOut implements CurrentViewer {
   id: ID
   orgBfOid: String
+  organization: BfOrganization
   personBfGid: String
 }
 
@@ -103,7 +138,7 @@ type JoinWaitlistPayload {
 }
 
 type Mutation {
-  createDeck(description: String, name: String!, slug: String!, systemPrompt: String!): BfDeck
+  createDeck(content: String!, description: String, name: String!, slug: String!): BfDeck
   joinWaitlist(company: String, email: String!, name: String!): JoinWaitlistPayload
   loginWithGoogle(idToken: String!): CurrentViewer
   submitSample(collectionMethod: String, completionData: String!, deckId: String!, name: String): BfSample

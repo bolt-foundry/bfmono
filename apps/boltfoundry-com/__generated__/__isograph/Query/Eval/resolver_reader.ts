@@ -3,13 +3,6 @@ import { Query__Eval__param } from './param_type.ts';
 import { Eval as resolver } from '../../../../components/Eval.tsx';
 
 const readerAst: ReaderAst<Query__Eval__param> = [
-  {
-    kind: "Scalar",
-    fieldName: "__typename",
-    alias: null,
-    arguments: null,
-    isUpdatable: false,
-  },
 ];
 
 const artifact: ComponentReaderArtifact<

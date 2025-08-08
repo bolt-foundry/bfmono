@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { useAppEnvironment } from "../contexts/AppEnvironmentContext.tsx";
-import { BfDsCallout } from "@bfmono/apps/bfDs/components/BfDsCallout.tsx";
+import {
+  initializeGoogleAuthDevMock,
+  setMockEmail,
+  shouldUseGoogleAuthDevMock,
+} from "../utils/googleAuthDevMock.ts";
+import {
+  useBfDsHud,
+  useBfDsHudButtons,
+  useBfDsHudConsole,
+} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -32,43 +41,86 @@ const getGoogleClientId = (envClientId?: string) => {
 export function LoginWithGoogleButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forceRealButton, setForceRealButton] = useState(false);
   const appEnvironment = useAppEnvironment();
+  const { input1, setInput1 } = useBfDsHud();
+  const { addButton, removeButton } = useBfDsHudButtons();
+  const { sendMessage } = useBfDsHudConsole();
 
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef<
     ((response: { credential: string }) => void) | null
   >(null);
 
+  // Add HUD button to toggle between mock and real Google button
+  useEffect(() => {
+    // Only add button in development
+    if (shouldUseGoogleAuthDevMock()) {
+      // Set default email if not already set
+      if (!input1) {
+        setInput1("dev@boltfoundry.com");
+      }
+
+      // Store the email for the mock to use
+      setMockEmail(input1);
+
+      addButton({
+        id: "toggle-google-auth-mock",
+        label: forceRealButton ? "Use Mock Button" : "Use Real Button",
+        onClick: () => {
+          setForceRealButton(!forceRealButton);
+          if (forceRealButton) {
+            sendMessage("Switched to mock Google button", "success");
+          } else {
+            sendMessage(
+              "Switched to real Google button. Note: Real OAuth won't work with dynamic hostnames like " +
+                globalThis.location.hostname +
+                ". Use SSH port forwarding (ssh -L 8000:localhost:8000) or re-enable mock.",
+              "warning",
+            );
+          }
+        },
+        icon: forceRealButton ? "code" : "external-link",
+      });
+
+      // Add a button to set the current input as the auth email
+      addButton({
+        id: "set-auth-email",
+        label: "Set Auth Email",
+        onClick: () => {
+          if (!input1 || !input1.includes("@")) {
+            sendMessage(
+              "Please enter a valid email address in Input 1",
+              "error",
+            );
+            return;
+          }
+          setMockEmail(input1);
+          sendMessage(`Mock auth will use email: ${input1}`, "success");
+        },
+        icon: "mail",
+      });
+
+      return () => {
+        removeButton("toggle-google-auth-mock");
+        removeButton("set-auth-email");
+      };
+    }
+  }, [
+    forceRealButton,
+    input1,
+    addButton,
+    removeButton,
+    sendMessage,
+    setInput1,
+  ]);
+
   useEffect(() => {
     // Store the callback ref so we can use it in the message handler
     callbackRef.current = handleCredentialResponse;
 
-    // Check if we're in dev mode
-    const isDev = appEnvironment.BF_ENV === "development" ||
-      appEnvironment.BF_ENV === "dev";
-
-    // Set up message listener for dev auth popup
-    if (isDev) {
-      const handleMessage = (event: MessageEvent) => {
-        if (event.data.type === "dev-auth-response" && callbackRef.current) {
-          logger.info("Received dev auth response from popup");
-          callbackRef.current({ credential: event.data.credential });
-        }
-      };
-      globalThis.addEventListener("message", handleMessage);
-
-      // Cleanup
-      return () => {
-        globalThis.removeEventListener("message", handleMessage);
-      };
-    }
-
-    // Load the Google Identity Services script
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+    // Check if we should use the dev mock (unless forced to use real button)
+    const useDevMock = shouldUseGoogleAuthDevMock() && !forceRealButton;
 
     const client_id = getGoogleClientId(appEnvironment.GOOGLE_OAUTH_CLIENT_ID);
     if (!client_id) {
@@ -79,35 +131,84 @@ export function LoginWithGoogleButton() {
       return;
     }
 
-    // Initialize Google Identity Services when script loads
-    script.onload = () => {
-      if (globalThis.google && googleButtonRef.current) {
-        globalThis.google.accounts.id.initialize({
-          client_id,
-          callback: handleCredentialResponse,
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
+    if (useDevMock) {
+      logger.info("Using Google Auth dev mock");
+      // Initialize the mock
+      initializeGoogleAuthDevMock();
 
-        // Display the Sign In With Google button
-        globalThis.google.accounts.id.renderButton(googleButtonRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: "signin_with",
-          shape: "rectangular",
-          logo_alignment: "left",
-        });
-      }
-    };
+      // Wait for next tick to ensure DOM is ready
+      setTimeout(() => {
+        if (globalThis.google && googleButtonRef.current) {
+          globalThis.google.accounts.id.initialize({
+            client_id,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
 
+          globalThis.google.accounts.id.renderButton(googleButtonRef.current, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+          });
+        }
+      }, 0);
+    } else {
+      // Production mode - load real Google script
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+
+      // Initialize Google Identity Services when script loads
+      script.onload = () => {
+        if (globalThis.google && googleButtonRef.current) {
+          globalThis.google.accounts.id.initialize({
+            client_id,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+
+          // Display the Sign In With Google button
+          globalThis.google.accounts.id.renderButton(googleButtonRef.current, {
+            type: "standard",
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+          });
+        }
+      };
+
+      return () => {
+        // Clean up script
+        if (document.body.contains(script)) {
+          document.body.removeChild(script);
+        }
+      };
+    }
+
+    // Cleanup function for both mock and real modes
     return () => {
-      // Clean up script
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+      // Remove any existing scripts
+      const scripts = document.querySelectorAll(
+        'script[src*="accounts.google.com"]',
+      );
+      scripts.forEach((script) => script.remove());
+
+      // Clear the mock if it exists
+      if (globalThis.google?.accounts?.id) {
+        // @ts-expect-error - deleting mock google object
+        delete globalThis.google;
       }
     };
-  }, [appEnvironment.BF_ENV]);
+  }, [appEnvironment, forceRealButton]);
 
   const handleCredentialResponse = async (response: { credential: string }) => {
     setIsLoading(true);
@@ -151,104 +252,17 @@ export function LoginWithGoogleButton() {
     return <div>{error}</div>;
   }
 
-  // Check if we're in development mode
+  // Check if we're in development mode without our mock
   const isDevelopment = appEnvironment.mode === "development";
-  const isDevEnv = appEnvironment.BF_ENV === "development" ||
-    appEnvironment.BF_ENV === "dev";
+  const useDevMock = shouldUseGoogleAuthDevMock() && !forceRealButton;
 
   logger.info("LoginWithGoogleButton environment check:", {
     mode: appEnvironment.mode,
     BF_ENV: appEnvironment.BF_ENV,
     isDevelopment,
-    isDevEnv,
+    useDevMock,
   });
 
-  // Handler for dev login button
-  const handleDevLogin = () => {
-    const popupWidth = 500;
-    const popupHeight = 600;
-    const left = (globalThis.screen.width - popupWidth) / 2;
-    const top = (globalThis.screen.height - popupHeight) / 2;
-
-    globalThis.open(
-      "/api/auth/dev-popup",
-      "dev-auth-popup",
-      `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`,
-    );
-  };
-
-  // Show Google Sign-In button with dev override if in dev mode
-  return (
-    <div>
-      {isDevEnv
-        ? (
-          <button
-            type="button"
-            onClick={handleDevLogin}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-            style={{
-              fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              fontSize: "14px",
-              fontWeight: "500",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 48 48" className="mr-2">
-              <path
-                fill="#FFC107"
-                d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-              <path
-                fill="#FF3D00"
-                d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
-              />
-              <path
-                fill="#4CAF50"
-                d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
-              />
-              <path
-                fill="#1976D2"
-                d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-            </svg>
-            Sign in with Google (Dev)
-          </button>
-        )
-        : <div ref={googleButtonRef}></div>}
-      {isDevelopment && !isDevEnv && (
-        <BfDsCallout variant="warning" className="mt-5">
-          <div>
-            <h4>Development Environment</h4>
-            <p>
-              Google OAuth won't work with dynamic hostnames like{" "}
-              <code>{globalThis.location.hostname}</code>.
-            </p>
-            <p>
-              <strong>Solutions:</strong>
-            </p>
-            <ol>
-              <li>
-                Set BF_ENV=development to use dev authentication
-              </li>
-              <li>
-                Or use SSH port forwarding:{" "}
-                <code>ssh -L 8000:localhost:8000 [your-connection]</code>
-              </li>
-              <li>
-                Then access via:{" "}
-                <a href="http://localhost:8000/login">
-                  http://localhost:8000/login
-                </a>
-              </li>
-            </ol>
-            <p>
-              <strong>For testing:</strong>{" "}
-              Use E2E mode with mock authentication:
-            </p>
-            <pre>BF_E2E_MODE=true bft dev boltfoundry-com</pre>
-          </div>
-        </BfDsCallout>
-      )}
-    </div>
-  );
+  // Always show the Google button container - the mock will handle dev mode
+  return <div ref={googleButtonRef}></div>;
 }

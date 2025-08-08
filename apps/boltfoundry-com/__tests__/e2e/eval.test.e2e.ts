@@ -4,16 +4,13 @@ import {
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { smoothClick } from "@bfmono/infra/testing/video-recording/smooth-ui.ts";
-import { setupBoltFoundryComTest, setupGoogleAuthMock } from "../helpers.ts";
+import { setupBoltFoundryComTest } from "../helpers.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
 Deno.test("Eval page functionality", async (t) => {
   const context = await setupBoltFoundryComTest();
-
-  // Set up Google auth mocking before navigation
-  await setupGoogleAuthMock(context);
 
   try {
     // Start video recording

@@ -27,6 +27,20 @@ export default defineConfig({
       port: 8081, // Dynamic port will be set by CLI
     },
     allowedHosts,
+    fs: {
+      // Allow serving files from the entire monorepo
+      allow: ["../.."],
+    },
+    watch: {
+      // Ignore temporary files that cause crashes
+      ignored: [
+        "**/vite.config.ts.timestamp-*",
+        "**/static/build/**", // Ignore build directory changes during e2e tests
+        "**/.vite/**",
+        "**/tmp/**",
+        "**/node_modules/**",
+      ],
+    },
   },
   preview: {
     port: 8081,

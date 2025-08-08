@@ -7,11 +7,6 @@ const normalizationAst: NormalizationAst = {
       fieldName: "id",
       arguments: null,
     },
-    {
-      kind: "Scalar",
-      fieldName: "__typename",
-      arguments: null,
-    },
   ],
 };
 export default normalizationAst;
