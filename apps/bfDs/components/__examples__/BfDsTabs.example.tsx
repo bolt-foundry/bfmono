@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { type BfDsTabItem, BfDsTabs } from "../BfDsTabs.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsTabsExample() {
   const [controlledActiveTab, setControlledActiveTab] = useState("tab1");
@@ -7,8 +8,9 @@ export function BfDsTabsExample() {
   const codeBlock = (
     <div className="bfds-example__section">
       <h3>Usage</h3>
-      <pre className="bfds-example__code">
-{`import { BfDsTabs, type BfDsTabItem } from "@bfmono/apps/bfDs/components/BfDsTabs.tsx";
+      <BfDsCodeExample
+        language="tsx"
+        code={`import { BfDsTabs, type BfDsTabItem } from "@bfmono/apps/bfDs/components/BfDsTabs.tsx";
 
 // Define tabs
 const tabs: BfDsTabItem[] = [
@@ -35,7 +37,7 @@ const tabs: BfDsTabItem[] = [
   variant="primary"               // "primary" | "secondary"
   size="medium"                   // "small" | "medium" | "large"
 />`}
-      </pre>
+      />
     </div>
   );
 

@@ -32,9 +32,10 @@
   --bfds-text-06: rgba(251, 251, 255, 0.6);
   --bfds-text-04: rgba(251, 251, 255, 0.4);
   --bfds-text-02: rgba(251, 251, 255, 0.2);
-  --bfds-text-02-solid: #444444
+  --bfds-text-02-solid: #444444;
   --bfds-text-01: rgba(251, 251, 255, 0.1);
   --bfds-text-005: rgba(251, 251, 255, 0.05);
+  --bfds-text-005-solid: #1a1a1a;
 
   --bfds-secondary: #6b7280;
   --bfds-secondary-hover: #4b5563;
@@ -2324,6 +2325,208 @@ a.bfds-button:hover {
   border-radius: 8px;
   overflow: auto;
   font-family: var(--fontFamilyMono);
+}
+
+/* BfDsCodeExample component styles */
+.bfds-code-example {
+  border: 1px solid var(--bfds-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--bfds-background);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bfds-code-example__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--bfds-background-hover);
+  border-bottom: 1px solid var(--bfds-border);
+}
+
+.bfds-code-example__language {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bfds-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bfds-code-example__header-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.bfds-code-example__content {
+  position: relative;
+  background-color: var(--bfds-text-005);
+}
+
+.bfds-code-example__pre {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.bfds-code-example__pre code {
+  display: block;
+  padding: 16px;
+  background: transparent;
+  color: var(--bfds-text);
+  font-family: var(--fontFamilyMono);
+}
+
+.bfds-code-example__line {
+  display: flex;
+  align-items: flex-start;
+}
+
+.bfds-code-example__line-number {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 40px;
+  padding-right: 12px;
+  text-align: right;
+  color: var(--bfds-text-secondary);
+  font-size: 12px;
+  font-family: var(--fontFamilyMono);
+  user-select: none;
+  border-right: 1px solid var(--bfds-border);
+  margin-right: 12px;
+}
+
+.bfds-code-example__line-content {
+  display: inline;
+  flex: 1;
+  min-width: 0;
+}
+
+.bfds-code-example__fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+}
+
+.bfds-code-example__fade-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--bfds-text-005-solid) 70%);
+}
+
+.bfds-code-example__hidden-lines {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.bfds-code-example__hidden-lines button {
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.bfds-code-example__hidden-lines button:hover {
+  opacity: 1;
+}
+
+/* Syntax highlighting for BfDsCodeExample using BfDs color variables */
+.bfds-code-example .token.comment {
+  color: var(--bfds-text-muted);
+}
+
+.bfds-code-example .token.punctuation {
+  color: var(--bfds-text-secondary);
+}
+
+.bfds-code-example .token.property,
+.bfds-code-example .token.number,
+.bfds-code-example .token.boolean,
+.bfds-code-example .token.constant {
+  color: var(--bfds-primary);
+}
+
+.bfds-code-example .token.string,
+.bfds-code-example .token.selector {
+  color: var(--bfds-success);
+}
+
+.bfds-code-example .token.operator {
+  color: var(--bfds-warning);
+}
+
+.bfds-code-example .token.keyword,
+.bfds-code-example .token.attr-name {
+  color: var(--bfds-primary-hover);
+}
+
+.bfds-code-example .token.variable {
+  color: var(--bfds-text-08);
+}
+
+.bfds-code-example .token.function,
+.bfds-code-example .token.class-name {
+  color: var(--bfds-text);
+  font-weight: 600;
+}
+
+.bfds-code-example .token.tag {
+  color: var(--bfds-error);
+}
+
+.bfds-code-example .token.builtin {
+  color: var(--bfds-primary-06);
+}
+
+.bfds-code-example__content-wrapper {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.bfds-code-example__footer {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--bfds-background-hover);
+  border-top: 1px solid var(--bfds-border);
+  border: none;
+  border-top: 1px solid var(--bfds-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: var(--bfds-text-secondary);
+  font-family: var(--fontFamily);
+  font-size: 14px;
+}
+
+.bfds-code-example__footer:hover {
+  background-color: var(--bfds-background-active);
+  color: var(--bfds-text);
+}
+
+.bfds-code-example__footer-icon {
+  opacity: 0.8;
+}
+
+.bfds-code-example__footer-text {
+  font-weight: 500;
 }
 
 .bfds-example__group {

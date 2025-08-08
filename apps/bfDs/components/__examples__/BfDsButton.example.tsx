@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BfDsButton } from "../BfDsButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsButtonExample() {
   const [clickCount, setClickCount] = useState(0);
@@ -10,8 +11,9 @@ export function BfDsButtonExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 
 // Basic usage
 <BfDsButton onClick={() => console.log('clicked')}>
@@ -38,7 +40,7 @@ export function BfDsButtonExample() {
 >
   Button text
 </BfDsButton>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

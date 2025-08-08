@@ -3,6 +3,7 @@ import { BfDsToggle } from "../BfDsToggle.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsToggleExample() {
   const [standaloneChecked, setStandaloneChecked] = useState(false);
@@ -23,8 +24,9 @@ export function BfDsToggleExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsToggle } from "@bfmono/apps/bfDs/components/BfDsToggle.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsToggle } from "@bfmono/apps/bfDs/components/BfDsToggle.tsx";
 
 // Basic usage
 <BfDsToggle
@@ -45,7 +47,7 @@ export function BfDsToggleExample() {
   className=""                    // string
   id="toggle-1"                   // string - element ID
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

@@ -3,6 +3,7 @@ import { BfDsRange } from "../BfDsRange.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsRangeExample() {
   const [value, setValue] = React.useState(50);
@@ -22,8 +23,9 @@ export function BfDsRangeExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsRange } from "@bfmono/apps/bfDs/components/BfDsRange.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsRange } from "@bfmono/apps/bfDs/components/BfDsRange.tsx";
 
 // Basic usage
 <BfDsRange
@@ -59,7 +61,7 @@ export function BfDsRangeExample() {
   required={false}                 // boolean
   className=""                     // string
 />`}
-        </pre>
+        />
       </div>
 
       <section className="bfds-example__section">

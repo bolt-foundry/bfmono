@@ -3,6 +3,7 @@ import { BfDsRadio, type BfDsRadioOption } from "../BfDsRadio.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsRadioExample() {
   const [standaloneValue, setStandaloneValue] = useState("");
@@ -42,8 +43,9 @@ export function BfDsRadioExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsRadio } from "@bfmono/apps/bfDs/components/BfDsRadio.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsRadio } from "@bfmono/apps/bfDs/components/BfDsRadio.tsx";
 
 // Basic usage
 <BfDsRadio
@@ -76,7 +78,7 @@ export function BfDsRadioExample() {
   size="medium"                   // "small" | "medium" | "large"
   className=""                    // string
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

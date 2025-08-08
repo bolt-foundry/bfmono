@@ -3,6 +3,7 @@ import { BfDsIcon } from "../BfDsIcon.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsBadge } from "../BfDsBadge.tsx";
 import { BfDsPill } from "../BfDsPill.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -14,8 +15,9 @@ export function BfDsListBarExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 
 // Basic usage
 <BfDsListBar
@@ -34,7 +36,7 @@ export function BfDsListBarExample() {
   onClick={() => {}}              // () => void - click handler
   className=""                    // string - additional classes
 />`}
-        </pre>
+        />
       </div>
 
       <div

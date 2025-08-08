@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BfDsBadge, type BfDsBadgeVariant } from "../BfDsBadge.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -36,8 +37,9 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 
 // Basic usage
 <BfDsBadge>Default Badge</BfDsBadge>
@@ -58,7 +60,7 @@ export function BfDsBadgeExample() {
 >
   Badge Content
 </BfDsBadge>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

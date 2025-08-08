@@ -45,6 +45,9 @@ export type {
 export { BfDsCopyButton } from "./components/BfDsCopyButton.tsx";
 export type { BfDsCopyButtonProps } from "./components/BfDsCopyButton.tsx";
 
+export { BfDsCodeExample } from "./components/BfDsCodeExample.tsx";
+export type { BfDsCodeExampleProps } from "./components/BfDsCodeExample.tsx";
+
 export { BfDsCallout } from "./components/BfDsCallout.tsx";
 export type {
   BfDsCalloutProps,

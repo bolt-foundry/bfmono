@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BfDsListItem } from "../BfDsListItem.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsListItemExample() {
   const [notification, setNotification] = useState({
@@ -13,8 +14,9 @@ export function BfDsListItemExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
 import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 
 // Basic usage (use with BfDsList)
@@ -33,7 +35,7 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 >
   List item content
 </BfDsListItem>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

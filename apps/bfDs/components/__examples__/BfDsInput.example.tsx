@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BfDsInput } from "../BfDsInput.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsInputExample() {
   const [value1, setValue1] = useState("");
@@ -11,8 +12,9 @@ export function BfDsInputExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
 
 // Basic usage
 <BfDsInput
@@ -42,7 +44,7 @@ export function BfDsInputExample() {
   autoComplete="off"              // string
   // ... other HTML input attributes
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

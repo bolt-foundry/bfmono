@@ -3,6 +3,7 @@ import { BfDsCheckbox } from "../BfDsCheckbox.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsCheckboxExample() {
   const [standaloneChecked, setStandaloneChecked] = useState(false);
@@ -23,8 +24,9 @@ export function BfDsCheckboxExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsCheckbox } from "@bfmono/apps/bfDs/components/BfDsCheckbox.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsCheckbox } from "@bfmono/apps/bfDs/components/BfDsCheckbox.tsx";
 
 // Basic usage
 <BfDsCheckbox
@@ -45,7 +47,7 @@ export function BfDsCheckboxExample() {
   className=""                    // string
   id="checkbox-1"                 // string - element ID
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

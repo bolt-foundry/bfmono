@@ -3,6 +3,7 @@ import { BfDsModal } from "../BfDsModal.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsInput } from "../BfDsInput.tsx";
 import { BfDsTextArea } from "../BfDsTextArea.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -30,8 +31,9 @@ export function BfDsModalExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsModal } from "@bfmono/apps/bfDs/components/BfDsModal.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsModal } from "@bfmono/apps/bfDs/components/BfDsModal.tsx";
 
 // Basic usage
 <BfDsModal
@@ -56,7 +58,7 @@ export function BfDsModalExample() {
 >
   {/* Modal content */}
 </BfDsModal>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

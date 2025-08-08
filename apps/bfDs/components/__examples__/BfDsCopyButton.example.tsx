@@ -1,4 +1,5 @@
 import { BfDsCopyButton } from "../BfDsCopyButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsCopyButtonExample() {
   return (
@@ -7,8 +8,9 @@ export function BfDsCopyButtonExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsCopyButton } from "@bfmono/apps/bfDs/components/BfDsCopyButton.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsCopyButton } from "@bfmono/apps/bfDs/components/BfDsCopyButton.tsx";
 
 // Basic usage
 <BfDsCopyButton
@@ -29,7 +31,7 @@ export function BfDsCopyButtonExample() {
   className=""                   // string
   aria-label="Copy text"         // string - important for iconOnly mode
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

@@ -6,6 +6,7 @@ import {
 } from "../BfDsIcon.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsBadge } from "../BfDsBadge.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { icons } from "@bfmono/apps/bfDs/lib/icons.ts";
 
 export function BfDsIconExample() {
@@ -112,8 +113,9 @@ export function BfDsIconExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 
 // Basic usage
 <BfDsIcon name="star" />
@@ -126,7 +128,7 @@ export function BfDsIconExample() {
   className=""                    // string - additional CSS
   style={{}}                      // React.CSSProperties
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

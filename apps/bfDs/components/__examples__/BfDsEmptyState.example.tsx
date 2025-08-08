@@ -3,6 +3,7 @@ import { BfDsEmptyState } from "../BfDsEmptyState.tsx";
 import { BfDsList } from "../BfDsList.tsx";
 import { BfDsListItem } from "../BfDsListItem.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -24,8 +25,9 @@ export function BfDsEmptyStateExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 
 // Basic usage
 <BfDsEmptyState
@@ -52,7 +54,7 @@ export function BfDsEmptyStateExample() {
 >
   {/* Optional custom content */}
 </BfDsEmptyState>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

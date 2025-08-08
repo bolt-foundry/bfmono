@@ -9,6 +9,7 @@ import { BfDsCheckbox } from "../BfDsCheckbox.tsx";
 import { BfDsRadio } from "../BfDsRadio.tsx";
 import { BfDsToggle } from "../BfDsToggle.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 const { useState } = React;
 const logger = getLogger(import.meta);
@@ -59,8 +60,9 @@ export function BfDsFormExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsForm } from "@bfmono/apps/bfDs/components/BfDsForm.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsForm } from "@bfmono/apps/bfDs/components/BfDsForm.tsx";
 import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
 import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmitButton.tsx";
 
@@ -85,7 +87,7 @@ import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmi
 >
   {/* Form controls with 'name' prop will auto-bind */}
 </BfDsForm>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

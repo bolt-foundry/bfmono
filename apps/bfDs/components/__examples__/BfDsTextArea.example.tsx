@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BfDsTextArea } from "../BfDsTextArea.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsTextAreaExample() {
   const [value1, setValue1] = useState("");
@@ -13,8 +14,9 @@ export function BfDsTextAreaExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsTextArea } from "@bfmono/apps/bfDs/components/BfDsTextArea.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsTextArea } from "@bfmono/apps/bfDs/components/BfDsTextArea.tsx";
 
 // Basic usage
 <BfDsTextArea
@@ -46,7 +48,7 @@ export function BfDsTextAreaExample() {
   maxLength={500}                 // number
   // ... other HTML textarea attributes
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

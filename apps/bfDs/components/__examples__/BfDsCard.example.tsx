@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BfDsCard } from "../BfDsCard.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsIcon } from "../BfDsIcon.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsCardExample() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -12,8 +13,9 @@ export function BfDsCardExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsCard } from "@bfmono/apps/bfDs/components/BfDsCard.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsCard } from "@bfmono/apps/bfDs/components/BfDsCard.tsx";
 
 // Basic usage
 <BfDsCard>
@@ -34,7 +36,7 @@ export function BfDsCardExample() {
 >
   Card body content
 </BfDsCard>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

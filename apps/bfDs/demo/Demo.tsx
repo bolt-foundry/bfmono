@@ -25,6 +25,7 @@ import { BfDsEmptyStateExample } from "../components/__examples__/BfDsEmptyState
 import { BfDsCardExample } from "../components/__examples__/BfDsCard.example.tsx";
 import { BfDsBadgeExample } from "../components/__examples__/BfDsBadge.example.tsx";
 import { BfDsListBarExample } from "../components/__examples__/BfDsListBar.example.tsx";
+import { BfDsCodeExampleBasic } from "../components/__examples__/BfDsCodeExample.example.tsx";
 import { BfDsHudExample } from "@bfmono/apps/bfDs/components/__examples__/BfDsHud.example.tsx";
 
 type ComponentSection = {
@@ -196,6 +197,14 @@ const componentSections: Array<ComponentSection> = [
     name: "Badge",
     description: "Small status indicators and labels with variants and actions",
     component: BfDsBadgeExample,
+    category: "Core",
+  },
+  {
+    id: "code-example",
+    name: "Code Example",
+    description:
+      "Collapsible code blocks with syntax highlighting and copy functionality",
+    component: BfDsCodeExampleBasic,
     category: "Core",
   },
   {

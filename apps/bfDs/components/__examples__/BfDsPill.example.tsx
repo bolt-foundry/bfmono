@@ -1,5 +1,6 @@
 import { BfDsPill } from "../BfDsPill.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsPillExample() {
   return (
@@ -8,8 +9,9 @@ export function BfDsPillExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsPill } from "@bfmono/apps/bfDs/components/BfDsPill.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsPill } from "@bfmono/apps/bfDs/components/BfDsPill.tsx";
 
 // Basic usage
 <BfDsPill label="Status" text="Active" />
@@ -23,7 +25,7 @@ export function BfDsPillExample() {
   action={<button>X</button>}     // ReactNode - action element
   className=""                    // string - additional CSS
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

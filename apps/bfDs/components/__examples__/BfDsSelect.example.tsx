@@ -3,6 +3,7 @@ import { BfDsSelect, type BfDsSelectOption } from "../BfDsSelect.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsSelectExample() {
   const [standaloneValue, setStandaloneValue] = useState("");
@@ -239,8 +240,9 @@ export function BfDsSelectExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsSelect, type BfDsSelectOption } from "@bfmono/apps/bfDs/components/BfDsSelect.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsSelect, type BfDsSelectOption } from "@bfmono/apps/bfDs/components/BfDsSelect.tsx";
 
 // Define options
 const options: BfDsSelectOption[] = [
@@ -270,7 +272,7 @@ const options: BfDsSelectOption[] = [
   id="select-1"                   // string - element ID
   typeahead={false}               // boolean - enable search
 />`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

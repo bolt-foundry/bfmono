@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { BfDsCallout, type BfDsCalloutVariant } from "../BfDsCallout.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -49,8 +50,9 @@ export function BfDsCalloutExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsCallout } from "@bfmono/apps/bfDs/components/BfDsCallout.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsCallout } from "@bfmono/apps/bfDs/components/BfDsCallout.tsx";
 
 // Basic usage
 <BfDsCallout variant="info">
@@ -69,7 +71,7 @@ export function BfDsCalloutExample() {
 >
   Callout message content
 </BfDsCallout>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

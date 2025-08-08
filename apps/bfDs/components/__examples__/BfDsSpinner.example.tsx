@@ -1,4 +1,5 @@
 import { BfDsFullPageSpinner, BfDsSpinner } from "../BfDsSpinner.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 /**
  * Example component demonstrating BfDsSpinner usage
@@ -11,8 +12,9 @@ export function BfDsSpinnerExample() {
 
         <div className="bfds-example__section">
           <h3>Usage</h3>
-          <pre className="bfds-example__code">
-{`import { BfDsSpinner, BfDsFullPageSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
+          <BfDsCodeExample
+            language="tsx"
+            code={`import { BfDsSpinner, BfDsFullPageSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
 
 // Basic spinner
 <BfDsSpinner />
@@ -31,7 +33,7 @@ export function BfDsSpinnerExample() {
   size={200}             // number - spinner size
   waitIcon={false}       // boolean - show animated icon
 />`}
-          </pre>
+          />
         </div>
 
         <div className="bfds-example__section">

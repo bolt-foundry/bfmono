@@ -3,6 +3,7 @@ import { BfDsFormSubmitButton } from "../BfDsFormSubmitButton.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsForm } from "../BfDsForm.tsx";
 import { BfDsInput } from "../BfDsInput.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsFormSubmitButtonExample() {
   const [formData, setFormData] = useState({ name: "" });
@@ -18,8 +19,9 @@ export function BfDsFormSubmitButtonExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmitButton.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmitButton.tsx";
 import { BfDsForm } from "@bfmono/apps/bfDs/components/BfDsForm.tsx";
 
 // Basic usage (inside BfDsForm)
@@ -43,7 +45,7 @@ import { BfDsForm } from "@bfmono/apps/bfDs/components/BfDsForm.tsx";
 >
   Custom Submit Text
 </BfDsFormSubmitButton>`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">

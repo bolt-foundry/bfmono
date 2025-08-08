@@ -4,6 +4,7 @@ import {
   BfDsToastProvider,
   useBfDsToast,
 } from "@bfmono/apps/bfDs/contexts/BfDsToastContext.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -16,8 +17,9 @@ function ToastDemoContent() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`import { BfDsToastProvider, useBfDsToast } from "@bfmono/apps/bfDs/components/BfDsToastProvider.tsx";
+        <BfDsCodeExample
+          language="tsx"
+          code={`import { BfDsToastProvider, useBfDsToast } from "@bfmono/apps/bfDs/components/BfDsToastProvider.tsx";
 
 // 1. Wrap your app with BfDsToastProvider
 <BfDsToastProvider>
@@ -40,7 +42,7 @@ showToast("Operation completed", {
 
 // Clear all toasts
 clearAllToasts();`}
-        </pre>
+        />
       </div>
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>

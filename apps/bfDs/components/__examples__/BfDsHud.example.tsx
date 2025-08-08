@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsToggle } from "@bfmono/apps/bfDs/components/BfDsToggle.tsx";
+import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
 export function BfDsHudExample() {
   const {
@@ -129,8 +130,9 @@ export function BfDsHudExample() {
 
       <div className="bfds-example__section">
         <h3>Usage</h3>
-        <pre className="bfds-example__code">
-{`// 1. First, wrap your app with HudProvider (already done in App.tsx)
+        <BfDsCodeExample
+          language="tsx"
+          code={`// 1. First, wrap your app with HudProvider (already done in App.tsx)
 import { BfDsHudProvider } from "@bfmono/apps/boltfoundry-com/contexts/HudContext.tsx";
 import { BfDsHud } from "@bfmono/apps/bfDs/components/BfDsHud.tsx";
 
@@ -212,7 +214,7 @@ function MyComponent() {
     sendMessage("Input values set programmatically", "success");
   };
 }`}
-        </pre>
+        />
       </div>
 
       <div className="bfds-example__section">
@@ -317,8 +319,9 @@ function MyComponent() {
 
       <div className="bfds-example__section">
         <h3>Example Use Cases</h3>
-        <pre className="bfds-example__code">
-{`// Development Tools
+        <BfDsCodeExample
+          language="tsx"
+          code={`// Development Tools
 addButton({
   id: "api-test",
   label: "Test API",
@@ -366,7 +369,7 @@ addButton({
     }
   }
 });`}
-        </pre>
+        />
       </div>
     </div>
   );
