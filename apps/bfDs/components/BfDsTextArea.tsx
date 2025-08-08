@@ -1,9 +1,20 @@
+/**
+ * @fileoverview BfDsTextArea - Multi-line text input component with flexible resize and form integration
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 import { forwardRef, useId, useState } from "react";
 import { useBfDsFormContext } from "./BfDsForm.tsx";
 
+/**
+ * Visual states for the BfDsTextArea component
+ */
 export type BfDsTextAreaState = "default" | "error" | "success" | "disabled";
 
+/**
+ * Props for the BfDsTextArea component
+ */
 export type BfDsTextAreaProps =
   & {
     // Form context props
@@ -43,6 +54,96 @@ export type BfDsTextAreaProps =
     "value" | "onChange"
   >;
 
+/**
+ * A multi-line text input component with flexible resize behavior and comprehensive form integration
+ *
+ * BfDsTextArea provides a robust multi-line text input experience with validation states,
+ * form integration, and customizable resize behavior. It supports both controlled and
+ * uncontrolled usage patterns with comprehensive accessibility features.
+ *
+ * Features:
+ * - Multiple visual states (default, error, success, disabled)
+ * - Flexible resize behavior (none, vertical, horizontal, both)
+ * - Seamless form integration with BfDsForm
+ * - Both controlled and uncontrolled usage patterns
+ * - Accessibility features with proper ARIA attributes
+ * - Character counting and validation support
+ *
+ * @param props - Component props
+ * @param props.name - Form field name for data binding when used within BfDsForm
+ * @param props.value - Current textarea value (controlled mode)
+ * @param props.defaultValue - Default value for uncontrolled usage
+ * @param props.onChange - Change event handler
+ * @param props.label - Label text displayed above textarea
+ * @param props.placeholder - Placeholder text when empty
+ * @param props.required - Whether input is required for form validation
+ * @param props.state - Visual state (default, error, success, disabled)
+ * @param props.errorMessage - Error message to display in error state
+ * @param props.successMessage - Success message to display in success state
+ * @param props.helpText - Help text displayed below textarea
+ * @param props.className - Additional CSS classes to apply
+ * @param props.disabled - Whether the textarea is disabled
+ * @param props.id - Element ID for the textarea
+ * @param props.resize - Resize behavior (none, vertical, horizontal, both)
+ * @param ref - Forwarded ref to the textarea element
+ *
+ * @example
+ * Basic usage:
+ * ```tsx
+ * <BfDsTextArea
+ *   label="Message"
+ *   placeholder="Enter your message..."
+ *   value={message}
+ *   onChange={(e) => setMessage(e.target.value)}
+ * />
+ * ```
+ *
+ * @example
+ * With form integration:
+ * ```tsx
+ * <BfDsForm initialData={formData} onChange={setFormData}>
+ *   <BfDsTextArea
+ *     name="description"
+ *     label="Project Description"
+ *     placeholder="Describe your project..."
+ *     required
+ *     rows={4}
+ *   />
+ * </BfDsForm>
+ * ```
+ *
+ * @example
+ * With validation and character counting:
+ * ```tsx
+ * const [content, setContent] = useState("");
+ * const maxLength = 500;
+ * const isValid = content.length >= 10 && content.length <= maxLength;
+ *
+ * <BfDsTextArea
+ *   label="Article Content"
+ *   value={content}
+ *   onChange={(e) => setContent(e.target.value)}
+ *   maxLength={maxLength}
+ *   state={content.length > 0 && !isValid ? "error" : "default"}
+ *   errorMessage={`Content must be 10-${maxLength} characters`}
+ *   helpText={`${content.length}/${maxLength} characters`}
+ *   rows={5}
+ * />
+ * ```
+ *
+ * @example
+ * With custom resize behavior:
+ * ```tsx
+ * <BfDsTextArea
+ *   label="Fixed Size Notes"
+ *   placeholder="Notes..."
+ *   resize="none"
+ *   rows={3}
+ * />
+ * ```
+ *
+ * @returns A comprehensive multi-line text input component
+ */
 export const BfDsTextArea = forwardRef<HTMLTextAreaElement, BfDsTextAreaProps>(
   function BfDsTextArea({
     name,

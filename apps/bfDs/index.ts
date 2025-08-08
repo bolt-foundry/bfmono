@@ -1,3 +1,40 @@
+/**
+ * @fileoverview Bolt Foundry Design System (BfDs) - Complete component library and design system
+ *
+ * This is the main entry point for the Bolt Foundry Design System, providing a comprehensive
+ * collection of React components, contexts, hooks, and utilities for building consistent
+ * user interfaces. The design system includes form controls, layout components, navigation
+ * elements, feedback components, and development tools.
+ *
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @version 2.0.0
+ * @since 2.0.0
+ *
+ * @example
+ * // Import individual components
+ * import { BfDsButton, BfDsInput, BfDsCard } from "@bfmono/bfDs";
+ *
+ * @example
+ * // Import with provider for global functionality
+ * import { BfDsProvider, BfDsButton, useBfDsToast } from "@bfmono/bfDs";
+ *
+ * function App() {
+ *   return (
+ *     <BfDsProvider>
+ *       <MyApplication />
+ *     </BfDsProvider>
+ *   );
+ * }
+ *
+ * @example
+ * // Import types for TypeScript
+ * import type { BfDsButtonProps, BfDsInputState } from "@bfmono/bfDs";
+ *
+ * @see {@link BfDsProvider} - Root provider for global functionality
+ * @see {@link useBfDsToast} - Hook for toast notifications
+ * @see {@link useHud} - Hook for development tools
+ */
+
 export { BfDsButton } from "./components/BfDsButton.tsx";
 export type {
   BfDsButtonProps,

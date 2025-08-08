@@ -1,35 +1,120 @@
 /**
- * BfDs Icon Library
+ * @fileoverview BfDs Icon Library - Comprehensive collection of SVG icons for the Bolt Foundry Design System
  *
- * MISSING ICON HANDLING INSTRUCTIONS:
- * If an icon name is used but doesn't exist, follow this process:
+ * This module contains all icon definitions with their SVG paths, viewboxes, and metadata.
+ * Icons support aliases for alternative naming and include a badge system for tracking
+ * generated vs original icons.
  *
- * 1. FIRST: Check if there's a similar existing icon that could be aliased:
- *    - Look for icons with similar names or meanings
- *    - Add an `aliases: ["missingIconName"]` property to the existing icon
- *    - Example: "info" is an alias of "infoCircle"
- *
- * 2. IF NO SIMILAR ICON EXISTS: Create a new icon with the `generated: true` flag:
- *    - Add the icon with appropriate SVG paths
- *    - Include `generated: true` property to mark it as AI-generated
- *    - Example: { viewbox: "0 0 24 24", paths: [...], generated: true }
- *
- * 3. ICON BADGE SYSTEM:
- *    - Generated icons show a sparkle badge in the icon demo
- *    - Alias icons show an "alias" badge with tooltip showing the original icon
- *    - This helps track which icons are original vs generated vs aliases
- *
- * NAMING CONVENTION:
- * - Use camelCase for icon names
- * - Use hyphens for variants (e.g., "brand-github")
- * - Generally icons are "outline" by default
- * - Use "Solid" suffix for filled icons (e.g., "starSolid")
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ * @see {@link BfDsIcon} component for usage examples
  */
 
+/**
+ * @namespace IconLibrary
+ * @description Central repository for all BfDs icon definitions and related utilities
+ */
+
+/**
+ * @typedef {Object} IconDefinition
+ * @description Structure for individual icon definitions
+ * @property {string} viewbox - SVG viewBox attribute (e.g., "0 0 24 24")
+ * @property {string[]} paths - Array of SVG path strings
+ * @property {string[]} [aliases] - Alternative names for this icon
+ * @property {boolean} [generated] - Whether this icon was AI-generated
+ */
+
+/**
+ * @section Missing Icon Handling Process
+ *
+ * When an icon name is used but doesn't exist in the library, follow this process:
+ *
+ * @subsection Step 1: Check for Similar Icons
+ * Before creating a new icon, check if there's a similar existing icon that could be aliased:
+ * - Look for icons with similar names or meanings
+ * - Add an `aliases: ["missingIconName"]` property to the existing icon
+ * @example
+ * // "info" is an alias of "infoCircle"
+ * infoCircle: {
+ *   aliases: ["info"],
+ *   viewbox: "0 0 24 24",
+ *   paths: [...]
+ * }
+ *
+ * @subsection Step 2: Create New Generated Icon
+ * If no similar icon exists, create a new icon with the `generated: true` flag:
+ * - Add the icon with appropriate SVG paths
+ * - Include `generated: true` property to mark it as AI-generated
+ * @example
+ * newIcon: {
+ *   viewbox: "0 0 24 24",
+ *   paths: ["M12 2L..."],
+ *   generated: true
+ * }
+ */
+
+/**
+ * @section Naming Conventions
+ *
+ * @rule IconNaming
+ * Follow these naming conventions for consistency:
+ * - **camelCase**: Use camelCase for icon names (e.g., `arrowRight`, `checkCircle`)
+ * - **Hyphens for variants**: Use hyphens for brand/category variants (e.g., `brand-github`, `brand-google`)
+ * - **Default style**: Icons are "outline" style by default, no suffix needed
+ * - **Solid suffix**: Use "Solid" suffix for filled icons (e.g., `starSolid`, `heartSolid`)
+ * - **Descriptive names**: Use clear, descriptive names that indicate the icon's purpose
+ *
+ * @example
+ * // Good naming examples
+ * arrowRight: { ... }           // Clear directional icon
+ * checkCircle: { ... }          // Descriptive combination
+ * starSolid: { ... }            // Filled variant with suffix
+ * brandGithub: { ... }          // Brand icon with prefix
+ *
+ * // Avoid these patterns
+ * arrow_right: { ... }          // Underscores
+ * ArrowRight: { ... }           // PascalCase
+ * rightArrow: { ... }           // Less conventional order
+ */
+
+/**
+ * @private
+ * @description SVG path data for star outline icon
+ * @type {string[]}
+ */
 const starOutline = [
   "M4.47868 17C4.10529 17 3.73384 16.8824 3.41656 16.651C2.85551 16.2407 2.57983 15.5591 2.69687 14.8727L3.30919 11.2831C3.34111 11.0935 3.2792 10.901 3.14184 10.7668L0.547489 8.22436C0.0502862 7.73726 -0.124799 7.02362 0.0899463 6.36054C0.304691 5.69745 0.863803 5.22299 1.5506 5.12285L5.13646 4.5988C5.32508 4.57158 5.48856 4.45199 5.57368 4.2799L7.1775 1.01407C7.48317 0.388905 8.10516 0 8.79873 0C9.4923 0 10.1143 0.388905 10.4209 1.01407L12.0247 4.2799C12.1089 4.45199 12.2724 4.57158 12.462 4.5988L16.0478 5.12285C16.7346 5.22299 17.2937 5.69745 17.5085 6.36054C17.7232 7.02362 17.5472 7.73823 17.0509 8.22436L14.4566 10.7659C14.3202 10.9 14.2573 11.0925 14.2892 11.2821L14.9016 14.8717C15.0186 15.5591 14.7429 16.2407 14.1819 16.65C13.6208 17.0593 12.8905 17.1128 12.2762 16.788L8.7997 14.9505L5.32315 16.788C5.05617 16.929 4.76694 17 4.47965 17L4.47868 17ZM8.79873 1.16671C8.54626 1.16671 8.32861 1.30283 8.21737 1.53034L6.61355 4.79617C6.36012 5.31244 5.86968 5.67023 5.30284 5.75385L1.71698 6.27789C1.46741 6.31484 1.27104 6.48013 1.19366 6.72125C1.11531 6.96237 1.17721 7.21224 1.3581 7.38919L3.95246 9.93068C4.3626 10.3332 4.55026 10.9117 4.45353 11.4795L3.84121 15.0691C3.79865 15.319 3.89538 15.5572 4.09949 15.7069C4.30359 15.8566 4.55897 15.8741 4.78242 15.7565L8.7997 13.634L12.817 15.7565C13.0404 15.8741 13.2958 15.8566 13.4999 15.7069C13.704 15.5581 13.8007 15.319 13.7582 15.0691L13.1459 11.4795C13.0491 10.9117 13.2358 10.3322 13.6469 9.93068L16.2413 7.38919C16.4222 7.21224 16.4831 6.96237 16.4057 6.72125C16.3274 6.48013 16.132 6.31387 15.8824 6.27789L12.2966 5.75385C11.7297 5.6712 11.2393 5.31341 10.9858 4.79617L9.38202 1.53034C9.26982 1.30283 9.05314 1.16671 8.80067 1.16671H8.79873Z",
 ];
 
+/**
+ * @description Complete icon library for the BfDs Design System
+ *
+ * This object contains all available icons with their SVG definitions, aliases, and metadata.
+ * Each icon is defined with viewBox dimensions, SVG paths, and optional properties for
+ * aliases and generation tracking.
+ *
+ * @type {Record<string, IconDefinition>}
+ *
+ * @example
+ * // Access icon data programmatically
+ * const arrowIcon = icons.arrowRight;
+ * console.log(arrowIcon.viewbox); // "0 0 5 8"
+ * console.log(arrowIcon.paths);   // Array of SVG path strings
+ * console.log(arrowIcon.aliases); // ["chevronRight"]
+ *
+ * @example
+ * // Check if an icon exists
+ * const hasIcon = 'customIcon' in icons;
+ *
+ * @example
+ * // Get all icon names including aliases
+ * const allIconNames = Object.keys(icons).concat(
+ *   Object.values(icons).flatMap(icon => icon.aliases || [])
+ * );
+ *
+ * @see {@link BfDsIcon} - Component that renders these icons
+ * @see {@link BfDsIconName} - TypeScript type for all available icon names
+ */
 export const icons = {
   arrowDown: {
     aliases: ["chevronDown"],

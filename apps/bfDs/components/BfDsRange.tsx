@@ -1,10 +1,25 @@
+/**
+ * @fileoverview BfDsRange - Sophisticated range slider component with negative range support and tick marks
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 import { useId, useState } from "react";
 import { useBfDsFormContext } from "./BfDsForm.tsx";
 
+/**
+ * Size variants for the BfDsRange component
+ */
 export type BfDsRangeSize = "small" | "medium" | "large";
+
+/**
+ * Visual states for the BfDsRange component
+ */
 export type BfDsRangeState = "default" | "error" | "success" | "disabled";
 
+/**
+ * Props for the BfDsRange component
+ */
 export type BfDsRangeProps =
   & {
     // Form context props
@@ -58,6 +73,116 @@ export type BfDsRangeProps =
     "value" | "onChange" | "type" | "min" | "max" | "step" | "size"
   >;
 
+/**
+ * A sophisticated range slider component with customizable appearance and intelligent fill rendering
+ *
+ * BfDsRange provides a comprehensive range slider experience with support for negative ranges,
+ * custom colors, tick marks, and value formatting. It includes intelligent fill rendering that
+ * handles negative ranges by filling from zero, and offers seamless form integration.
+ *
+ * Features:
+ * - Intelligent fill rendering for negative ranges (fills from zero position)
+ * - Custom colors for fill and handle
+ * - Tick marks with automatic or custom labeling
+ * - Custom value formatting and display
+ * - Multiple visual states (default, error, success, disabled)
+ * - Three size variants (small, medium, large)
+ * - Seamless form integration with BfDsForm
+ * - Comprehensive keyboard navigation (Arrow keys, Home/End, Page Up/Down)
+ * - Accessibility features with proper ARIA attributes
+ *
+ * @param props - Component props
+ * @param props.name - Form field name for data binding when used within BfDsForm
+ * @param props.value - Current range value (controlled mode)
+ * @param props.defaultValue - Default value for uncontrolled usage
+ * @param props.onChange - Change event handler
+ * @param props.label - Label text displayed above range
+ * @param props.min - Minimum value (default: 0)
+ * @param props.max - Maximum value (default: 100)
+ * @param props.step - Step increment (default: 1)
+ * @param props.showValue - Whether to show value display (default: true)
+ * @param props.formatValue - Custom value formatter function
+ * @param props.showTicks - Whether to show tick marks
+ * @param props.tickLabels - Custom tick labels with values and labels
+ * @param props.size - Size variant (small, medium, large)
+ * @param props.state - Visual state (default, error, success, disabled)
+ * @param props.color - Custom color for fill and handle
+ * @param props.errorMessage - Error message to display in error state
+ * @param props.successMessage - Success message to display in success state
+ * @param props.helpText - Help text displayed below range
+ * @param props.required - Whether input is required for form validation
+ * @param props.className - Additional CSS classes to apply
+ * @param props.disabled - Whether the range is disabled
+ * @param props.id - Element ID for the range input
+ *
+ * @example
+ * Basic usage:
+ * ```tsx
+ * <BfDsRange
+ *   label="Volume"
+ *   value={volume}
+ *   onChange={(e) => setVolume(Number(e.target.value))}
+ *   min={0}
+ *   max={100}
+ *   formatValue={(val) => `${val}%`}
+ * />
+ * ```
+ *
+ * @example
+ * With form integration:
+ * ```tsx
+ * <BfDsForm initialData={formData} onChange={setFormData}>
+ *   <BfDsRange
+ *     name="brightness"
+ *     label="Brightness"
+ *     min={0}
+ *     max={100}
+ *     formatValue={(val) => `${val}%`}
+ *     required
+ *   />
+ * </BfDsForm>
+ * ```
+ *
+ * @example
+ * Negative range with custom formatting:
+ * ```tsx
+ * <BfDsRange
+ *   label="Audio Balance"
+ *   min={-100}
+ *   max={100}
+ *   defaultValue={0}
+ *   formatValue={(val) => val > 0 ? `+${val}` : `${val}`}
+ *   showTicks
+ *   tickLabels={[
+ *     { value: -100, label: "L" },
+ *     { value: 0, label: "Center" },
+ *     { value: 100, label: "R" }
+ *   ]}
+ * />
+ * ```
+ *
+ * @example
+ * With custom color and validation:
+ * ```tsx
+ * const [value, setValue] = useState(50);
+ * const getColor = (val) => {
+ *   if (val < 30) return "#ef4444"; // red
+ *   if (val < 70) return "#f59e0b"; // yellow
+ *   return "#10b981"; // green
+ * };
+ *
+ * <BfDsRange
+ *   label="Performance Level"
+ *   value={value}
+ *   onChange={(e) => setValue(Number(e.target.value))}
+ *   color={getColor(value)}
+ *   showTicks
+ *   formatValue={(val) => `${val}%`}
+ * />
+ * ```
+ *
+ * @returns A sophisticated range slider component with intelligent fill rendering
+ */
 export function BfDsRange({
   name,
   value: standaloneProp,

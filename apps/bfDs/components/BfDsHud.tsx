@@ -1,9 +1,222 @@
+/**
+ * @fileoverview BfDsHud - Floating heads-up display component for development tools and debugging
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { useLocalStorage } from "@bfmono/apps/bfDs/hooks/useLocalStorage.ts";
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * A floating heads-up display (HUD) component for development tools, debugging,
+ * and admin actions. The HUD provides a console interface with customizable action
+ * buttons, message logging, and two general-purpose input fields.
+ *
+ * ## Key Features:
+ * - **Draggable Interface** - Click and drag the header to reposition, automatically saves position to localStorage
+ * - **Action Buttons** - Add custom buttons with regular or toggleable behavior
+ * - **Console Messaging** - Log info, success, warning, and error messages with navigation
+ * - **Input Fields** - Two general-purpose input fields accessible in button actions
+ * - **Message Navigation** - View message history with previous/next controls and message counter
+ * - **Screen Constraints** - Automatically constrains position to screen boundaries
+ * - **Keyboard Accessible** - Full keyboard navigation and screen reader support
+ *
+ * ## Context Integration:
+ * The component doesn't take direct props and instead uses the BfDsHudContext for all
+ * state management and configuration via the useHud() hook.
+ *
+ * ## Setup Requirements:
+ * Must be used within a BfDsHudProvider context. Typically included automatically
+ * when using BfDsProvider.
+ *
+ * ## Styling:
+ * Uses CSS classes with `hud-` prefix:
+ * - `.hud-container` - Main HUD container
+ * - `.hud-header` - Draggable header area
+ * - `.hud-body` - Main content area
+ * - `.hud-buttons-panel` - Action buttons section
+ * - `.hud-console-panel` - Message console section
+ * - `.hud-button` - Individual button styling
+ * - `.hud-message` - Message styling with type variants
+ *
+ * ## Performance:
+ * - Position saved to localStorage for persistence
+ * - Efficient re-renders only when context state changes
+ * - Hidden by default (returns null when not visible)
+ * - Smooth scrolling and constrained dragging
+ *
+ * @example
+ * // Basic setup with provider (automatically included in BfDsProvider)
+ * import { BfDsHudProvider } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ * import { BfDsHud } from "@bfmono/bfDs";
+ *
+ * function App() {
+ *   return (
+ *     <BfDsHudProvider>
+ *       <YourApp />
+ *       <BfDsHud />
+ *     </BfDsHudProvider>
+ *   );
+ * }
+ *
+ * @example
+ * // Adding action buttons to the HUD
+ * import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ *
+ * function MyComponent() {
+ *   const { addButton, removeButton, sendMessage } = useHud();
+ *
+ *   useEffect(() => {
+ *     // Add a simple action button
+ *     addButton({
+ *       id: "hello-world",
+ *       label: "Say Hello",
+ *       icon: "messageSquare",
+ *       onClick: () => {
+ *         sendMessage("Hello, World!", "info");
+ *       },
+ *     });
+ *
+ *     // Cleanup
+ *     return () => removeButton("hello-world");
+ *   }, [addButton, removeButton, sendMessage]);
+ * }
+ *
+ * @example
+ * // Using toggleable buttons for feature flags
+ * import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ *
+ * function DebugComponent() {
+ *   const { addButton, sendMessage } = useHud();
+ *   const [debugMode, setDebugMode] = useState(false);
+ *
+ *   addButton({
+ *     id: "debug-toggle",
+ *     label: "Debug Mode",
+ *     toggleable: true,
+ *     value: debugMode,
+ *     onToggle: (enabled) => {
+ *       setDebugMode(enabled);
+ *       window.DEBUG = enabled;
+ *       sendMessage(`Debug mode ${enabled ? "ON" : "OFF"}`, "success");
+ *     },
+ *     onClick: () => {}, // Required but can be empty
+ *   });
+ * }
+ *
+ * @example
+ * // Using input fields for dynamic actions
+ * import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ *
+ * function ApiTester() {
+ *   const { addButton, sendMessage, getInputs, setInput1, setInput2 } = useHud();
+ *
+ *   // Set initial input values
+ *   setInput1("api.example.com");
+ *   setInput2("auth-token-123");
+ *
+ *   addButton({
+ *     id: "api-test",
+ *     label: "Test API",
+ *     icon: "server",
+ *     onClick: async () => {
+ *       const { input1: endpoint, input2: token } = getInputs();
+ *       sendMessage(`Testing ${endpoint}...`, "info");
+ *
+ *       try {
+ *         const response = await fetch(endpoint, {
+ *           headers: { Authorization: `Bearer ${token}` }
+ *         });
+ *         sendMessage(`Response: ${response.status}`, "success");
+ *       } catch (error) {
+ *         sendMessage(`Error: ${error.message}`, "error");
+ *       }
+ *     },
+ *   });
+ * }
+ *
+ * @example
+ * // Controlling HUD visibility and sending different message types
+ * import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ *
+ * function HudController() {
+ *   const { showHud, hideHud, toggleHud, isVisible, sendMessage, clearMessages } = useHud();
+ *
+ *   const handleTest = () => {
+ *     showHud(); // Make sure HUD is visible
+ *
+ *     // Send different message types
+ *     sendMessage("Information message", "info");
+ *     sendMessage("Success message", "success");
+ *     sendMessage("Warning message", "warning");
+ *     sendMessage("Error message", "error");
+ *   };
+ *
+ *   return (
+ *     <div>
+ *       <button onClick={showHud}>Show HUD</button>
+ *       <button onClick={hideHud}>Hide HUD</button>
+ *       <button onClick={toggleHud}>Toggle HUD</button>
+ *       <button onClick={handleTest}>Test Messages</button>
+ *       <button onClick={clearMessages}>Clear Messages</button>
+ *       {isVisible ? "HUD is open" : "HUD is closed"}
+ *     </div>
+ *   );
+ * }
+ *
+ * @example
+ * // Admin actions with input validation
+ * import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
+ *
+ * function AdminPanel() {
+ *   const { addButton, sendMessage, getInputs } = useHud();
+ *
+ *   addButton({
+ *     id: "user-action",
+ *     label: "Admin Action",
+ *     icon: "user",
+ *     variant: "primary",
+ *     onClick: async () => {
+ *       const { input1: username, input2: action } = getInputs();
+ *
+ *       if (!username || !action) {
+ *         sendMessage("Both username and action are required", "error");
+ *         return;
+ *       }
+ *
+ *       sendMessage(`Performing ${action} on ${username}...`, "warning");
+ *
+ *       try {
+ *         await performAdminAction(username, action);
+ *         sendMessage("Admin action completed", "success");
+ *       } catch (error) {
+ *         sendMessage(`Failed: ${error.message}`, "error");
+ *       }
+ *     },
+ *   });
+ * }
+ *
+ * @accessibility
+ * - Full keyboard navigation with Tab traversal through interactive elements
+ * - Enter and Space key support for buttons
+ * - Escape key closes the HUD (unless disabled)
+ * - Proper ARIA labels on buttons and controls
+ * - Semantic HTML structure for screen readers
+ * - Clear focus indicators throughout interface
+ * - Screen reader announcements for state changes
+ * - Focus management maintains focus within HUD when open
+ * - Returns focus to trigger element when closed
+ *
+ * @see {@link BfDsHudContext} - Context provider that manages HUD state
+ * @see {@link useHud} - Hook for interacting with the HUD from components
+ * @see {@link BfDsProvider} - Root provider that automatically includes BfDsHud
+ * @see {@link BfDsButton} - Button component used for HUD actions
+ * @see {@link BfDsIcon} - Icon component used throughout HUD interface
+ *
+ * @since 2.0.0
+ */
 export function BfDsHud() {
   const {
     buttons,

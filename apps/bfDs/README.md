@@ -45,58 +45,57 @@ function App() {
 
 Form components for user input and data collection.
 
-- **[BfDsForm](./BfDsForm.md)** - Form container with validation context
-- **[BfDsInput](./BfDsInput.md)** - Text input field
-- **[BfDsTextArea](./BfDsTextArea.md)** - Multi-line text input
-- **[BfDsSelect](./BfDsSelect.md)** - Dropdown selection
-- **[BfDsCheckbox](./BfDsCheckbox.md)** - Checkbox input
-- **[BfDsRadio](./BfDsRadio.md)** - Radio button group
-- **[BfDsToggle](./BfDsToggle.md)** - Toggle switch
-- **[BfDsRange](./BfDsRange.md)** - Range slider input
-- **[BfDsFormSubmitButton](./BfDsFormSubmitButton.md)** - Form submission button
+- **BfDsForm** - Form container with validation context
+- **BfDsInput** - Text input field
+- **BfDsTextArea** - Multi-line text input
+- **BfDsSelect** - Dropdown selection
+- **BfDsCheckbox** - Checkbox input
+- **BfDsRadio** - Radio button group
+- **BfDsToggle** - Toggle switch
+- **BfDsRange** - Range slider input
+- **BfDsFormSubmitButton** - Form submission button
 
 ### Action Components
 
 Components for user interactions and actions.
 
-- **[BfDsButton](./BfDsButton.md)** - Primary action button
-- **[BfDsCopyButton](./BfDsCopyButton.md)** - Copy-to-clipboard button
+- **BfDsButton** - Primary action button
+- **BfDsCopyButton** - Copy-to-clipboard button
 
 ### Display Components
 
 Components for presenting information and content.
 
-- **[BfDsIcon](./BfDsIcon.md)** - Icon component
-- **[BfDsSpinner](./BfDsSpinner.md)** - Loading indicators
-- **[BfDsBadge](./BfDsBadge.md)** - Status and count badges
-- **[BfDsPill](./BfDsPill.md)** - Pill-shaped labels
-- **[BfDsCard](./BfDsCard.md)** - Content container
-- **[BfDsCallout](./BfDsCallout.md)** - Highlighted information boxes
-- **[BfDsEmptyState](./BfDsEmptyState.md)** - Empty state messaging
+- **BfDsIcon** - Icon component
+- **BfDsSpinner** - Loading indicators
+- **BfDsBadge** - Status and count badges
+- **BfDsPill** - Pill-shaped labels
+- **BfDsCard** - Content container
+- **BfDsCallout** - Highlighted information boxes
+- **BfDsEmptyState** - Empty state messaging
 
 ### Navigation Components
 
 Components for navigation and organization.
 
-- **[BfDsTabs](./BfDsTabs.md)** - Tab navigation
-- **[BfDsList](./BfDsList.md)** - List container
-- **[BfDsListItem](./BfDsListItem.md)** - Individual list items
-- **[BfDsListBar](./BfDsListBar.md)** - List header with actions
+- **BfDsTabs** - Tab navigation
+- **BfDsList** - List container
+- **BfDsListItem** - Individual list items
+- **BfDsListBar** - List header with actions
 
 ### Overlay Components
 
 Components that appear above other content.
 
-- **[BfDsModal](./BfDsModal.md)** - Modal dialogs
-- **[BfDsToast](./BfDsToast.md)** - Toast notifications
-- **[BfDsHud](./BfDsHud.md)** - Heads-up display overlay
+- **BfDsModal** - Modal dialogs
+- **BfDsToast** - Toast notifications
+- **BfDsHud** - Heads-up display overlay
 
 ### Provider Components
 
 Components that provide context and global functionality.
 
-- **[BfDsProvider](./BfDsProvider.md)** - Root provider component with toast
-  notifications and HUD
+- **BfDsProvider** - Root provider component with toast notifications and HUD
 
 ## Design Principles
 

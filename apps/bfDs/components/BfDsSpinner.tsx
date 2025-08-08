@@ -1,16 +1,21 @@
+/**
+ * @fileoverview BfDsSpinner - Loading spinner components with customizable appearance and animations
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 
 /**
  * Props for the BfDsSpinner component
  */
 export type BfDsSpinnerProps = {
-  /** Size of the spinner in pixels */
+  /** Size of the spinner in pixels (default: 48) */
   size?: number;
   /** Color of the spinner (defaults to currentColor to inherit parent text color) */
   color?: string;
-  /** 0-1 percentage to offset the starting point */
+  /** 0-1 percentage to offset the starting point of the spinner animation */
   offset?: number;
-  /** When true, shows an animated icon inside the spinner */
+  /** When true, shows an animated icon inside the spinner (bolt/hourglass animation) */
   waitIcon?: boolean;
 };
 
@@ -20,10 +25,77 @@ const bottomFrom = "77.27,41.37 42.72,99.89 42.72,41.37"; // bolt
 const bottomTo = "75,77 25,77 49.96,38.56"; // hourglass
 
 /**
- * BfDsSpinner - A loading spinner component with optional animated icon
+ * A loading spinner component with customizable appearance and optional animated icon
+ *
+ * BfDsSpinner provides visual loading feedback with a circular progress indicator.
+ * It includes an optional animated icon feature that transforms between bolt and
+ * hourglass shapes, perfect for longer loading operations.
+ *
+ * Features:
+ * - Customizable size and color
+ * - Inherits parent text color by default
+ * - Optional animated icon overlay (bolt/hourglass transformation)
+ * - Smooth rotation animation
+ * - Accessible markup for screen readers
  *
  * @param props - Component props
- * @returns JSX element
+ * @param props.size - Size of the spinner in pixels (default: 48)
+ * @param props.color - Color of the spinner (default: "currentColor")
+ * @param props.offset - 0-1 percentage to offset the starting point of animation
+ * @param props.waitIcon - When true, shows animated bolt/hourglass icon inside spinner
+ *
+ * @example
+ * Basic usage:
+ * ```tsx
+ * <BfDsSpinner />
+ * ```
+ *
+ * @example
+ * Custom size and color:
+ * ```tsx
+ * <BfDsSpinner
+ *   size={32}
+ *   color="#007bff"
+ * />
+ * ```
+ *
+ * @example
+ * With animated icon for longer operations:
+ * ```tsx
+ * <BfDsSpinner
+ *   waitIcon
+ *   size={48}
+ * />
+ * ```
+ *
+ * @example
+ * In button loading state:
+ * ```tsx
+ * <BfDsButton disabled={isLoading}>
+ *   {isLoading ? (
+ *     <div className="flex items-center gap-2">
+ *       <BfDsSpinner size={16} />
+ *       Processing...
+ *     </div>
+ *   ) : (
+ *     "Submit"
+ *   )}
+ * </BfDsButton>
+ * ```
+ *
+ * @example
+ * Content loading indicator:
+ * ```tsx
+ * {isLoading ? (
+ *   <div className="flex justify-center py-8">
+ *     <BfDsSpinner size={32} />
+ *   </div>
+ * ) : (
+ *   <div>{content}</div>
+ * )}
+ * ```
+ *
+ * @returns A loading spinner component with optional animated icon
  */
 export function BfDsSpinner({
   size = 48,
@@ -133,10 +205,55 @@ export interface BfDsFullPageSpinnerProps {
 }
 
 /**
- * BfDsFullPageSpinner - A full-page loading spinner component
+ * A full-page loading overlay spinner component
+ *
+ * BfDsFullPageSpinner provides a centered loading spinner that takes up the full
+ * viewport, perfect for application initialization, route transitions, or full-page
+ * loading states. Includes a fade-in animation for smooth appearance.
+ *
+ * Features:
+ * - Takes full viewport dimensions (100% width and height)
+ * - Centers spinner horizontally and vertically
+ * - Includes fade-in animation with delay
+ * - Uses primary brand color by default
+ * - Includes animated bolt/hourglass icon
+ * - Customizable container styles
  *
  * @param props - Component props
- * @returns JSX element
+ * @param props.xstyle - Additional CSS styles to apply to the container
+ *
+ * @example
+ * Basic full-page loading:
+ * ```tsx
+ * <BfDsFullPageSpinner />
+ * ```
+ *
+ * @example
+ * With custom background:
+ * ```tsx
+ * <BfDsFullPageSpinner
+ *   xstyle={{
+ *     backgroundColor: 'rgba(0,0,0,0.1)',
+ *     backdropFilter: 'blur(2px)'
+ *   }}
+ * />
+ * ```
+ *
+ * @example
+ * Application initialization:
+ * ```tsx
+ * function App() {
+ *   const [isInitializing, setIsInitializing] = useState(true);
+ *
+ *   if (isInitializing) {
+ *     return <BfDsFullPageSpinner />;
+ *   }
+ *
+ *   return <MainApplication />;
+ * }
+ * ```
+ *
+ * @returns A full-page loading spinner overlay component
  */
 export function BfDsFullPageSpinner({ xstyle = {} }: BfDsFullPageSpinnerProps) {
   return (

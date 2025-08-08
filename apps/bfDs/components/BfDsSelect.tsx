@@ -1,8 +1,16 @@
+/**
+ * @fileoverview BfDsSelect - Sophisticated dropdown selection component with typeahead functionality
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useBfDsFormContext } from "./BfDsForm.tsx";
 import { BfDsIcon } from "./BfDsIcon.tsx";
 
+/**
+ * Represents a selectable option in the BfDsSelect dropdown
+ */
 export type BfDsSelectOption = {
   /** The value submitted when this option is selected */
   value: string;
@@ -12,6 +20,9 @@ export type BfDsSelectOption = {
   disabled?: boolean;
 };
 
+/**
+ * Props for the BfDsSelect component
+ */
 export type BfDsSelectProps = {
   // Form context props
   /** Form field name for data binding */
@@ -44,6 +55,94 @@ export type BfDsSelectProps = {
   typeahead?: boolean;
 };
 
+/**
+ * A sophisticated dropdown selection component with optional typeahead functionality
+ *
+ * BfDsSelect provides a comprehensive dropdown selection experience with intelligent
+ * positioning, keyboard navigation, and seamless form integration. It supports both
+ * basic selection and typeahead search for larger datasets.
+ *
+ * Features:
+ * - Intelligent dropdown positioning (above/below based on available space)
+ * - Full keyboard navigation support
+ * - Typeahead search functionality
+ * - Seamless form integration with BfDsForm
+ * - Both controlled and uncontrolled usage patterns
+ * - Accessibility features with proper ARIA attributes
+ *
+ * @param props - Component props
+ * @param props.name - Form field name for data binding when used within BfDsForm
+ * @param props.value - Currently selected value (controlled mode)
+ * @param props.defaultValue - Default selected value for uncontrolled usage
+ * @param props.onChange - Callback fired when selection changes
+ * @param props.options - Array of selectable options with value, label, and optional disabled state
+ * @param props.placeholder - Placeholder text shown when nothing is selected
+ * @param props.disabled - Whether the component is disabled
+ * @param props.required - Whether selection is required for form validation
+ * @param props.className - Additional CSS classes to apply
+ * @param props.id - Element ID for the select input
+ * @param props.label - Field label displayed above the select
+ * @param props.typeahead - Enable typeahead search functionality
+ *
+ * @example
+ * Basic usage:
+ * ```tsx
+ * <BfDsSelect
+ *   options={[
+ *     { value: "us", label: "United States" },
+ *     { value: "ca", label: "Canada" }
+ *   ]}
+ *   value={selectedCountry}
+ *   onChange={setSelectedCountry}
+ *   placeholder="Choose a country"
+ * />
+ * ```
+ *
+ * @example
+ * With form integration:
+ * ```tsx
+ * <BfDsForm initialData={formData} onChange={setFormData}>
+ *   <BfDsSelect
+ *     name="country"
+ *     label="Country"
+ *     options={countryOptions}
+ *     placeholder="Select country"
+ *     required
+ *   />
+ * </BfDsForm>
+ * ```
+ *
+ * @example
+ * With typeahead for large datasets:
+ * ```tsx
+ * <BfDsSelect
+ *   label="Country (Searchable)"
+ *   options={largeCountryList}
+ *   typeahead
+ *   placeholder="Type to search countries..."
+ * />
+ * ```
+ *
+ * @example
+ * Controlled with validation:
+ * ```tsx
+ * const [value, setValue] = useState("");
+ * const [error, setError] = useState("");
+ *
+ * <BfDsSelect
+ *   label="Required Selection"
+ *   options={options}
+ *   value={value}
+ *   onChange={(newValue) => {
+ *     setValue(newValue);
+ *     setError(newValue ? "" : "Please make a selection");
+ *   }}
+ *   required
+ * />
+ * ```
+ *
+ * @returns A sophisticated dropdown selection component
+ */
 export function BfDsSelect({
   name,
   value,

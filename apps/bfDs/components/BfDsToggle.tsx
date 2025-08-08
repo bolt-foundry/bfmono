@@ -1,9 +1,20 @@
+/**
+ * @fileoverview BfDsToggle - Toggle switch component with form integration and customizable styling
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 import { useState } from "react";
 import { useBfDsFormContext } from "./BfDsForm.tsx";
 
+/**
+ * Size variants for the BfDsToggle component
+ */
 export type BfDsToggleSize = "small" | "medium" | "large";
 
+/**
+ * Props for the BfDsToggle component
+ */
 export type BfDsToggleProps = {
   // Form context props
   /** Form field name for data binding */
@@ -30,6 +41,85 @@ export type BfDsToggleProps = {
   id?: string;
 };
 
+/**
+ * A toggle switch component for binary on/off selections
+ *
+ * BfDsToggle provides a modern switch-like interface for boolean states, serving as
+ * an alternative to checkboxes. It features multiple size variants, form integration,
+ * and comprehensive keyboard accessibility.
+ *
+ * Features:
+ * - Three size variants (small, medium, large)
+ * - Seamless form integration with BfDsForm
+ * - Both controlled and uncontrolled usage patterns
+ * - Full keyboard accessibility with Space/Enter support
+ * - Proper ARIA attributes for screen readers
+ * - Smooth visual transitions
+ *
+ * @param props - Component props
+ * @param props.name - Form field name for data binding when used within BfDsForm
+ * @param props.checked - Whether the toggle is on/off (controlled mode)
+ * @param props.defaultChecked - Default checked state for uncontrolled usage
+ * @param props.onChange - Callback fired when toggle state changes
+ * @param props.label - Label text displayed next to toggle
+ * @param props.disabled - Whether the component is disabled
+ * @param props.className - Additional CSS classes to apply
+ * @param props.id - Element ID for the toggle input
+ * @param props.size - Size variant (small, medium, large)
+ *
+ * @example
+ * Basic usage:
+ * ```tsx
+ * <BfDsToggle
+ *   label="Enable notifications"
+ *   checked={isEnabled}
+ *   onChange={setIsEnabled}
+ * />
+ * ```
+ *
+ * @example
+ * With form integration:
+ * ```tsx
+ * <BfDsForm initialData={settings} onChange={setSettings}>
+ *   <BfDsToggle
+ *     name="darkMode"
+ *     label="Dark Mode"
+ *   />
+ *   <BfDsToggle
+ *     name="notifications"
+ *     label="Enable Notifications"
+ *   />
+ * </BfDsForm>
+ * ```
+ *
+ * @example
+ * Different sizes:
+ * ```tsx
+ * <BfDsToggle label="Small" size="small" defaultChecked />
+ * <BfDsToggle label="Medium" size="medium" defaultChecked />
+ * <BfDsToggle label="Large" size="large" defaultChecked />
+ * ```
+ *
+ * @example
+ * Settings panel:
+ * ```tsx
+ * <div className="settings-panel">
+ *   <BfDsToggle
+ *     label="Email Notifications"
+ *     checked={settings.emailNotifications}
+ *     onChange={(checked) =>
+ *       setSettings({...settings, emailNotifications: checked})
+ *     }
+ *   />
+ *   <BfDsToggle
+ *     label="Push Notifications"
+ *     defaultChecked={false}
+ *   />
+ * </div>
+ * ```
+ *
+ * @returns A toggle switch component for binary selections
+ */
 export function BfDsToggle({
   name,
   checked,

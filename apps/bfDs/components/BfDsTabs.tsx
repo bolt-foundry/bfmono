@@ -1,3 +1,8 @@
+/**
+ * @fileoverview BfDsTabs - A comprehensive tab navigation component with support for icons, disabled states, nested subtabs, and both controlled and uncontrolled modes. Perfect for organizing content into separate views.
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type * as React from "react";
 import { useEffect, useState } from "react";
 import { BfDsIcon, type BfDsIconName } from "./BfDsIcon.tsx";
@@ -17,20 +22,23 @@ export type BfDsTabItem = {
   subtabs?: Array<BfDsTabItem>;
 };
 
+/**
+ * Props for the BfDsTabs component
+ */
 export type BfDsTabsProps = {
-  /** Array of tab items to display */
+  /** Array of tab configuration objects defining the tabs to display */
   tabs: Array<BfDsTabItem>;
-  /** Currently active tab ID (controlled) */
+  /** Currently active tab ID for controlled mode. When provided, component operates in controlled mode */
   activeTab?: string;
-  /** Default active tab ID (uncontrolled) */
+  /** Default active tab ID for uncontrolled mode. Used only when activeTab is not provided */
   defaultActiveTab?: string;
-  /** Callback when tab selection changes */
+  /** Callback function called when tab selection changes, receives the new tab ID */
   onTabChange?: (tabId: string) => void;
-  /** Additional CSS classes */
+  /** Additional CSS classes to apply to the tabs container */
   className?: string;
-  /** Visual style variant */
+  /** Visual style variant that affects the appearance of tabs */
   variant?: "primary" | "secondary";
-  /** Size variant for tabs */
+  /** Size variant that controls the dimensions and padding of tabs */
   size?: "small" | "medium" | "large";
 };
 
@@ -39,6 +47,109 @@ export type BfDsTabsState = {
   activeSubtabs: Record<string, string>; // parentTabId -> activeSubtabId
 };
 
+/**
+ * A comprehensive tab navigation component with support for icons, disabled states, nested subtabs,
+ * and both controlled and uncontrolled modes. Perfect for organizing content into separate views
+ * with consistent navigation patterns and accessibility support.
+ *
+ * @example
+ * // Basic uncontrolled tabs
+ * const tabs = [
+ *   { id: "overview", label: "Overview", content: <div>Overview content</div> },
+ *   { id: "settings", label: "Settings", content: <div>Settings content</div> },
+ *   { id: "help", label: "Help", content: <div>Help content</div> },
+ * ];
+ * <BfDsTabs tabs={tabs} defaultActiveTab="overview" />
+ *
+ * @example
+ * // Controlled mode with state management
+ * const [activeTab, setActiveTab] = useState("overview");
+ * <BfDsTabs
+ *   tabs={tabs}
+ *   activeTab={activeTab}
+ *   onTabChange={setActiveTab}
+ * />
+ *
+ * @example
+ * // Tabs with icons and different variants
+ * const tabsWithIcons = [
+ *   { id: "dashboard", label: "Dashboard", icon: "autoframe", content: <DashboardContent /> },
+ *   { id: "analytics", label: "Analytics", icon: "arrowsLeftRight", content: <AnalyticsContent /> },
+ *   { id: "settings", label: "Settings", icon: "settings", content: <SettingsContent /> },
+ * ];
+ * <BfDsTabs tabs={tabsWithIcons} variant="secondary" size="large" />
+ *
+ * @example
+ * // Nested subtabs for hierarchical navigation
+ * const tabsWithSubtabs = [
+ *   {
+ *     id: "documentation",
+ *     label: "Documentation",
+ *     icon: "brand-github",
+ *     content: <div>Main documentation content</div>,
+ *     subtabs: [
+ *       { id: "getting-started", label: "Getting Started", content: <GettingStarted /> },
+ *       { id: "api-reference", label: "API Reference", content: <ApiReference /> },
+ *       { id: "examples", label: "Examples", content: <Examples /> },
+ *     ],
+ *   },
+ *   {
+ *     id: "support",
+ *     label: "Support",
+ *     icon: "brand-discord",
+ *     subtabs: [
+ *       { id: "faq", label: "FAQ", content: <FAQ /> },
+ *       { id: "contact", label: "Contact", disabled: true, content: <Contact /> },
+ *     ],
+ *   },
+ * ];
+ * <BfDsTabs tabs={tabsWithSubtabs} />
+ *
+ * @example
+ * // Application navigation with URL integration
+ * function AppNavigation() {
+ *   const navigate = useNavigate();
+ *   const location = useLocation();
+ *   const activeTab = location.pathname.split("/").pop() || "dashboard";
+ *
+ *   const appTabs = [
+ *     { id: "dashboard", label: "Dashboard", icon: "autoframe", content: <DashboardPage /> },
+ *     { id: "projects", label: "Projects", icon: "computer", content: <ProjectsPage /> },
+ *     { id: "team", label: "Team", icon: "friend", content: <TeamPage /> },
+ *     { id: "settings", label: "Settings", icon: "settings", content: <SettingsPage /> },
+ *   ];
+ *
+ *   const handleTabChange = (tabId: string) => {
+ *     navigate(`/app/${tabId}`);
+ *   };
+ *
+ *   return (
+ *     <BfDsTabs
+ *       tabs={appTabs}
+ *       activeTab={activeTab}
+ *       onTabChange={handleTabChange}
+ *       size="large"
+ *     />
+ *   );
+ * }
+ *
+ * @param props - The tabs props
+ * @param props.tabs - Array of tab configurations
+ * @param props.activeTab - Current active tab ID (controlled)
+ * @param props.defaultActiveTab - Default tab ID (uncontrolled)
+ * @param props.onTabChange - Tab change callback
+ * @param props.className - Additional CSS classes
+ * @param props.variant - Visual style variant (default: "primary")
+ * @param props.size - Size variant (default: "medium")
+ * @returns A tab navigation component with content panels
+ *
+ * @accessibility
+ * - Uses proper ARIA roles (tablist, tab, tabpanel)
+ * - Maintains aria-selected and aria-controls relationships
+ * - Supports keyboard navigation (Tab, Arrow keys, Enter, Space)
+ * - Provides context for nested subtabs
+ * - Clear focus indicators and logical tab order
+ */
 export function BfDsTabs({
   tabs,
   activeTab,

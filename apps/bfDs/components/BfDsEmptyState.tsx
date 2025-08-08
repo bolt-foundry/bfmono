@@ -1,3 +1,8 @@
+/**
+ * @fileoverview BfDsEmptyState - Empty state component with icon, title, and action button
+ * @author Justin Carter <justin@boltfoundry.com>
+ * @since 2.0.0
+ */
 import type { ReactNode } from "react";
 import { BfDsIcon, type BfDsIconName } from "./BfDsIcon.tsx";
 import { BfDsButton } from "./BfDsButton.tsx";
