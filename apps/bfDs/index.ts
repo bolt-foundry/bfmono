@@ -124,3 +124,11 @@ export type {
   BfDsBadgeSize,
   BfDsBadgeVariant,
 } from "./components/BfDsBadge.tsx";
+
+export { BfDsHud } from "./components/BfDsHud.tsx";
+export {
+  type BfDsHudButton,
+  type BfDsHudMessage,
+  BfDsHudProvider,
+  useHud,
+} from "./contexts/BfDsHudContext.tsx";

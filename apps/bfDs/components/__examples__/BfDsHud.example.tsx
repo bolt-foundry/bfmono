@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import {
-  useBfDsHud,
-  useBfDsHudButtons,
-  useBfDsHudConsole,
-  useBfDsHudInputs,
-} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsToggle } from "@bfmono/apps/bfDs/components/BfDsToggle.tsx";
 
 export function BfDsHudExample() {
-  const { addButton, removeButton } = useBfDsHudButtons();
-  const { sendMessage } = useBfDsHudConsole();
-  const { getInputs } = useBfDsHudInputs();
-  const { showHud, hideHud, isVisible } = useBfDsHud();
+  const {
+    addButton,
+    removeButton,
+    sendMessage,
+    getInputs,
+    showHud,
+    hideHud,
+    isVisible,
+  } = useHud();
 
   // State for toggle examples
   const [debugMode, setDebugMode] = useState(false);
@@ -139,64 +139,79 @@ import { BfDsHud } from "@bfmono/apps/bfDs/components/BfDsHud.tsx";
   <BfDsHud />
 </BfDsHudProvider>
 
-// 2. Use the hooks in your components
-import { useBfDsHud, useBfDsHudButtons, useBfDsHudConsole, useBfDsHudInputs } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+// 2. Use the simplified hook in your components
+import { useHud } from "@bfmono/bfDs";
 
-// Show/hide the HUD
-const { showHud, hideHud, toggleHud } = useBfDsHud();
+function MyComponent() {
+  // Single hook provides all HUD functionality
+  const {
+    showHud,
+    hideHud,
+    toggleHud,
+    addButton,
+    removeButton,
+    sendMessage,
+    clearMessages,
+    input1,
+    input2,
+    getInputs
+  } = useHud();
 
-// Add action buttons
-const { addButton, removeButton } = useBfDsHudButtons();
+  useEffect(() => {
+    addButton({
+      id: "my-action",
+      label: "Run Action",
+      icon: "play",
+      variant: "primary",
+      onClick: () => {
+        const { input1, input2 } = getInputs();
+        sendMessage(\`Running with: \${input1}, \${input2}\`, "info");
+      }
+    });
 
-useEffect(() => {
-  addButton({
-    id: "my-action",
-    label: "Run Action",
-    icon: "play",
-    variant: "primary",
-    onClick: () => {
-      const { input1, input2 } = getInputs();
-      console.log("Running with:", input1, input2);
-    }
-  });
+    return () => removeButton("my-action");
+  }, [addButton, removeButton, getInputs, sendMessage]);
 
-  return () => removeButton("my-action");
-}, []);
+  // Add toggleable buttons
+  const [featureEnabled, setFeatureEnabled] = useState(false);
 
-// Add toggleable buttons
-const [featureEnabled, setFeatureEnabled] = useState(false);
+  useEffect(() => {
+    addButton({
+      id: "toggle-feature",
+      label: "Feature Flag",
+      toggleable: true,
+      value: featureEnabled,
+      onToggle: (newValue) => {
+        setFeatureEnabled(newValue);
+        sendMessage(\`Feature \${newValue ? "enabled" : "disabled"}\`, "success");
+      },
+      onClick: () => {
+        // Optional additional action
+      }
+    });
+  }, [addButton, featureEnabled, sendMessage]);
 
-addButton({
-  id: "toggle-feature",
-  label: "Feature Flag",
-  toggleable: true,
-  value: featureEnabled,
-  onToggle: (newValue) => {
-    setFeatureEnabled(newValue);
-    sendMessage(\`Feature \${newValue ? "enabled" : "disabled"}\`, "success");
-  },
-  onClick: () => {
-    // Optional additional action
-  }
-});
+  // Send messages
+  const handleSendMessages = () => {
+    sendMessage("Operation started", "info");
+    sendMessage("Success!", "success");
+    sendMessage("Warning: Check config", "warning");
+    sendMessage("Error occurred", "error");
+  };
 
-// Send console messages
-const { sendMessage, clearMessages } = useBfDsHudConsole();
+  // Access input values
+  const handleGetInputs = () => {
+    const values = getInputs(); // { input1: string, input2: string }
+    sendMessage(\`Input values: \${JSON.stringify(values)}\`, "info");
+  };
 
-sendMessage("Operation started", "info");
-sendMessage("Success!", "success");
-sendMessage("Warning: Check config", "warning");
-sendMessage("Error occurred", "error");
-
-// Access input values
-const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHudInputs();
-
-// Read current values
-const values = getInputs(); // { input1: string, input2: string }
-
-// Set values programmatically
-setInput1("api.example.com");
-setInput2("auth-token-123");`}
+  // Set values programmatically
+  const handleSetInputs = () => {
+    setInput1("api.example.com");
+    setInput2("auth-token-123");
+    sendMessage("Input values set programmatically", "success");
+  };
+}`}
         </pre>
       </div>
 

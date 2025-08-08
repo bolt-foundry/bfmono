@@ -161,26 +161,10 @@ export function BfDsHudProvider(
   );
 }
 
-export function useBfDsHud() {
+export function useHud() {
   const context = useContext(BfDsHudContext);
   if (context === undefined) {
-    throw new Error("useBfDsHud must be used within a BfDsHudProvider");
+    throw new Error("useHud must be used within a BfDsHudProvider");
   }
   return context;
-}
-
-// Convenience hooks
-export function useBfDsHudButtons() {
-  const { addButton, removeButton } = useBfDsHud();
-  return { addButton, removeButton };
-}
-
-export function useBfDsHudConsole() {
-  const { sendMessage, clearMessages } = useBfDsHud();
-  return { sendMessage, clearMessages };
-}
-
-export function useBfDsHudInputs() {
-  const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHud();
-  return { input1, input2, setInput1, setInput2, getInputs };
 }

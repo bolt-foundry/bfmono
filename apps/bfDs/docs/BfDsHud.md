@@ -57,27 +57,35 @@ function App() {
 }
 ```
 
-### 2. Using the Hooks
+### 2. Using the Hook
 
 ```tsx
-import {
-  useBfDsHud,
-  useBfDsHudButtons,
-  useBfDsHudConsole,
-  useBfDsHudInputs,
-} from "@bfmono/bfDs/contexts/BfDsHudContext";
+import { useHud } from "@bfmono/bfDs/contexts/BfDsHudContext";
 
-// Main HUD control
-const { showHud, hideHud, toggleHud, isVisible } = useBfDsHud();
-
-// Button management
-const { addButton, removeButton } = useBfDsHudButtons();
-
-// Console messaging
-const { sendMessage, clearMessages } = useBfDsHudConsole();
-
-// Input field access
-const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHudInputs();
+// Single hook provides all functionality
+const {
+  // HUD visibility control
+  showHud,
+  hideHud,
+  toggleHud,
+  isVisible,
+  // Button management
+  addButton,
+  removeButton,
+  buttons,
+  // Console messaging
+  sendMessage,
+  clearMessages,
+  messages,
+  currentMessageIndex,
+  navigateMessages,
+  // Input field access
+  input1,
+  input2,
+  setInput1,
+  setInput2,
+  getInputs,
+} = useHud();
 ```
 
 ## Basic Usage
@@ -85,7 +93,7 @@ const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHudInputs();
 ### Show/Hide HUD
 
 ```tsx
-const { showHud, hideHud, toggleHud, isVisible } = useBfDsHud();
+const { showHud, hideHud, toggleHud, isVisible } = useHud();
 
 // Control HUD visibility
 <button onClick={showHud}>Show HUD</button>
@@ -99,8 +107,7 @@ const { showHud, hideHud, toggleHud, isVisible } = useBfDsHud();
 ### Adding Action Buttons
 
 ```tsx
-const { addButton, removeButton } = useBfDsHudButtons();
-const { sendMessage } = useBfDsHudConsole();
+const { addButton, removeButton, sendMessage } = useHud();
 
 useEffect(() => {
   // Add a simple action button
@@ -121,7 +128,7 @@ useEffect(() => {
 ### Console Messaging
 
 ```tsx
-const { sendMessage, clearMessages } = useBfDsHudConsole();
+const { sendMessage, clearMessages } = useHud();
 
 // Send different message types
 sendMessage("Information message", "info");
@@ -136,7 +143,15 @@ clearMessages();
 ### Input Field Usage
 
 ```tsx
-const { input1, input2, setInput1, setInput2, getInputs } = useBfDsHudInputs();
+const {
+  input1,
+  input2,
+  setInput1,
+  setInput2,
+  getInputs,
+  addButton,
+  sendMessage,
+} = useHud();
 
 // Set input values programmatically
 setInput1("api.example.com");
@@ -162,6 +177,8 @@ addButton({
 ### Regular Buttons
 
 ```tsx
+const { addButton, sendMessage } = useHud();
+
 addButton({
   id: "action-1",
   label: "Run Action",
@@ -177,6 +194,7 @@ addButton({
 ### Toggleable Buttons
 
 ```tsx
+const { addButton, sendMessage } = useHud();
 const [featureEnabled, setFeatureEnabled] = useState(false);
 
 addButton({
@@ -203,24 +221,32 @@ addButton({
 ### Info Messages
 
 ```tsx
+const { sendMessage } = useHud();
+
 sendMessage("General information", "info");
 ```
 
 ### Success Messages
 
 ```tsx
+const { sendMessage } = useHud();
+
 sendMessage("Operation completed successfully", "success");
 ```
 
 ### Warning Messages
 
 ```tsx
+const { sendMessage } = useHud();
+
 sendMessage("Check your configuration", "warning");
 ```
 
 ### Error Messages
 
 ```tsx
+const { sendMessage } = useHud();
+
 sendMessage("Something went wrong", "error");
 ```
 
@@ -251,6 +277,8 @@ sendMessage("Something went wrong", "error");
 ### Development Tools
 
 ```tsx
+const { addButton, sendMessage, getInputs } = useHud();
+
 // API testing
 addButton({
   id: "api-test",
@@ -273,6 +301,7 @@ addButton({
 ### Feature Flags
 
 ```tsx
+const { addButton, sendMessage } = useHud();
 const [debugMode, setDebugMode] = useState(false);
 
 addButton({
@@ -293,6 +322,8 @@ addButton({
 ### Admin Actions
 
 ```tsx
+const { addButton, sendMessage, getInputs } = useHud();
+
 addButton({
   id: "user-action",
   label: "Admin Action",
@@ -315,6 +346,8 @@ addButton({
 ### Data Exploration
 
 ```tsx
+const { addButton, sendMessage, getInputs } = useHud();
+
 addButton({
   id: "query-data",
   label: "Query Data",
@@ -345,6 +378,8 @@ addButton({
 - Use appropriate button variants for visual hierarchy
 
 ```tsx
+const { addButton, removeButton } = useHud();
+
 useEffect(() => {
   // Add buttons
   const buttonIds = [];
@@ -367,7 +402,7 @@ useEffect(() => {
   return () => {
     buttonIds.forEach((id) => removeButton(id));
   };
-}, []);
+}, [addButton, removeButton]);
 ```
 
 ### Message Guidelines

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { BfLogo } from "@bfmono/apps/cfDs/static/BfLogo.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
-import { useBfDsHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import { useHud } from "@bfmono/apps/bfDs/index.ts";
 
 type Props = {
   page?: string;
@@ -13,7 +13,7 @@ type Props = {
 export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
   const [hoverLogo, setHoverLogo] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const { isVisible: hudOpen, toggleHud } = useBfDsHud();
+  const { isVisible: hudOpen, toggleHud } = useHud();
 
   // Temporary organization variable - replace with actual user org check
   const organization = "boltfoundry";

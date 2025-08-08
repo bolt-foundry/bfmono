@@ -65,10 +65,10 @@ function MyComponent() {
 The HUD is automatically available for development and debugging:
 
 ```tsx
-import { useBfDsHud } from "@bfmono/bfDs";
+import { useHud } from "@bfmono/bfDs";
 
 function DevComponent() {
-  const { addButton, sendMessage, showHud } = useBfDsHud();
+  const { addButton, sendMessage, showHud } = useHud();
 
   useEffect(() => {
     addButton({
@@ -77,7 +77,7 @@ function DevComponent() {
       onClick: () => sendMessage("Debug mode toggled"),
       toggleable: true,
     });
-  }, []);
+  }, [addButton, sendMessage]);
 
   return <button onClick={showHud}>Show Debug HUD</button>;
 }
@@ -238,4 +238,4 @@ However, using BfDsProvider is recommended for most use cases.
 - **BfDsHud**: The development HUD component (automatically included)
 - **BfDsToast**: Toast notification components (automatically enabled)
 - **useBfDsToast**: Hook for showing toast notifications
-- **useBfDsHud**: Hook for interacting with the development HUD
+- **useHud**: Hook for interacting with the development HUD

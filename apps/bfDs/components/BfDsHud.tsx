@@ -1,4 +1,4 @@
-import { useBfDsHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { useLocalStorage } from "@bfmono/apps/bfDs/hooks/useLocalStorage.ts";
@@ -17,7 +17,7 @@ export function BfDsHud() {
     input2,
     setInput1,
     setInput2,
-  } = useBfDsHud();
+  } = useHud();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
@@ -314,6 +314,3 @@ export function BfDsHud() {
     </div>
   );
 }
-
-// Re-export the hook from context for convenience
-export { useBfDsHudInputs } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
