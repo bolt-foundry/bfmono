@@ -5,11 +5,10 @@
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
+  "additionalDirectories": [
+    "../"
+  ],
   "permissions": {
-    "defaultMode": "bypassPermissions",
-    "additionalDirectories": [
-      "../@internalbf-docs"
-    ],
     "allow": [
       "Bash(ls:*)",
       "Bash(cat:*)",
@@ -28,9 +27,9 @@
       "Bash(rg:*)"
     ],
     "deny": [
-      "Bash(git:*)",
-      "Bash(deno test:*)"
-    ]
+      "Bash(git:*)"
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
@@ -55,5 +54,6 @@
         ]
       }
     ]
-  }
+  },
+  "$schema": "https://json.schemastore.org/claude-code-settings.json"
 }

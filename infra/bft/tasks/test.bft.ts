@@ -34,16 +34,11 @@ export async function testCommand(options: Array<string>): Promise<number> {
   const hasE2EFlag = remainingArgs.some((opt) =>
     opt.includes("e2e") || opt.includes("E2E")
   );
-  if (!hasE2EFlag) {
-    args.push("--ignore=**/*.e2e.ts");
-    logger.debug("Added E2E exclusion");
+  if (!hasE2EFlag && !remainingArgs.some((arg) => arg.includes("--filter"))) {
+    // Use filter to exclude e2e tests instead of --ignore
+    args.push("--filter", "^(?!.*\\.e2e\\.).*$");
+    logger.debug("Added E2E exclusion via filter");
   }
-
-  // Exclude Sapling backup files
-  args.push("--ignore=.sl/**");
-
-  // Exclude shared folder
-  args.push("--ignore=shared/**");
 
   // Pass through remaining arguments to deno test
   args.push(...remainingArgs);
