@@ -4,16 +4,12 @@ import { Header } from "./Evals/Layout/Header.tsx";
 import { LeftSidebar } from "./Evals/Layout/LeftSidebar.tsx";
 import { MainContent } from "./Evals/Layout/MainContent.tsx";
 import { RightSidebar } from "./Evals/Layout/RightSidebar.tsx";
-import {
-  useBfDsHudButtons,
-  useBfDsHudConsole,
-} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { useEffect } from "react";
 
 function EvalContent() {
   const evalContext = useEvalContext();
-  const { addButton, removeButton } = useBfDsHudButtons();
-  const { sendMessage } = useBfDsHudConsole();
+  const { addButton, removeButton, sendMessage } = useHud();
 
   useEffect(() => {
     // Add button to show eval context state

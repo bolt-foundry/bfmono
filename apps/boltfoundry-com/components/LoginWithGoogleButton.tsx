@@ -8,11 +8,7 @@ import {
   setMockEmail,
   shouldUseGoogleAuthDevMock,
 } from "../utils/googleAuthDevMock.ts";
-import {
-  useBfDsHud,
-  useBfDsHudButtons,
-  useBfDsHudConsole,
-} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -43,9 +39,7 @@ export function LoginWithGoogleButton() {
   const [error, setError] = useState<string | null>(null);
   const [forceRealButton, setForceRealButton] = useState(false);
   const appEnvironment = useAppEnvironment();
-  const { input1, setInput1 } = useBfDsHud();
-  const { addButton, removeButton } = useBfDsHudButtons();
-  const { sendMessage } = useBfDsHudConsole();
+  const { input1, setInput1, addButton, removeButton, sendMessage } = useHud();
 
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef<
