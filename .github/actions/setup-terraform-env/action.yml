@@ -46,7 +46,8 @@ runs:
           # CI project credentials for Terraform backend
           export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
           export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
-          export TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT
+          # Use S3_ENDPOINT if TERRAFORM_BACKEND_ENDPOINT is not set
+          export TERRAFORM_S3_ENDPOINT=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}
 
           # Save to GitHub env for subsequent steps
           echo \"TF_VAR_hcloud_token=\$TF_VAR_hcloud_token\" >> \$GITHUB_ENV

@@ -67,10 +67,12 @@ runs:
           # Debug: Show what we're about to export
           echo ''
           echo '📋 Variables to export:'
-          echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\"
+          # Use S3_ENDPOINT as fallback if TERRAFORM_BACKEND_ENDPOINT is not set
+          ENDPOINT_TO_USE=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}
+          echo \"TERRAFORM_S3_ENDPOINT=\$ENDPOINT_TO_USE\"
           
           # Export to GitHub env - need to escape properly
-          echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\" >> \$GITHUB_ENV
+          echo \"TERRAFORM_S3_ENDPOINT=\$ENDPOINT_TO_USE\" >> \$GITHUB_ENV
           echo \"AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID\" >> \$GITHUB_ENV
           echo \"AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY\" >> \$GITHUB_ENV
 
