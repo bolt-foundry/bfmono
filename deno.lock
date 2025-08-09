@@ -63,7 +63,8 @@
     "jsr:@std/testing@^1.0.9": "1.0.14",
     "jsr:@std/toml@^1.0.3": "1.0.8",
     "jsr:@std/toml@^1.0.4": "1.0.8",
-    "jsr:@std/yaml@^1.0.5": "1.0.8",
+    "jsr:@std/yaml@^1.0.5": "1.0.9",
+    "jsr:@std/yaml@^1.0.9": "1.0.9",
     "jsr:@ts-morph/bootstrap@0.24": "0.24.0",
     "jsr:@ts-morph/common@0.24": "0.24.0",
     "npm:@anthropic-ai/claude-code@*": "1.0.65",
@@ -261,7 +262,7 @@
       "integrity": "ee6201d06674cbef137dda2252f62477450b48249e7d8d9ab57a30f85ff6f051",
       "dependencies": [
         "jsr:@std/toml@^1.0.3",
-        "jsr:@std/yaml"
+        "jsr:@std/yaml@^1.0.5"
       ]
     },
     "@std/fs@0.223.0": {
@@ -365,6 +366,9 @@
     },
     "@std/yaml@1.0.8": {
       "integrity": "90b8aab62995e929fa0ea5f4151c287275b63e321ac375c35ff7406ca60c169d"
+    },
+    "@std/yaml@1.0.9": {
+      "integrity": "6bad3dc766dd85b4b37eabcba81b6aa4eac7a392792ae29abcfb0f90602d55bb"
     },
     "@ts-morph/bootstrap@0.24.0": {
       "integrity": "a826a2ef7fa8a7c3f1042df2c034d20744d94da2ee32bf29275bcd4dffd3c060",
@@ -3531,6 +3535,7 @@
       "jsr:@std/streams@^1.0.10",
       "jsr:@std/testing@^1.0.9",
       "jsr:@std/toml@^1.0.4",
+      "jsr:@std/yaml@^1.0.9",
       "npm:@anthropic-ai/claude-code@^1.0.65",
       "npm:@graphql-tools/schema@^10.0.6",
       "npm:@isograph/babel-plugin@~0.3.1",

@@ -1,5 +1,6 @@
 #!/usr/bin/env -S bft run
 
+import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import type { TaskDefinition } from "../bft.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { parseEnvFile } from "@bfmono/packages/env/utils.ts";
@@ -38,7 +39,7 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     let processedTemplate = templateContent;
 
     // Get server IP from environment or secrets
-    const serverIp = Deno.env.get("BOLTFOUNDRY_COM_SERVER_IP") ||
+    const serverIp = getConfigurationVariable("BOLTFOUNDRY_COM_SERVER_IP") ||
       (await getSecretValue("BOLTFOUNDRY_COM_SERVER_IP"));
 
     if (serverIp) {
@@ -54,18 +55,27 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       .replace(/\${domain}/g, "boltfoundry.com");
 
     // Parse template as YAML to preserve structure
-    const config = yaml.parse(processedTemplate) as any;
+    // Define a proper type for the Kamal config
+    interface KamalConfig {
+      env?: {
+        clear?: Record<string, unknown>;
+        secret?: string[];
+      };
+      [key: string]: unknown;
+    }
+
+    const config = yaml.parse(processedTemplate) as KamalConfig;
 
     // Read available secrets from .env.secrets
     const secretsPath = ".env.secrets";
-    let availableSecrets: string[] = [];
+    let availableSecrets: Array<string> = [];
 
     try {
       const secretsContent = await Deno.readTextFile(secretsPath);
       const secrets = parseEnvFile(secretsContent);
       availableSecrets = Object.keys(secrets);
       logger.info(`Found ${availableSecrets.length} secrets in ${secretsPath}`);
-    } catch (error) {
+    } catch {
       logger.warn(`Could not read ${secretsPath}, using template defaults`);
     }
 
@@ -127,7 +137,6 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     // Convert back to YAML
     const outputYaml = header + yaml.stringify(config, {
       lineWidth: -1, // Disable line wrapping
-      noRefs: true,
     });
 
     // Ensure output directory exists
