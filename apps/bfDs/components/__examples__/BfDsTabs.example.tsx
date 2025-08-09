@@ -13,7 +13,7 @@ export function BfDsTabsExample() {
         code={`import { BfDsTabs, type BfDsTabItem } from "@bfmono/apps/bfDs/components/BfDsTabs.tsx";
 
 // Define tabs
-const tabs: BfDsTabItem[] = [
+const tabs: Array<BfDsTabItem> = [
   {
     id: "tab1",
     label: "Tab 1",
