@@ -32,11 +32,22 @@ jobs:
       name: production-destroy
       url: https://github.com/${{ github.repository }}/actions
 
+    defaults:
+      run:
+        working-directory: infra/terraform/hetzner
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/flakehub-cache-action@main
+        with: { determinate: true }
+
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
+
+      - name: Setup Terraform Environment
+        uses: ./.github/actions/setup-terraform-env
+        with:
+          op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -58,15 +69,9 @@ jobs:
 
       - name: Terraform destroy
         run: |
-          cd infra/terraform/hetzner
-          terraform init -backend-config="endpoint=${{ secrets.S3_ENDPOINT }}"
+          terraform init -backend-config="endpoint=${{ env.TERRAFORM_S3_ENDPOINT }}"
           terraform destroy -auto-approve \
-            -var="hcloud_token=${{ secrets.HETZNER_API_TOKEN }}" \
-            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
             -var="github_username=${{ github.repository_owner }}" \
-            -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
-            -var="hyperdx_api_key=${{ secrets.HYPERDX_API_KEY }}" \
             -var="domain_name=next.boltfoundry.com"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

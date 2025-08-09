@@ -1,5 +1,7 @@
 # Kamal Deployment to Hetzner Infrastructure
 terraform {
+  required_version = ">= 1.9.0"
+  
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
@@ -15,10 +17,12 @@ terraform {
     }
   }
   
+  # Backend uses CI project for state storage in Helsinki
+  # The AWS credentials here are for the CI project's Object Storage
   backend "s3" {
-    bucket                      = "bfterraform"
+    bucket                      = "bft-terraform-state"
     key                         = "boltfoundry-com/terraform.tfstate"
-    region                      = "us-east-1"  # Required but ignored by Hetzner
+    region                      = "hel1"  # Helsinki region for state storage
     # endpoint configured via endpoint parameter in terraform init
     skip_credentials_validation = true
     skip_metadata_api_check     = true
@@ -80,22 +84,37 @@ variable "s3_secret_key" {
   sensitive   = true
 }
 
+
+variable "hetzner_project_id" {
+  description = "Hetzner Cloud Project ID"
+  type        = string
+}
+
+variable "s3_endpoint" {
+  description = "S3 endpoint for Hetzner Object Storage"
+  type        = string
+  default     = "https://hel1.your-objectstorage.com"
+}
+
 provider "hcloud" {
   token = var.hcloud_token
+  # This token should be from Production project
+  # All Hetzner resources (servers, volumes, IPs) will be created in production
 }
 
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# AWS provider for S3 (Hetzner Object Storage)
+# AWS provider for S3 (Hetzner Object Storage in Production project)
+# This is for application assets, NOT Terraform state
 provider "aws" {
   access_key = var.s3_access_key
   secret_key = var.s3_secret_key
-  region     = "hel1"  # Helsinki region to match endpoint
+  region     = "hel1"  # Helsinki region for object storage
   
   endpoints {
-    s3 = "https://hel1.your-objectstorage.com"  # Helsinki region endpoint
+    s3 = var.s3_endpoint  # Helsinki endpoint for buckets
   }
   
   skip_credentials_validation = true
@@ -114,7 +133,7 @@ resource "hcloud_ssh_key" "deploy" {
 # Floating IP (created first, unassigned)
 resource "hcloud_floating_ip" "web" {
   type      = "ipv4"
-  home_location = "ash"
+  home_location = "ash"  # US East
 }
 
 # Server
@@ -122,7 +141,7 @@ resource "hcloud_server" "web" {
   name        = "boltfoundry-com"
   image       = "ubuntu-22.04"
   server_type = "cpx11"
-  location    = "ash"
+  location    = "ash"  # US East (Ashburn, Virginia)
   ssh_keys    = [hcloud_ssh_key.deploy.id]
   
   user_data = templatefile("${path.module}/cloud-init.yml", {
@@ -140,7 +159,7 @@ resource "hcloud_floating_ip_assignment" "web" {
 resource "hcloud_volume" "database" {
   name     = "boltfoundry-db"
   size     = 10  # 10GB for SQLite database
-  location = "ash"
+  location = "ash"  # US East (same as server)
 }
 
 resource "hcloud_volume_attachment" "database" {
@@ -173,7 +192,7 @@ resource "cloudflare_record" "web" {
 
 # S3 bucket for asset storage
 resource "aws_s3_bucket" "assets" {
-  bucket = "bolt-foundry-assets"
+  bucket = "bft-assets"
 }
 
 # Note: Hetzner Object Storage doesn't support AWS-style bucket policies and CORS
@@ -183,22 +202,14 @@ resource "aws_s3_bucket" "assets" {
 resource "cloudflare_record" "bltcdn" {
   zone_id = var.cloudflare_zone_id
   name    = "bltcdn"
-  value   = "${aws_s3_bucket.assets.id}.hel1.your-objectstorage.com"
+  value   = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"  # Helsinki bucket endpoint
   type    = "CNAME"
   ttl     = 1  # Auto TTL
   proxied = true  # Enable Cloudflare CDN
 }
 
-# Generate Kamal config with floating IP and domain
-resource "local_file" "kamal_config" {
-  content = templatefile("${path.module}/deploy.yml.tpl", {
-    floating_ip      = hcloud_floating_ip.web.ip_address
-    domain           = var.domain_name
-    github_username  = var.github_username
-    hyperdx_api_key  = var.hyperdx_api_key
-  })
-  filename = "${path.module}/../../../config/deploy.yml"
-}
+# Kamal config is now generated dynamically by bft generate-kamal-config
+# This avoids the need to commit generated files and prevents circular dependencies
 
 # Outputs
 output "server_ip" {

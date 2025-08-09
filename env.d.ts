@@ -26,6 +26,18 @@ interface ServerEnvVars {
   readonly CODEBOT_GITHUB_PAT?: string;
   readonly JWT_SECRET?: string;
   readonly OPENROUTER_API_KEY?: string;
+  readonly TERRAFORM_BACKEND_ACCESS_KEY_ID?: string;
+  readonly TERRAFORM_BACKEND_SECRET_ACCESS_KEY?: string;
+  readonly HETZNER_API_TOKEN?: string;
+  readonly HETZNER_PROJECT_ID?: string;
+  readonly AWS_ACCESS_KEY_ID?: string;
+  readonly AWS_SECRET_ACCESS_KEY?: string;
+  readonly S3_ENDPOINT?: string;
+  readonly CLOUDFLARE_API_TOKEN?: string;
+  readonly CLOUDFLARE_ZONE_ID?: string;
+  readonly HYPERDX_API_KEY?: string;
+  readonly SSH_PUBLIC_KEY?: string;
+  readonly SSH_PRIVATE_KEY?: string;
 }
 
 // Environment-aware typing

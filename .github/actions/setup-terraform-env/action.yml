@@ -1,0 +1,68 @@
+name: "Setup Terraform Environment"
+description: "Sync secrets from 1Password and setup Terraform environment variables"
+inputs:
+  op-service-account-token:
+    description: "1Password service account token"
+    required: true
+outputs:
+  terraform-endpoint:
+    description: "Terraform S3 backend endpoint"
+    value: ${{ steps.setup.outputs.terraform-endpoint }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Sync secrets and setup environment
+      id: setup
+      shell: bash
+      run: |
+        nix develop --accept-flake-config --command bash -euc "
+          # The OP_SERVICE_ACCOUNT_TOKEN determines which vault is accessed
+          export OP_SERVICE_ACCOUNT_TOKEN='${{ inputs.op-service-account-token }}'
+
+          # Sync all secrets to .env.secrets
+          bft sitevar sync --force
+
+          # Source the secrets to make them available as environment variables
+          source .env.secrets
+
+          # Export Terraform variables
+          export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+          export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+          export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+          export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+          export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+          export TF_VAR_s3_access_key=\$AWS_ACCESS_KEY_ID
+          export TF_VAR_s3_secret_key=\$AWS_SECRET_ACCESS_KEY
+          export TF_VAR_github_token=\$GITHUB_PERSONAL_ACCESS_TOKEN
+          export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+          export TF_VAR_s3_endpoint=\$S3_ENDPOINT
+
+          # For Terraform backend, we need to temporarily override AWS credentials
+          # Save production S3 credentials
+          export PROD_AWS_ACCESS_KEY_ID=\$AWS_ACCESS_KEY_ID
+          export PROD_AWS_SECRET_ACCESS_KEY=\$AWS_SECRET_ACCESS_KEY
+
+          # CI project credentials for Terraform backend
+          export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+          export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+          export TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT
+
+          # Save to GitHub env for subsequent steps
+          echo \"TF_VAR_hcloud_token=\$TF_VAR_hcloud_token\" >> \$GITHUB_ENV
+          echo \"TF_VAR_cloudflare_api_token=\$TF_VAR_cloudflare_api_token\" >> \$GITHUB_ENV
+          echo \"TF_VAR_cloudflare_zone_id=\$TF_VAR_cloudflare_zone_id\" >> \$GITHUB_ENV
+          echo \"TF_VAR_ssh_public_key=\$TF_VAR_ssh_public_key\" >> \$GITHUB_ENV
+          echo \"TF_VAR_hyperdx_api_key=\$TF_VAR_hyperdx_api_key\" >> \$GITHUB_ENV
+          echo \"TF_VAR_s3_access_key=\$TF_VAR_s3_access_key\" >> \$GITHUB_ENV
+          echo \"TF_VAR_s3_secret_key=\$TF_VAR_s3_secret_key\" >> \$GITHUB_ENV
+          echo \"TF_VAR_github_token=\$TF_VAR_github_token\" >> \$GITHUB_ENV
+          echo \"TF_VAR_hetzner_project_id=\$TF_VAR_hetzner_project_id\" >> \$GITHUB_ENV
+          echo \"TF_VAR_s3_endpoint=\$TF_VAR_s3_endpoint\" >> \$GITHUB_ENV
+          echo \"AWS_ACCESS_KEY_ID=\$AWS_ACCESS_KEY_ID\" >> \$GITHUB_ENV
+          echo \"AWS_SECRET_ACCESS_KEY=\$AWS_SECRET_ACCESS_KEY\" >> \$GITHUB_ENV
+          echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_S3_ENDPOINT\" >> \$GITHUB_ENV
+
+          # Output for other steps
+          echo \"terraform-endpoint=\$TERRAFORM_S3_ENDPOINT\" >> \$GITHUB_OUTPUT
+        "
