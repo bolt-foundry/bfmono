@@ -64,12 +64,15 @@ runs:
           echo '🔄 Sourcing and exporting variables...'
           source .env.secrets
 
-          # Export to GitHub env
-          {
-            echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\"
-            echo \"AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID\"
-            echo \"AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY\"
-          } >> \$GITHUB_ENV
+          # Debug: Show what we're about to export
+          echo ''
+          echo '📋 Variables to export:'
+          echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\"
+          
+          # Export to GitHub env - need to escape properly
+          echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\" >> \$GITHUB_ENV
+          echo \"AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID\" >> \$GITHUB_ENV
+          echo \"AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY\" >> \$GITHUB_ENV
 
           echo '✅ Variables exported to GitHub environment'
         " || {
