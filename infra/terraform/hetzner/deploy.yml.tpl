@@ -45,6 +45,10 @@ env:
     DB_BACKEND_TYPE: sqlite
     SQLITE_DB_PATH: /data/bfdb.sqlite
     BF_ENV: production
+  secret:
+    # This section will be dynamically populated by bft generate-kamal-config
+    # based on secrets available in 1Password
+    - PLACEHOLDER_SECRET
 
 # HyperDX logging configuration
 logging:
@@ -55,7 +59,7 @@ logging:
 
 # Docker labels for HyperDX
 labels:
-  __HDX_API_KEY: ${hyperdx_api_key}
+  __HDX_API_KEY: "${HYPERDX_API_KEY}"
   service.name: boltfoundry-com
 
 aliases:
@@ -78,7 +82,7 @@ accessories:
       - web
     env:
       clear:
-        HDX_API_KEY: ${hyperdx_api_key}
+        HDX_API_KEY: "${HYPERDX_API_KEY}"
 
 # Database volume (mounted from Hetzner volume)
 volumes:

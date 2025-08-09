@@ -1,0 +1,90 @@
+name: Terraform Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Terraform operation to perform'
+        required: true
+        type: choice
+        options:
+          - plan
+          - state-list
+          - state-show
+          - refresh
+          - destroy
+      terraform_args:
+        description: 'Additional arguments for the terraform command'
+        required: false
+        type: string
+      confirm_destroy:
+        description: 'Type "destroy-production" to confirm destruction'
+        required: false
+        type: string
+
+# Prevent concurrent Terraform operations
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
+jobs:
+  terraform-operation:
+    runs-on: ubuntu-latest
+    environment: infrastructure
+    defaults:
+      run:
+        working-directory: infra/terraform/hetzner
+
+    steps:
+      - name: Validate destroy operation
+        if: inputs.operation == 'destroy'
+        run: |
+          if [ "${{ inputs.confirm_destroy }}" != "destroy-production" ]; then
+            echo "❌ Destroy operation requires confirmation"
+            echo "Please type 'destroy-production' in the confirm field"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      - uses: DeterminateSystems/flakehub-cache-action@main
+
+      - name: Setup Terraform Environment
+        uses: ./.github/actions/setup-terraform-env
+        with:
+          op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -backend-config="endpoint=${{ env.TERRAFORM_S3_ENDPOINT }}"
+
+      - name: Execute Terraform Operation
+        run: |
+          case "${{ inputs.operation }}" in
+            plan)
+              terraform plan ${{ inputs.terraform_args }}
+              ;;
+            state-list)
+              terraform state list ${{ inputs.terraform_args }}
+              ;;
+            state-show)
+              terraform state show ${{ inputs.terraform_args }}
+              ;;
+            refresh)
+              terraform refresh ${{ inputs.terraform_args }}
+              ;;
+            destroy)
+              terraform destroy -auto-approve ${{ inputs.terraform_args }}
+              ;;
+            *)
+              echo "Unknown operation: ${{ inputs.operation }}"
+              exit 1
+              ;;
+          esac
