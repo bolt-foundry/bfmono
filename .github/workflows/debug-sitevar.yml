@@ -1,0 +1,45 @@
+name: Debug Sitevar Sync
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug-sitevar:
+    runs-on: ubuntu-latest
+    environment: infrastructure
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+      
+      - name: Debug sitevar sync
+        run: |
+          echo "=== Testing Sitevar Sync ==="
+          nix develop --accept-flake-config --command bash -c "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            
+            echo '🔍 Listing available sitevars...'
+            bft sitevar list || echo 'Failed to list sitevars'
+            
+            echo ''
+            echo '🔍 Checking for TERRAFORM variables...'
+            bft sitevar list | grep -i terraform || echo 'No TERRAFORM variables found'
+            
+            echo ''
+            echo '🔍 Checking for backend/endpoint variables...'
+            bft sitevar list | grep -i -E '(backend|endpoint|s3)' || echo 'No backend/endpoint variables found'
+            
+            echo ''
+            echo '📥 Running sync...'
+            bft sitevar sync --force
+            
+            echo ''
+            echo '📋 Checking .env.secrets content (variable names only)...'
+            if [ -f .env.secrets ]; then
+              grep '^[A-Z]' .env.secrets | cut -d= -f1 | sort | grep -E '(TERRAFORM|AWS|S3|BACKEND|ENDPOINT)' || echo 'No matching variables'
+            else
+              echo '.env.secrets not created!'
+            fi
+          "

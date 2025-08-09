@@ -1,23 +1,7 @@
 # GitHub Repository Configuration
-terraform {
-  required_providers {
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.2"  # Rulesets require 6.2+
-    }
-  }
-}
+# Note: terraform block and providers are defined in main.tf
 
-variable "github_token" {
-  description = "GitHub Personal Access Token with repo permissions"
-  type        = string
-  sensitive   = true
-}
-
-variable "github_username" {
-  description = "GitHub username/organization"
-  type        = string
-}
+# Variables are already defined in main.tf
 
 provider "github" {
   token = var.github_token
