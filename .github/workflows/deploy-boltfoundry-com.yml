@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
 
       - name: Build binary and sync production env
         run: |

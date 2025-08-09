@@ -44,8 +44,8 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@main
         with: { determinate: true }
 
-      - name: Setup Nix caching
-        uses: DeterminateSystems/flakehub-cache-action@main
+      # - name: Setup Nix caching
+      #   uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
