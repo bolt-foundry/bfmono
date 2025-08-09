@@ -376,7 +376,22 @@ async function fetchItemsByTag(
         const readResult = await readCmd.output();
 
         if (readResult.code === 0) {
-          const value = new TextDecoder().decode(readResult.stdout).trim();
+          // Don't trim - preserve whitespace for values like SSH keys
+          let value = new TextDecoder().decode(readResult.stdout);
+
+          // 1Password may return escaped values, so unescape them
+          // This handles multiline content like SSH keys
+          value = value
+            .replace(/\\n/g, "\n") // Unescape newlines
+            .replace(/\\r/g, "\r") // Unescape carriage returns
+            .replace(/\\t/g, "\t") // Unescape tabs
+            .replace(/\\\\/g, "\\"); // Unescape backslashes (do this last)
+
+          // Only trim the final newline that 1Password adds
+          if (value.endsWith("\n")) {
+            value = value.slice(0, -1);
+          }
+
           items.set(item.title, value);
         } else {
           logger.warn(`Failed to read value for ${item.title}`);
@@ -590,6 +605,14 @@ async function setSitevar(args: Array<string>): Promise<number> {
 
   const [key, value] = args;
 
+  // Escape newlines and other special characters for 1Password
+  // This ensures multiline values like SSH keys are stored correctly
+  const escapedValue = value
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/\n/g, "\\n") // Escape newlines
+    .replace(/\r/g, "\\r") // Escape carriage returns
+    .replace(/\t/g, "\\t"); // Escape tabs
+
   // Parse tag flag
   const tagFlagIndex = args.indexOf("--tag");
   const tag = tagFlagIndex !== -1 && args[tagFlagIndex + 1]
@@ -626,7 +649,14 @@ async function setSitevar(args: Array<string>): Promise<number> {
     if (checkResult.code === 0) {
       // Item exists, update it
       const editCmd = new Deno.Command("op", {
-        args: ["item", "edit", key, `value=${value}`, "--vault", vaultId],
+        args: [
+          "item",
+          "edit",
+          key,
+          `value=${escapedValue}`,
+          "--vault",
+          vaultId,
+        ],
         stdout: "piped",
         stderr: "piped",
       });
@@ -655,7 +685,7 @@ async function setSitevar(args: Array<string>): Promise<number> {
           "Password",
           "--title",
           key,
-          `value=${value}`,
+          `value=${escapedValue}`,
           "--vault",
           vaultId,
           "--tags",
@@ -777,7 +807,21 @@ async function getConfigVar(args: Array<string>): Promise<number> {
       const valueResult = await valueCmd.output();
 
       if (valueResult.code === 0) {
-        const value = new TextDecoder().decode(valueResult.stdout).trim();
+        // Don't trim - preserve whitespace for values
+        let value = new TextDecoder().decode(valueResult.stdout);
+
+        // 1Password may return escaped values, so unescape them
+        value = value
+          .replace(/\\n/g, "\n") // Unescape newlines
+          .replace(/\\r/g, "\r") // Unescape carriage returns
+          .replace(/\\t/g, "\t") // Unescape tabs
+          .replace(/\\\\/g, "\\"); // Unescape backslashes (do this last)
+
+        // Only trim the final newline that 1Password adds
+        if (value.endsWith("\n")) {
+          value = value.slice(0, -1);
+        }
+
         ui.info(value);
         return 0;
       }
@@ -846,7 +890,21 @@ async function getSecretVar(args: Array<string>): Promise<number> {
       const valueResult = await valueCmd.output();
 
       if (valueResult.code === 0) {
-        const value = new TextDecoder().decode(valueResult.stdout).trim();
+        // Don't trim - preserve whitespace for values
+        let value = new TextDecoder().decode(valueResult.stdout);
+
+        // 1Password may return escaped values, so unescape them
+        value = value
+          .replace(/\\n/g, "\n") // Unescape newlines
+          .replace(/\\r/g, "\r") // Unescape carriage returns
+          .replace(/\\t/g, "\t") // Unescape tabs
+          .replace(/\\\\/g, "\\"); // Unescape backslashes (do this last)
+
+        // Only trim the final newline that 1Password adds
+        if (value.endsWith("\n")) {
+          value = value.slice(0, -1);
+        }
+
         ui.info(value);
         return 0;
       }
