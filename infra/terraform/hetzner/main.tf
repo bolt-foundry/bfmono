@@ -20,7 +20,7 @@ terraform {
   # Backend uses CI project for state storage in Helsinki
   # The AWS credentials here are for the CI project's Object Storage
   backend "s3" {
-    bucket                      = "terraform-state"
+    bucket                      = "bft-terraform-state"
     key                         = "boltfoundry-com/terraform.tfstate"
     region                      = "hel1"  # Helsinki region for state storage
     # endpoint configured via endpoint parameter in terraform init

@@ -26,6 +26,8 @@ interface ServerEnvVars {
   readonly CODEBOT_GITHUB_PAT?: string;
   readonly JWT_SECRET?: string;
   readonly OPENROUTER_API_KEY?: string;
+  readonly TERRAFORM_BACKEND_ACCESS_KEY_ID?: string;
+  readonly TERRAFORM_BACKEND_SECRET_ACCESS_KEY?: string;
 }
 
 // Environment-aware typing
