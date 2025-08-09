@@ -170,7 +170,7 @@ the floating IP).
 1. **Create Object Storage in CI Project**:
    - Log into Hetzner Cloud Console
    - Switch to CI project (bft_ci)
-   - Create Object Storage bucket named `terraform-state` in Helsinki (hel1)
+   - Create Object Storage bucket named `bft-terraform-state` in Helsinki (hel1)
    - Generate S3 credentials
    - Add credentials to 1Password CI vault
 

@@ -23,14 +23,14 @@ graph TB
     
     subgraph "Hetzner Cloud"
         subgraph "bft_ci Project"
-            CI_S3[Object Storage<br/>Terraform State<br/>Bucket: terraform-state<br/>Location: Helsinki]
+            CI_S3[Object Storage<br/>Terraform State<br/>Bucket: bft-terraform-state<br/>Location: Helsinki]
         end
         
         subgraph "bft_production Project"
             PROD_SERVER[Server<br/>boltfoundry-com<br/>Ubuntu 22.04<br/>Location: US East]
             PROD_IP[Floating IP<br/>Public Access<br/>Location: US East]
             PROD_VOL[Volume<br/>10GB SQLite DB<br/>Location: US East]
-            PROD_S3[Object Storage<br/>Application Assets<br/>Bucket: bolt-foundry-assets<br/>Location: Helsinki]
+            PROD_S3[Object Storage<br/>Application Assets<br/>Bucket: bft-assets<br/>Location: Helsinki]
             
             PROD_SERVER --> PROD_VOL
             PROD_IP --> PROD_SERVER
