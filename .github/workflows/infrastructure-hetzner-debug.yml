@@ -63,10 +63,19 @@ jobs:
           echo "=== Terraform Init Debug ==="
           echo "S3 Endpoint: ${TERRAFORM_S3_ENDPOINT:-NOT SET}"
           echo "AWS Access Key ID present: $([[ -n "$AWS_ACCESS_KEY_ID" ]] && echo "Yes" || echo "No")"
-
+          
+          # Debug: List all environment variables starting with TERRAFORM or AWS
+          echo ""
+          echo "=== Terraform/AWS Environment Variables ==="
+          env | grep -E '^(TERRAFORM|AWS)' | grep -v SECRET | sort || echo "No TERRAFORM/AWS vars found"
+          
+          # Check if endpoint is in env context
+          echo ""
+          echo "GitHub env TERRAFORM_S3_ENDPOINT: ${{ env.TERRAFORM_S3_ENDPOINT }}"
+          
+          # Initialize without -debug flag (not valid for init)
           terraform init \
-            -backend-config="endpoint=${{ env.TERRAFORM_S3_ENDPOINT }}" \
-            -debug
+            -backend-config="endpoint=${TERRAFORM_S3_ENDPOINT}"
 
       - name: Terraform Plan
         if: success()
