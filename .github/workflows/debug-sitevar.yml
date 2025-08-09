@@ -38,6 +38,10 @@ jobs:
             echo ''
             echo '📋 Checking .env.secrets content (variable names only)...'
             if [ -f .env.secrets ]; then
+              echo '=== ALL variables in .env.secrets ==='
+              grep '^[A-Z]' .env.secrets | cut -d= -f1 | sort
+              echo ''
+              echo '=== Filtered for Terraform/Backend/S3 ==='
               grep '^[A-Z]' .env.secrets | cut -d= -f1 | sort | grep -E '(TERRAFORM|AWS|S3|BACKEND|ENDPOINT)' || echo 'No matching variables'
             else
               echo '.env.secrets not created!'
