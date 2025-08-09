@@ -46,6 +46,7 @@
     "@std/streams": "jsr:@std/streams@^1.0.10",
     "@std/testing": "jsr:@std/testing@^1.0.9",
     "@std/toml": "jsr:@std/toml@^1.0.4",
+    "@std/yaml": "jsr:@std/yaml@^1.0.9",
     "@types/google.accounts": "npm:@types/google.accounts@^0.0.17",
     "@types/matter-js": "npm:@types/matter-js@^0.19.8",
     "@types/pg": "npm:@types/pg@^8.15.4",

@@ -118,7 +118,7 @@ const S3_CONFIG = {
   host: getConfigurationVariable("ASSET_STORAGE_HOST") ||
     "hel1.your-objectstorage.com",
   bucket: getConfigurationVariable("ASSET_STORAGE_BUCKET") ||
-    "bolt-foundry-assets",
+    "bft-assets",
 };
 
 // Helper function to create HMAC

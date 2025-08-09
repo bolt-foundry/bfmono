@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: 'Terraform operation to perform'
+        description: "Terraform operation to perform"
         required: true
         type: choice
         options:
@@ -14,7 +14,7 @@ on:
           - refresh
           - destroy
       terraform_args:
-        description: 'Additional arguments for the terraform command'
+        description: "Additional arguments for the terraform command"
         required: false
         type: string
       confirm_destroy:
@@ -52,7 +52,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
         with: { determinate: true }
 
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
 
       - name: Setup Terraform Environment
         uses: ./.github/actions/setup-terraform-env

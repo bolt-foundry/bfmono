@@ -25,7 +25,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
         with: { determinate: true }
 
-      - uses: DeterminateSystems/flakehub-cache-action@main
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
 
       - name: Load secrets and trigger workflow
         run: |
