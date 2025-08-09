@@ -2463,7 +2463,7 @@ a.bfds-button:hover {
 
 .bfds-code-example .token.string,
 .bfds-code-example .token.selector {
-  color: var(--bfds-success);
+  color: var(--bfds-primary-06);
 }
 
 .bfds-code-example .token.operator {
@@ -2472,7 +2472,15 @@ a.bfds-button:hover {
 
 .bfds-code-example .token.keyword,
 .bfds-code-example .token.attr-name {
-  color: var(--bfds-primary-hover);
+  color: var(--bfds-warning-08);
+}
+
+.bfds-code-example .token.attr-value,
+.bfds-code-example .token.attr-value .token.punctuation {
+  color: var(--bfds-primary-08);
+}
+.bfds-code-example .token.attr-value .token.punctuation.attr-equals {
+  color: var(--bfds-text-secondary);
 }
 
 .bfds-code-example .token.variable {
@@ -2481,12 +2489,12 @@ a.bfds-button:hover {
 
 .bfds-code-example .token.function,
 .bfds-code-example .token.class-name {
-  color: var(--bfds-text);
+  color: var(--bfds-primary);
   font-weight: 600;
 }
 
 .bfds-code-example .token.tag {
-  color: var(--bfds-error);
+  color: var(--bfds-warning);
 }
 
 .bfds-code-example .token.builtin {

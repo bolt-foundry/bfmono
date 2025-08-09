@@ -77,7 +77,7 @@ export type BfDsRadioProps = {
  * @example
  * Basic usage:
  * ```tsx
- * const sizeOptions: BfDsRadioOption[] = [
+ * const sizeOptions: Array<BfDsRadioOption> = [
  *   { value: "small", label: "Small" },
  *   { value: "medium", label: "Medium" },
  *   { value: "large", label: "Large" },
@@ -261,7 +261,7 @@ export type BfDsRadioProps = {
  * />
  *
  * // Disable individual options
- * const mixedOptions: BfDsRadioOption[] = [
+ * const mixedOptions: Array<BfDsRadioOption> = [
  *   { value: "available", label: "Available" },
  *   { value: "limited", label: "Limited Access" },
  *   { value: "unavailable", label: "Unavailable", disabled: true },
