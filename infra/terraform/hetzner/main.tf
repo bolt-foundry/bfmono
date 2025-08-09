@@ -15,6 +15,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.2"  # Rulesets require 6.2+
+    }
   }
   
   # Backend uses CI project for state storage in Helsinki
@@ -52,6 +56,12 @@ variable "cloudflare_zone_id" {
 variable "github_username" {
   description = "GitHub username for container registry"
   type        = string
+}
+
+variable "github_token" {
+  description = "GitHub Personal Access Token with repo permissions"
+  type        = string
+  sensitive   = true
 }
 
 
