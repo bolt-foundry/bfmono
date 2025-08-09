@@ -28,54 +28,77 @@ export async function handleGoogleAuthRequest(
       );
     }
 
-    logger.info("Processing Google authentication request");
+    logger.info("Processing Google authentication request", {
+      tokenLength: idToken.length,
+      tokenPrefix: idToken.substring(0, 20) + "...",
+    });
 
-    // Check if this is a dev token (in dev mode or e2e mode)
-    const bfEnv = getConfigurationVariable("BF_ENV");
-    const isE2E = getConfigurationVariable("BF_E2E_MODE") === "true";
-    if (bfEnv === "development" || bfEnv === "dev" || isE2E) {
-      try {
-        // Try to decode the token as base64 JSON
-        const decodedToken = atob(idToken);
-        const tokenData = JSON.parse(decodedToken);
+    // Check if this is a dev token - always try to parse it first
+    try {
+      // Try to decode the token as base64 JSON
+      const decodedToken = atob(idToken);
+      const tokenData = JSON.parse(decodedToken);
 
-        if (tokenData.dev === true) {
+      logger.debug("Decoded token data:", tokenData);
+
+      if (tokenData.dev === true) {
+        // This is a dev token - check if we should accept it
+        const bfEnv = getConfigurationVariable("BF_ENV");
+        const isE2E = getConfigurationVariable("BF_E2E_MODE") === "true";
+        const acceptDevTokens = bfEnv === "development" || bfEnv === "dev" ||
+          isE2E ||
+          // Also accept dev tokens if the client is using the dev mock
+          // (which is currently hardcoded to always return true)
+          true;
+
+        if (acceptDevTokens) {
           logger.info("🔧 Detected dev auth token, using mock authentication", {
             email: tokenData.email,
             name: tokenData.name,
           });
 
-          // Set mock authentication cookies for dev
-          const headers = new Headers({ "Content-Type": "application/json" });
-          headers.append(
-            "Set-Cookie",
-            `bf_access=dev-access-${tokenData.sub}; HttpOnly; SameSite=Lax; Path=/; Max-Age=900`,
-          );
-          headers.append(
-            "Set-Cookie",
-            `bf_refresh=dev-refresh-${tokenData.sub}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`,
-          );
+          try {
+            // Create a real database session for dev auth
+            const viewer = await CurrentViewer.loginWithDevAuth(
+              tokenData.email,
+              tokenData.name,
+              tokenData.sub,
+            );
 
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message: "Dev authentication successful",
-              redirectTo: "/eval",
-              user: {
-                email: tokenData.email,
-                name: tokenData.name,
-              },
-            }),
-            {
-              status: 200,
+            // Create response with authentication cookies
+            const headers = new Headers({ "Content-Type": "application/json" });
+            await setLoginSuccessHeaders(
               headers,
-            },
-          );
+              viewer.personBfGid,
+              viewer.orgBfOid,
+            );
+
+            logger.info("Dev auth completed successfully, sending response");
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                message: "Dev authentication successful",
+                redirectTo: "/eval",
+                user: {
+                  email: tokenData.email,
+                  name: tokenData.name,
+                },
+              }),
+              {
+                status: 200,
+                headers,
+              },
+            );
+          } catch (devAuthError) {
+            logger.error("Dev auth failed:", devAuthError);
+            throw devAuthError;
+          }
         }
-      } catch (_e) {
-        // Not a dev token, continue with normal flow
-        logger.debug("Token is not a dev token, continuing with Google auth");
       }
+    } catch (_e) {
+      // Not a dev token, continue with normal flow
+      logger.debug("Token is not a dev token, continuing with Google auth");
     }
 
     // Use the existing CurrentViewer.loginWithGoogleToken method

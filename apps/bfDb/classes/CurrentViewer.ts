@@ -144,6 +144,62 @@ export abstract class CurrentViewer extends GraphQLObjectBase {
     }
   }
 
+  /**
+   * Create a dev authentication session
+   * This is used for development/testing when Google OAuth is not available
+   */
+  static async loginWithDevAuth(
+    email: string,
+    name: string,
+    sub: string,
+  ): Promise<CurrentViewerLoggedIn> {
+    logger.info("Creating dev authentication session", { email, name, sub });
+
+    try {
+      // Use a consistent format for dev IDs
+      const personId = `dev-person:${sub}` as BfGid;
+      const domain = email.split("@")[1] || "dev.local";
+      const orgId = `dev-org:${domain}` as BfGid;
+
+      const cv = new CurrentViewerLoggedIn(personId, orgId);
+
+      // Create or find organization
+      let org = await BfOrganization.find(cv, orgId);
+      if (!org) {
+        logger.debug("Creating new dev organization for", orgId);
+        org = await BfOrganization.__DANGEROUS__createUnattached(cv, {
+          name: `Dev Org (${domain})`,
+          domain: domain,
+        });
+      }
+
+      // Create or find person
+      let person = await BfPerson.find(cv, personId);
+      if (!person) {
+        logger.debug("Creating new dev person for", personId);
+        person = await BfPerson.__DANGEROUS__createUnattached(
+          cv,
+          { email, name },
+          {
+            bfOid: personId,
+            bfCid: "DEV_AUTH" as BfGid,
+            bfGid: personId,
+          },
+        );
+      }
+
+      logger.info("Dev authentication session created successfully", {
+        personGid: cv.personBfGid,
+        orgOid: cv.orgBfOid,
+      });
+
+      return cv;
+    } catch (error) {
+      logger.error("Dev login failed", error);
+      throw error;
+    }
+  }
+
   /* ------------------------------------------------------------------
    *  HTTP→Viewer extraction
    * ------------------------------------------------------------------ */

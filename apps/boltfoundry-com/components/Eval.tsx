@@ -42,8 +42,56 @@ function EvalContent() {
 }
 
 export const Eval = iso(`
-  field Query.Eval @component {}
-`)(function Eval() {
+  field Query.Eval @component {
+    currentViewer {
+      id
+      personBfGid
+      orgBfOid
+      asCurrentViewerLoggedIn {
+        organization {
+          id
+          name
+          domain
+          decks(first: 10) {
+            edges {
+              node {
+                id
+                name
+                description
+                slug
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`)(function Eval({ data }) {
+  const { sendMessage } = useHud();
+
+  useEffect(() => {
+    sendMessage("Eval component data:", "info");
+    sendMessage(JSON.stringify(data, null, 2), "info");
+
+    // Log deck data specifically
+    if (data?.currentViewer?.asCurrentViewerLoggedIn?.organization?.decks) {
+      sendMessage("Decks found:", "success");
+      const decks =
+        data.currentViewer.asCurrentViewerLoggedIn.organization.decks;
+      sendMessage(`Total deck edges: ${decks.edges?.length || 0}`, "info");
+      decks.edges?.forEach((edge, index) => {
+        if (edge && edge.node) {
+          sendMessage(
+            `Deck ${index + 1}: ${edge.node.name} (${edge.node.id})`,
+            "info",
+          );
+        }
+      });
+    } else {
+      sendMessage("No decks found in GraphQL response", "warning");
+    }
+  }, [data, sendMessage]);
+
   return (
     <EvalProvider>
       <EvalContent />

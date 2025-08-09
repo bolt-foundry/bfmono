@@ -31,10 +31,25 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
    * Create demo RLHF deck for this organization
    */
   async addDemoDeck(): Promise<void> {
-    const deckPath = new URL(
-      import.meta.resolve("./rlhf/demo-decks/customer-support-demo.deck.md"),
-    ).pathname;
-    const deckProps = await BfDeck.readPropsFromFile(deckPath);
-    await this.createTargetNode(BfDeck, deckProps);
+    try {
+      const deckPath = new URL(
+        import.meta.resolve("./rlhf/demo-decks/customer-support-demo.deck.md"),
+      ).pathname;
+      const deckProps = await BfDeck.readPropsFromFile(deckPath);
+      await this.createTargetNode(BfDeck, deckProps);
+    } catch (_error) {
+      // In compiled binaries, the deck file might not be available
+      // Create a simple test deck instead
+      const logger = (await import("@bfmono/packages/logger/logger.ts"))
+        .getLogger(import.meta);
+      logger.info("Could not load demo deck file, creating simple test deck");
+      await this.createTargetNode(BfDeck, {
+        name: "Test Evaluation Deck",
+        slug: "test-eval-deck",
+        description: "A test deck for development",
+        content:
+          "# Test Deck\n\nThis is a test deck for development and testing.",
+      });
+    }
   }
 }
