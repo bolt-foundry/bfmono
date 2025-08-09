@@ -6,45 +6,23 @@
 
 // Import Prism for syntax highlighting
 import Prism from "prismjs";
+// Import language support (order matters - dependencies must be loaded first)
+import "prismjs/components/prism-markup.js"; // Required for JSX
+import "prismjs/components/prism-javascript.js"; // Required for JSX and TypeScript
+import "prismjs/components/prism-typescript.js";
+import "prismjs/components/prism-jsx.js"; // Requires markup + javascript
+import "prismjs/components/prism-tsx.js"; // Requires jsx + typescript
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 const logger = getLogger(import.meta);
-
-// Manually define TypeScript language support based on JavaScript
-if (!Prism.languages.typescript && Prism.languages.javascript) {
-  Prism.languages.typescript = Prism.languages.extend("javascript", {
-    "class-name": {
-      pattern:
-        /(\b(?:class|interface|extends|implements|type)\s+)(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*/,
-      lookbehind: true,
-      greedy: true,
-    },
-    "builtin":
-      /\b(?:Array|Function|Promise|any|boolean|number|string|symbol|unknown|void|never)\b/,
-  });
-
-  // Add TypeScript-specific keywords
-  const tsKeywords = [
-    /\b(?:abstract|as|asserts|declare|infer|interface|is|keyof|namespace|never|readonly|type|public|private|protected)\b/,
-  ];
-
-  if (Array.isArray(Prism.languages.typescript.keyword)) {
-    Prism.languages.typescript.keyword.push(...tsKeywords);
-  } else {
-    Prism.languages.typescript.keyword = [
-      Prism.languages.javascript.keyword,
-      ...tsKeywords,
-    ];
-  }
-}
 
 /**
  * Language mappings for common aliases to Prism language identifiers
  */
 const LANGUAGE_MAP: Record<string, string> = {
   "ts": "typescript",
-  "tsx": "typescript", // Use TypeScript highlighting for TSX
+  "tsx": "tsx", // Use TSX highlighting for React TypeScript
   "js": "javascript",
-  "jsx": "javascript", // Use JavaScript highlighting for JSX
+  "jsx": "jsx", // Use JSX highlighting for React JavaScript
 };
 
 /**

@@ -245,7 +245,7 @@ export function BfDsSelectExample() {
           code={`import { BfDsSelect, type BfDsSelectOption } from "@bfmono/apps/bfDs/components/BfDsSelect.tsx";
 
 // Define options
-const options: BfDsSelectOption[] = [
+const options: Array<BfDsSelectOption> = [
   { value: "1", label: "Option 1" },
   { value: "2", label: "Option 2", disabled: true }
 ];
