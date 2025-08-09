@@ -1,0 +1,78 @@
+name: "Debug Terraform Environment"
+description: "Debug version of Setup Terraform Environment"
+inputs:
+  op-service-account-token:
+    description: "1Password service account token"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Debug environment setup
+      shell: bash
+      run: |
+        echo "=== Starting Debug Terraform Environment Setup ==="
+        
+        # First, let's check if the token is being passed correctly
+        if [ -z "${{ inputs.op-service-account-token }}" ]; then
+          echo "❌ ERROR: op-service-account-token input is empty"
+          exit 1
+        else
+          echo "✅ op-service-account-token input is provided"
+        fi
+        
+        # Try the setup with more verbose output
+        set -x  # Enable command tracing
+        
+        nix develop --accept-flake-config --command bash -c "
+          set -e  # Exit on error
+          
+          # Export the token
+          export OP_SERVICE_ACCOUNT_TOKEN='${{ inputs.op-service-account-token }}'
+          echo '✅ OP_SERVICE_ACCOUNT_TOKEN exported'
+          
+          # Try to sync with verbose output
+          echo '🔄 Running bft sitevar sync...'
+          if bft sitevar sync --force --verbose 2>&1; then
+            echo '✅ bft sitevar sync completed successfully'
+          else
+            exit_code=\$?
+            echo '❌ bft sitevar sync failed with exit code: '\$exit_code
+            exit \$exit_code
+          fi
+          
+          # Check if secrets file was created
+          if [ -f .env.secrets ]; then
+            echo '✅ .env.secrets file created'
+            echo '📋 Required variables check:'
+            
+            # Check for required variables
+            for var in HETZNER_API_TOKEN TERRAFORM_BACKEND_ACCESS_KEY_ID TERRAFORM_BACKEND_SECRET_ACCESS_KEY TERRAFORM_BACKEND_ENDPOINT; do
+              if grep -q \"^\${var}=\" .env.secrets; then
+                echo \"  ✅ \$var is present\"
+              else
+                echo \"  ❌ \$var is MISSING\"
+              fi
+            done
+          else
+            echo '❌ .env.secrets file was not created'
+            exit 1
+          fi
+          
+          # Source and export variables
+          echo ''
+          echo '🔄 Sourcing and exporting variables...'
+          source .env.secrets
+          
+          # Export to GitHub env
+          {
+            echo \"TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT\"
+            echo \"AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID\"
+            echo \"AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY\"
+          } >> \$GITHUB_ENV
+          
+          echo '✅ Variables exported to GitHub environment'
+        " || {
+          echo "❌ Setup failed in nix develop environment"
+          exit 1
+        }
