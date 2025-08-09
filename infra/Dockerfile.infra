@@ -274,7 +274,7 @@ if [ -f "/internalbf/bfmono/.env.secrets" ]; then
 fi
 
 # Add Nix and BF_ROOT to PATH
-export PATH="/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
+export PATH="/internalbf/bin:/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
 
 # Set Puppeteer executable path for e2e tests (use Chrome/Chromium based on what's available)
 if [ -x "/usr/bin/google-chrome-stable" ]; then
