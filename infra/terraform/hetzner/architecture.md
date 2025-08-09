@@ -23,7 +23,7 @@ graph TB
     
     subgraph "Hetzner Cloud"
         subgraph "bft_ci Project"
-            CI_S3[Object Storage<br/>Terraform State<br/>Bucket: terraform-state<br/>Location: Helsinki]
+            CI_S3[Object Storage<br/>Terraform State<br/>Bucket: bft-terraform-state<br/>Location: Helsinki]
         end
         
         subgraph "bft_production Project"
