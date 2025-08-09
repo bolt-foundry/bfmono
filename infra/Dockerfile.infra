@@ -209,6 +209,18 @@ if [ "\$CODEBOT_INITIALIZED" != "1" ]; then
   sl config --user ui.username "bft-codebot <support@boltfoundry.com>"
   sl config --user isl.changedFilesDisplayType "tree"
   
+  # Configure SSH signing for Sapling (if signing key is available)
+  if [ -n "\$CODEBOT_SSH_SIGNING_KEY" ]; then
+    sl config --user gpg.enabled true
+    sl config --user gpg.format ssh
+    sl config --user gpg.ssh.program /usr/bin/ssh-keygen
+    sl config --user gpg.ssh.defaultKeyCommand "cat /home/codebot/.ssh/signing_key.pub"
+    sl config --user gpg.ssh.allowedSigners /home/codebot/.ssh/allowed_signers
+    
+    # Create allowed signers file for verification
+    echo "support@boltfoundry.com \$(cat /home/codebot/.ssh/signing_key.pub)" > /home/codebot/.ssh/allowed_signers
+  fi
+  
   # Configure GitHub authentication for bft-codebot
   # CODEBOT_GITHUB_PAT should be available in environment from sitevars
   if [ -n "\$CODEBOT_GITHUB_PAT" ]; then

@@ -6,22 +6,34 @@ on:
 jobs:
   force-unlock:
     runs-on: ubuntu-latest
-    environment: production
+    environment: infrastructure
     permissions:
       contents: read
       packages: write
       id-token: write
+    defaults:
+      run:
+        working-directory: infra/terraform/hetzner
     steps:
       - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      - uses: DeterminateSystems/flakehub-cache-action@main
+
+      - name: Setup Terraform Environment
+        uses: ./.github/actions/setup-terraform-env
+        with:
+          op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Force unlock Terraform state
         run: |
-          cd infra/terraform/hetzner
           echo "🔍 Initializing Terraform backend..."
-          terraform init -backend-config="endpoint=${{ secrets.S3_ENDPOINT }}" -no-color
+          terraform init -backend-config="endpoint=${{ env.TERRAFORM_S3_ENDPOINT }}" -no-color
 
           echo "🔍 Checking for locks..."
           terraform force-unlock -force $(date +%s) 2>/dev/null || echo "No locks found or unlock failed - this is normal"
@@ -31,6 +43,4 @@ jobs:
           terraform show -no-color || echo "No state found"
 
           echo "✅ Force unlock completed"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        working-directory: infra/terraform/hetzner

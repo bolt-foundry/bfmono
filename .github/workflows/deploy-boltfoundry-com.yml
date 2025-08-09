@@ -8,6 +8,11 @@ on:
       - "infra/terraform/hetzner/**"
   workflow_dispatch:
 
+# Prevent concurrent Terraform operations
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -54,46 +59,107 @@ jobs:
 
       - name: Setup SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $(terraform output -raw server_ip 2>/dev/null || echo "placeholder-ip") >> ~/.ssh/known_hosts || true
+          nix develop .#production --accept-flake-config --command bash -euc "
+            # Source secrets to get SSH_PRIVATE_KEY from 1Password
+            source .env.secrets
+            
+            # Setup SSH directory and key
+            mkdir -p ~/.ssh
+            echo \"\$SSH_PRIVATE_KEY\" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            
+            # Note: ssh-keyscan will be done after we have the server IP
+          "
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Generate Kamal config from Terraform state
+      - name: Sync secrets and generate Kamal config from Terraform state
         run: |
-          cd infra/terraform/hetzner
-          terraform init -backend-config="endpoint=${{ secrets.S3_ENDPOINT }}"
-          terraform apply -auto-approve \
-            -var="hcloud_token=${{ secrets.HETZNER_API_TOKEN }}" \
-            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-            -var="github_username=${{ github.repository_owner }}" \
-            -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}" \
-            -var="hyperdx_api_key=${{ secrets.HYPERDX_API_KEY }}" \
-            -var="s3_access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -var="s3_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-            -var="domain_name=boltfoundry.com"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # First sync secrets from 1Password
+          nix develop .#production --accept-flake-config --command bash -euc "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            
+            # Sync all secrets to .env.secrets
+            bft sitevar sync --force
+            
+            # Source the secrets
+            source .env.secrets
+            
+            # Export variables for Terraform
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_s3_access_key=\$AWS_ACCESS_KEY_ID
+            export TF_VAR_s3_secret_key=\$AWS_SECRET_ACCESS_KEY
+            export TF_VAR_github_token=\$GITHUB_PERSONAL_ACCESS_TOKEN
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+            export TF_VAR_s3_endpoint=\$S3_ENDPOINT
+            
+            # Use CI credentials for Terraform backend
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+            
+            # Get server IP from Terraform state (read-only operation)
+            cd infra/terraform/hetzner
+            # Map backend endpoint to S3 endpoint for consistency
+            export TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT
+            terraform init -backend-config=\"endpoint=\$TERRAFORM_S3_ENDPOINT\"
+            
+            # Just read the floating IP from state, don't modify anything
+            FLOATING_IP=\$(terraform output -raw server_ip 2>/dev/null || echo '')
+            
+            if [ -z \"\$FLOATING_IP\" ]; then
+              echo \"❌ Could not get server IP from Terraform state\"
+              echo \"\"
+              echo \"This usually means the infrastructure hasn't been deployed yet.\"
+              echo \"Please ensure the infrastructure workflow has run successfully first:\"
+              echo \"  1. Go to Actions → Deploy Infrastructure (Hetzner)\"
+              echo \"  2. Click 'Run workflow' and deploy the infrastructure\"
+              echo \"  3. Once successful, re-run this deployment workflow\"
+              echo \"\"
+              echo \"Alternatively, if infrastructure was recently destroyed, you'll need to redeploy it first.\"
+              exit 1
+            fi
+            
+            # Store the IP for the deployment step
+            echo \"BOLTFOUNDRY_COM_SERVER_IP=\$FLOATING_IP\" >> .env.secrets
+            
+            # Add server to known_hosts now that we have the IP
+            ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts
+          "
 
       - name: Install Kamal
         run: sudo gem install kamal --version 2.7.0 --no-document
 
       - name: Deploy with Kamal
         run: |
+          # Sync production secrets from 1Password and generate Kamal config
+          nix develop .#production --accept-flake-config --command bash -c "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            
+            # Sync all secrets from 1Password
+            bft sitevar sync --force --secret-only
+            
+            # Generate Kamal config dynamically based on available secrets
+            bft generate-kamal-config infra/terraform/hetzner/deploy.yml.tpl config/deploy.yml production
+            
+            # Create .env file for Kamal with production secrets
+            cp .env.secrets .env
+          "
+          
           # Create .kamal directory and secrets file for Kamal 2.x
           mkdir -p .kamal
           echo "GITHUB_TOKEN=${KAMAL_REGISTRY_PASSWORD}" > .kamal/secrets
           chmod 600 .kamal/secrets
 
-          # Deploy with Kamal 2.x
+          # Deploy with Kamal 2.x (will use .env for secret environment variables)
           kamal deploy
         env:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         working-directory: ./
 
       - name: Validate deployment health
