@@ -812,11 +812,154 @@ OPTIONS:
     const inspectResult = await inspectCmd.output();
 
     if (!inspectResult.success) {
-      ui.error(
-        "❌ No container image found. Please build the container image first",
-      );
-      ui.output("💡 Run: bft codebot build");
-      throw new Error("Container image not found");
+      // No local image found, try pulling from ghcr.io
+      ui.output("📦 No local image found. Checking ghcr.io...");
+
+      try {
+        // Check if gh CLI is available
+        const ghCheckCmd = new Deno.Command("gh", {
+          args: ["--version"],
+          stdout: "null",
+          stderr: "null",
+        });
+        const ghCheckResult = await ghCheckCmd.output();
+
+        if (ghCheckResult.success) {
+          // Get current default registry
+          const defaultRegistryCmd = new Deno.Command("container", {
+            args: ["registry", "default", "inspect"],
+            stdout: "piped",
+            stderr: "null",
+          });
+          const defaultRegistryResult = await defaultRegistryCmd.output();
+          const currentRegistry = new TextDecoder().decode(
+            defaultRegistryResult.stdout,
+          ).trim();
+
+          // Set default registry to ghcr.io
+          ui.output("🔧 Setting default registry to ghcr.io...");
+          const setRegistryCmd = new Deno.Command("container", {
+            args: ["registry", "default", "set", "ghcr.io"],
+            stdout: "null",
+            stderr: "null",
+          });
+          await setRegistryCmd.output();
+
+          try {
+            // Login to ghcr.io using gh auth token
+            ui.output("🔐 Logging into ghcr.io...");
+            const ghUserCmd = new Deno.Command("gh", {
+              args: ["api", "user", "--jq", ".login"],
+              stdout: "piped",
+              stderr: "null",
+            });
+            const ghUserResult = await ghUserCmd.output();
+            const githubUser = new TextDecoder().decode(ghUserResult.stdout)
+              .trim();
+
+            const ghTokenCmd = new Deno.Command("gh", {
+              args: ["auth", "token"],
+              stdout: "piped",
+              stderr: "null",
+            });
+            const ghTokenResult = await ghTokenCmd.output();
+            const githubToken = new TextDecoder().decode(ghTokenResult.stdout)
+              .trim();
+
+            const loginCmd = new Deno.Command("container", {
+              args: [
+                "registry",
+                "login",
+                "--username",
+                githubUser,
+                "--password-stdin",
+                "ghcr.io",
+              ],
+              stdin: "piped",
+              stdout: "null",
+              stderr: "piped",
+            });
+            const loginProcess = loginCmd.spawn();
+            const writer = loginProcess.stdin.getWriter();
+            await writer.write(new TextEncoder().encode(githubToken));
+            await writer.close();
+            const loginResult = await loginProcess.output();
+
+            if (loginResult.success) {
+              ui.output("✅ Logged into ghcr.io");
+
+              // Try to pull the image
+              ui.output("🚢 Pulling codebot image from ghcr.io...");
+              const pullCmd = new Deno.Command("container", {
+                args: ["pull", "ghcr.io/bolt-foundry/bfmono/codebot:latest"],
+                stdout: "inherit",
+                stderr: "inherit",
+              });
+              const pullResult = await pullCmd.output();
+
+              if (pullResult.success) {
+                // Tag the pulled image as 'codebot' for local use
+                ui.output("🏷️  Tagging image as 'codebot'...");
+                const tagCmd = new Deno.Command("container", {
+                  args: [
+                    "tag",
+                    "ghcr.io/bolt-foundry/bfmono/codebot:latest",
+                    "codebot",
+                  ],
+                  stdout: "null",
+                  stderr: "null",
+                });
+                await tagCmd.output();
+
+                ui.output("✅ Successfully pulled codebot image from ghcr.io");
+
+                // Re-run the inspect command to continue with normal flow
+                const reInspectCmd = new Deno.Command("container", {
+                  args: ["images", "inspect", "codebot"],
+                  stdout: "piped",
+                  stderr: "null",
+                });
+                const reInspectResult = await reInspectCmd.output();
+
+                if (reInspectResult.success) {
+                  // Continue with the normal flow
+                  inspectResult.success = true;
+                  inspectResult.stdout = reInspectResult.stdout;
+                }
+              } else {
+                const pullError = new TextDecoder().decode(pullResult.stderr);
+                ui.warn(`⚠️  Failed to pull from ghcr.io: ${pullError}`);
+              }
+            } else {
+              const loginError = new TextDecoder().decode(loginResult.stderr);
+              ui.warn(`⚠️  Failed to login to ghcr.io: ${loginError}`);
+            }
+          } finally {
+            // Restore original default registry if it was different
+            if (currentRegistry && currentRegistry !== "ghcr.io") {
+              const restoreRegistryCmd = new Deno.Command("container", {
+                args: ["registry", "default", "set", currentRegistry],
+                stdout: "null",
+                stderr: "null",
+              });
+              await restoreRegistryCmd.output();
+            }
+          }
+        } else {
+          ui.warn("⚠️  GitHub CLI not available, skipping ghcr.io check");
+        }
+      } catch (error) {
+        ui.warn(`⚠️  Error checking ghcr.io: ${error}`);
+      }
+
+      // Final check - if we still don't have an image, fail
+      if (!inspectResult.success) {
+        ui.error(
+          "❌ No container image found locally or on ghcr.io",
+        );
+        ui.output("💡 Run: bft codebot build");
+        throw new Error("Container image not found");
+      }
     }
 
     // Parse the JSON output to get the creation date
