@@ -38,7 +38,7 @@ resource "github_repository" "bfmono" {
       has_projects,
       has_wiki,
       homepage_url,
-      private,
+      # private is deprecated, use visibility instead
       topics,
       visibility
     ]
@@ -148,23 +148,11 @@ resource "github_repository_ruleset" "main" {
     non_fast_forward = true  # Prevents force pushes
     deletion         = true  # Prevents branch deletion
 
-    # Enforce linear history
-    linear_history = true  # Prevents merge commits, requires rebasing
-
     # Require signed commits
     required_signatures = true  # All commits must be GPG or SSH signed
 
-    # Enable merge queue
-    required_merge_queue {
-      merge_method                    = "REBASE"  # Maintains linear history
-      build_concurrency               = 3
-      min_entries_to_merge            = 1
-      wait_timer                      = 0
-      entry_timeout                   = 60
-      merge_timeout                   = 15
-      response_timeout                = 10
-      check_response_timeout          = 10
-    }
+    # Note: linear_history and required_merge_queue are not available in github_repository_ruleset
+    # These need to be configured through branch protection rules or GitHub UI
   }
 }
 
