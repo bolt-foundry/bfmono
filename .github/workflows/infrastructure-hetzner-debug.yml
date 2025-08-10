@@ -64,10 +64,10 @@ jobs:
           echo "S3 Endpoint: ${TERRAFORM_S3_ENDPOINT:-NOT SET}"
           echo "AWS Access Key ID present: $([[ -n "$AWS_ACCESS_KEY_ID" ]] && echo "Yes" || echo "No")"
           
-          # Debug: List all environment variables starting with TERRAFORM or AWS
+          # Debug: List environment variables (masking sensitive values)
           echo ""
-          echo "=== Terraform/AWS Environment Variables ==="
-          env | grep -E '^(TERRAFORM|AWS)' | grep -v SECRET | sort || echo "No TERRAFORM/AWS vars found"
+          echo "=== Terraform/AWS Environment Variables (masked) ==="
+          env | grep -E '^(TERRAFORM|AWS)' | sed 's/=.*/=***MASKED***/' | sort || echo "No TERRAFORM/AWS vars found"
           
           # Check if endpoint is in env context
           echo ""
