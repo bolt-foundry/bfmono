@@ -6,6 +6,7 @@ import { ui } from "@bfmono/packages/tui/tui.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { promptSelect } from "@std/cli/unstable-prompt-select";
 import { dirname, join } from "@std/path";
+import { ensureWildcardCertificate } from "@bfmono/infra/apps/codebot/cert-utils.ts";
 
 const logger = getLogger(import.meta);
 
@@ -530,8 +531,19 @@ OPTIONS:
     `INFO: Auto-detected system resources: ${autoMemory} RAM (${systemInfo.memoryPercent}% of system), ${autoCpus} CPUs (${systemInfo.cpuNote})`,
   );
 
-  // Cleanup stopped containers
-  await cleanupStoppedContainers();
+  // Ensure container system is started
+  ui.output("🚀 Starting container system...");
+  const startCmd = new Deno.Command("container", {
+    args: ["system", "start"],
+    stdout: "null",
+    stderr: "null",
+  });
+  await startCmd.output();
+
+  // Cleanup stopped containers (skip if using --workspace to preserve user's containers)
+  if (!parsed.workspace) {
+    await cleanupStoppedContainers();
+  }
 
   // Ensure DNS server is running
   await ensureDnsServer();
@@ -539,8 +551,12 @@ OPTIONS:
   // Ensure host bridge is running
   await ensureHostBridge();
 
-  // Check for Claude credentials
+  // Ensure wildcard certificate for HTTPS support
   const homeDir = getConfigurationVariable("HOME");
+  const sharedCertDir = `${homeDir}/internalbf/bfmono/shared/certs`;
+  await ensureWildcardCertificate(sharedCertDir);
+
+  // Check for Claude credentials
   const claudeDir = `${homeDir}/.claude`;
 
   try {
@@ -784,108 +800,82 @@ OPTIONS:
     })();
 
   const containerReadyPromise = (async () => {
-    // Check for container image
-    ui.output("🌐 Checking for pre-built container image...");
+    // Check if local image exists
+    ui.output("🔍 Checking for local container image...");
 
-    // Try to authenticate with GitHub Container Registry using gh CLI
-    const ghAuthCmd = new Deno.Command("gh", {
-      args: ["auth", "token"],
+    const inspectCmd = new Deno.Command("container", {
+      args: ["images", "inspect", "codebot"],
       stdout: "piped",
       stderr: "null",
     });
 
-    const ghAuthResult = await ghAuthCmd.output();
-    if (ghAuthResult.success) {
-      const token = new TextDecoder().decode(ghAuthResult.stdout).trim();
-      if (token) {
-        // Login to ghcr.io using the gh token
-        const loginCmd = new Deno.Command("sh", {
-          args: [
-            "-c",
-            `echo "${token}" | container registry login ghcr.io --username $(gh api user --jq .login) --password-stdin`,
-          ],
-          stdout: "null",
-          stderr: "null",
-        });
-        const loginResult = await loginCmd.output();
-        if (loginResult.success) {
-          ui.output("✅ Authenticated with ghcr.io");
-        }
-      }
+    const inspectResult = await inspectCmd.output();
+
+    if (!inspectResult.success) {
+      ui.error(
+        "❌ No container image found. Please build the container image first",
+      );
+      ui.output("💡 Run: bft codebot build");
+      throw new Error("Container image not found");
     }
 
-    // Try to pull from GitHub Container Registry
-    const pullCmd = new Deno.Command("container", {
-      args: ["images", "pull", "ghcr.io/bolt-foundry/bfmono/codebot:latest"],
-      stdout: "null",
-      stderr: "null",
-      signal: abortController.signal,
-    });
-
-    const pullResult = await pullCmd.output();
-
-    if (pullResult.success) {
-      ui.output("✅ Successfully pulled latest container image");
-
-      // Tag it as 'codebot' for local use
-      const tagCmd = new Deno.Command("container", {
-        args: [
-          "images",
-          "tag",
-          "ghcr.io/bolt-foundry/bfmono/codebot:latest",
-          "codebot",
-        ],
-        stdout: "null",
-        stderr: "null",
-      });
-      await tagCmd.output();
-    } else {
-      ui.warn("⚠️ Could not pull from ghcr.io, checking for local image...");
-
-      // Check if local image exists
-      const inspectCmd = new Deno.Command("container", {
-        args: ["images", "inspect", "codebot"],
-        stdout: "piped",
-        stderr: "null",
-      });
-
-      const inspectResult = await inspectCmd.output();
-
-      if (!inspectResult.success) {
-        ui.error(
-          "❌ No container image found. Please build the container image first",
-        );
-        throw new Error("Container image not found");
+    // Parse the JSON output to get the creation date
+    let imageCreatedTime = 0;
+    try {
+      const inspectData = JSON.parse(
+        new TextDecoder().decode(inspectResult.stdout),
+      );
+      if (inspectData.length > 0 && inspectData[0].Created) {
+        imageCreatedTime = new Date(inspectData[0].Created).getTime();
+        ui.output(`📅 Container image created: ${inspectData[0].Created}`);
       }
+    } catch {
+      // If we can't parse, just continue
+    }
 
-      // Parse the JSON output to get the creation date
-      let imageDate = "Unknown";
-      try {
-        const inspectData = JSON.parse(
-          new TextDecoder().decode(inspectResult.stdout),
-        );
-        if (inspectData.length > 0 && inspectData[0].Created) {
-          imageDate = inspectData[0].Created;
+    // Check if Dockerfile or flake files are newer than the image
+    const dockerfilePath = join(
+      dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+      "Dockerfile.infra",
+    );
+    const flakePath = join(
+      dirname(
+        dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+      ),
+      "flake.nix",
+    );
+    const flakeLockPath = join(
+      dirname(
+        dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+      ),
+      "flake.lock",
+    );
+
+    try {
+      const dockerfileStat = await Deno.stat(dockerfilePath);
+      const flakeStat = await Deno.stat(flakePath);
+      const flakeLockStat = await Deno.stat(flakeLockPath);
+
+      const dockerfileModified = dockerfileStat.mtime?.getTime() || 0;
+      const flakeModified = flakeStat.mtime?.getTime() || 0;
+      const flakeLockModified = flakeLockStat.mtime?.getTime() || 0;
+
+      if (imageCreatedTime > 0) {
+        if (dockerfileModified > imageCreatedTime) {
+          ui.warn(
+            "⚠️ Dockerfile.infra has been modified since the image was built",
+          );
+          ui.warn("   Consider rebuilding with: bft codebot build");
+        } else if (
+          flakeModified > imageCreatedTime ||
+          flakeLockModified > imageCreatedTime
+        ) {
+          ui.warn("⚠️ Nix flake has been modified since the image was built");
+          ui.warn("   Consider rebuilding with: bft codebot build");
         }
-      } catch {
-        // If we can't parse, just continue with "Unknown"
       }
-      ui.output(`📅 Local container image created: ${imageDate}`);
-
-      // Check if image is recent (within 7 days)
-      const created = new Date(imageDate);
-      const ageInDays = (Date.now() - created.getTime()) /
-        (1000 * 60 * 60 * 24);
-
-      if (ageInDays > 7) {
-        ui.warn(
-          `⚠️ Container image is ${
-            Math.floor(ageInDays)
-          } days old - consider rebuilding with --force-rebuild`,
-        );
-      } else {
-        ui.output("✅ Local container image is up to date");
-      }
+    } catch (error) {
+      logger.debug(`Could not check file timestamps: ${error}`);
     }
 
     ui.output("📦 Container image ready");
