@@ -175,8 +175,16 @@ fi\n\
 exec /bin/bash -l "$@"\n' > /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configure sudo for codebot user to allow /etc/hosts management and setcap without password
-RUN echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts, /usr/bin/tee /etc/hosts, /usr/bin/tee -a /etc/hosts, /usr/sbin/setcap cap_net_bind_service=+ep /usr/bin/deno, /usr/sbin/setcap cap_net_bind_service=+ep /nix/*/bin/deno" >> /etc/sudoers.d/codebot && \
+# Configure sudo for codebot user - allow specific commands without password
+RUN echo "# Allow codebot to manage /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "# Allow codebot to set capabilities on any file" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/sbin/setcap *" >> /etc/sudoers.d/codebot && \
+    echo "# Allow codebot to run HTTPS proxy with Deno from any path" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /nix/store/*/bin/deno run * /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/deno run * /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" >> /etc/sudoers.d/codebot && \
     chmod 0440 /etc/sudoers.d/codebot
 
 # Create non-root user (Debian uses useradd)
