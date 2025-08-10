@@ -32,7 +32,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write # For FlakeHub OIDC
+      # id-token: write # For FlakeHub OIDC - commented out to avoid FlakeHub login
 
     steps:
       - name: Checkout repository
@@ -42,7 +42,7 @@ jobs:
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
-        with: { determinate: true }
+        # with: { determinate: true } # Commented out to avoid FlakeHub login issues
 
       # - name: Setup Nix caching
       #   uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
