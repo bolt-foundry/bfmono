@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
@@ -6,7 +6,6 @@ import { DeckItem } from "./DeckItem.tsx";
 import { DeckCreateModal, type DeckFormData } from "./DeckCreateModal.tsx";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -52,19 +51,9 @@ interface DeckListProps {
 
 export function DeckList({ onDeckSelect }: DeckListProps) {
   const { startDeckCreation, startGrading } = useEvalContext();
-  const { sendMessage, showHud } = useHud();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [decks] = useState(mockDecks);
-
-  useEffect(() => {
-    showHud();
-    sendMessage("DeckList mounted - using mock data", "info");
-    sendMessage(
-      `Mock decks loaded: ${mockDecks.map((d) => d.name).join(", ")}`,
-      "info",
-    );
-  }, [sendMessage, showHud]);
 
   const filteredDecks = decks.filter((deck) =>
     deck.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -80,8 +69,6 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
   const handleDeckClick = (deckId: string) => {
     const deck = decks.find((d) => d.id === deckId);
     if (deck) {
-      sendMessage(`Deck selected: ${deck.name} (ID: ${deckId})`, "info");
-      sendMessage(`Starting grading session for deck: ${deck.name}`, "info");
       // Samples will be fetched by GradingInbox using GraphQL
       startGrading(deckId, deck.name);
     }
