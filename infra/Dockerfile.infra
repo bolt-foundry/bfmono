@@ -207,6 +207,7 @@ ENV CHROME_DEVEL_SANDBOX=/opt/google/chrome/chrome-sandbox
 ENV BF_ROOT=/internalbf/bfmono
 ENV INTERNALBF_ROOT=/internalbf
 ENV PATH="$BF_ROOT/infra/bin:$PATH"
+ENV HOME=/home/codebot
 ENV DENO_DIR="${HOME}/.cache/deno"
 ENV GH_REPO="bolt-foundry/bolt-foundry"
 
