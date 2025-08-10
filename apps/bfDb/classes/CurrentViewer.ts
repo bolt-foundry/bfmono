@@ -209,12 +209,18 @@ export abstract class CurrentViewer extends GraphQLObjectBase {
     resHeaders?: Headers,
   ): Promise<CurrentViewer> {
     try {
+      const cookies = req.headers.get("cookie");
+      logger.info("createFromRequest - checking cookies", {
+        hasCookies: !!cookies,
+        cookieString: cookies?.substring(0, 100) + "...",
+      });
+
       const claims = await claimsFromRequest(req, resHeaders);
       if (!claims) {
-        logger.debug("No valid session cookies – returning LoggedOut viewer");
+        logger.info("No valid session cookies – returning LoggedOut viewer");
         return this.makeLoggedOutCv();
       }
-      logger.debug(
+      logger.info(
         `Restored viewer ${claims.personGid} (org ${claims.orgOid})`,
       );
       return this.makeLoggedInCv(

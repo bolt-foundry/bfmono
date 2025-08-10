@@ -109,6 +109,103 @@ export function LoginWithGoogleButton() {
     setInput1,
   ]);
 
+  const handleCredentialResponse = async (response: { credential: string }) => {
+    console.log("[LoginWithGoogleButton] handleCredentialResponse called!");
+    setIsLoading(true);
+    setError(null);
+    logger.info("Google credential received", {
+      hasCredential: !!response.credential,
+    });
+
+    try {
+      console.log(
+        "[LoginWithGoogleButton] Sending auth request to /api/auth/google",
+      );
+      console.log("[LoginWithGoogleButton] Current URL:", window.location.href);
+      console.log(
+        "[LoginWithGoogleButton] Fetch URL will be:",
+        new URL("/api/auth/google", window.location.href).href,
+      );
+
+      // Test if we can reach the health endpoint first
+      const healthTest = await fetch("/health");
+      console.log(
+        "[LoginWithGoogleButton] Health check status:",
+        healthTest.status,
+      );
+
+      // Send credential to backend for verification and session creation
+      const authUrl = `/api/auth/google?t=${Date.now()}`;
+      console.log("[LoginWithGoogleButton] Fetching:", authUrl);
+      console.log("[LoginWithGoogleButton] fetch function:", fetch);
+      console.log(
+        "[LoginWithGoogleButton] fetch.toString():",
+        fetch.toString(),
+      );
+      // Check if fetch is the native one
+      console.log(
+        "[LoginWithGoogleButton] Is native fetch?:",
+        fetch === window.fetch,
+      );
+      console.log("[LoginWithGoogleButton] window.fetch:", window.fetch);
+      console.log(
+        "[LoginWithGoogleButton] globalThis.fetch:",
+        globalThis.fetch,
+      );
+      const loginResponse = await fetch(authUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken: response.credential }),
+        credentials: "same-origin", // Ensure cookies are included
+      });
+      console.log(
+        "[LoginWithGoogleButton] Auth response received:",
+        loginResponse.status,
+      );
+      console.log("[LoginWithGoogleButton] Response URL:", loginResponse.url);
+      console.log("[LoginWithGoogleButton] Response type:", loginResponse.type);
+
+      if (!loginResponse.ok) {
+        throw new Error(`Login failed: ${loginResponse.status}`);
+      }
+
+      // Check response headers to understand what's happening
+      console.log("[LoginWithGoogleButton] Response headers:");
+      loginResponse.headers.forEach((value, key) => {
+        console.log(`  ${key}: ${value}`);
+      });
+
+      const responseText = await loginResponse.text();
+      console.log("[LoginWithGoogleButton] Raw response:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error(
+          "[LoginWithGoogleButton] Failed to parse response as JSON:",
+          e,
+        );
+        throw new Error("Invalid response from server");
+      }
+
+      logger.info("Login successful", result);
+      console.log(
+        "[LoginWithGoogleButton] Redirecting to:",
+        result.redirectTo || "/",
+      );
+
+      // Redirect to the specified location from the server response
+      globalThis.location.href = result.redirectTo || "/";
+    } catch (err) {
+      setIsLoading(false);
+      setError("Failed to sign in with Google. Please try again.");
+      logger.error("Google sign-in error:", err);
+    }
+  };
+
   useEffect(() => {
     // Store the callback ref so we can use it in the message handler
     callbackRef.current = handleCredentialResponse;
@@ -135,7 +232,12 @@ export function LoginWithGoogleButton() {
         if (globalThis.google && googleButtonRef.current) {
           globalThis.google.accounts.id.initialize({
             client_id,
-            callback: handleCredentialResponse,
+            callback: (response: { credential: string }) => {
+              // Use the ref to call the current version of the handler
+              if (callbackRef.current) {
+                callbackRef.current(response);
+              }
+            },
             auto_select: false,
             cancel_on_tap_outside: true,
           });
@@ -203,39 +305,6 @@ export function LoginWithGoogleButton() {
       }
     };
   }, [appEnvironment, forceRealButton]);
-
-  const handleCredentialResponse = async (response: { credential: string }) => {
-    setIsLoading(true);
-    setError(null);
-    logger.info("Google credential received", {
-      hasCredential: !!response.credential,
-    });
-
-    try {
-      // Send credential to backend for verification and session creation
-      const loginResponse = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ idToken: response.credential }),
-      });
-
-      if (!loginResponse.ok) {
-        throw new Error(`Login failed: ${loginResponse.status}`);
-      }
-
-      const result = await loginResponse.json();
-      logger.info("Login successful", result);
-
-      // Redirect to the specified location from the server response
-      globalThis.location.href = result.redirectTo || "/";
-    } catch (err) {
-      setIsLoading(false);
-      setError("Failed to sign in with Google. Please try again.");
-      logger.error("Google sign-in error:", err);
-    }
-  };
 
   // Show spinner while loading
   if (isLoading) {

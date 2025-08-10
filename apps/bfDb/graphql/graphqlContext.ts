@@ -73,7 +73,11 @@ export async function createContext(
     request,
     responseHeaders,
   );
-  logger.debug("Current viewer created");
+  logger.info("Current viewer created", {
+    viewerType: currentViewer.constructor.name,
+    personGid: currentViewer.personBfGid,
+    orgOid: currentViewer.orgBfOid,
+  });
 
   const ctx: BfGraphqlContext = {
     [Symbol.dispose]() {
