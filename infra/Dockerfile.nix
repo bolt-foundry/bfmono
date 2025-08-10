@@ -76,7 +76,8 @@ RUN chmod +x /usr/local/bin/${BINARY_NAME}
 # Copy environment files from builder (these were synced from 1Password or created from examples)
 # Use conditional copy pattern to handle missing files gracefully
 COPY --from=builder /workspace/.env.* /tmp/
-RUN if [ -f /tmp/.env.config ]; then mv /tmp/.env.config /app/.env.config; else echo '# Empty config' > /app/.env.config; fi && \
+RUN mkdir -p /app && \
+    if [ -f /tmp/.env.config ]; then mv /tmp/.env.config /app/.env.config; else echo '# Empty config' > /app/.env.config; fi && \
     if [ -f /tmp/.env.secrets ]; then mv /tmp/.env.secrets /app/.env.secrets; else echo '# Empty secrets' > /app/.env.secrets; fi && \
     rm -f /tmp/.env.*
 
