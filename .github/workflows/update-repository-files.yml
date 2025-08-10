@@ -4,18 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       file_path:
-        description: 'Path to the file to update'
+        description: "Path to the file to update"
         required: true
         type: string
       file_content:
-        description: 'Base64 encoded content of the file'
+        description: "Base64 encoded content of the file"
         required: true
         type: string
       commit_message:
-        description: 'Commit message'
+        description: "Commit message"
         required: false
         type: string
-        default: 'Update repository file via automation'
+        default: "Update repository file via automation"
 
 jobs:
   update-file:
@@ -35,7 +35,7 @@ jobs:
         run: |
           # Decode base64 content and write to file
           echo "${{ inputs.file_content }}" | base64 -d > "${{ inputs.file_path }}"
-          
+
           # Create directory if it doesn't exist
           mkdir -p "$(dirname "${{ inputs.file_path }}")"
 
@@ -59,14 +59,14 @@ jobs:
               repo: context.repo.repo,
               title: '${{ inputs.commit_message }}',
               body: `This PR was automatically generated to update \`${{ inputs.file_path }}\`.
-              
+
               The file was updated via the Update Repository Files workflow.`,
               head: process.env.BRANCH_NAME,
               base: 'main'
             });
-            
+
             console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
-            
+
             // Set output for other workflows
             core.setOutput('pr_number', pr.data.number);
             core.setOutput('pr_url', pr.data.html_url);
