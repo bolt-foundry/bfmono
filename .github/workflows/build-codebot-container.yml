@@ -32,6 +32,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      pull-requests: read  # Add this for PR builds
       # id-token: write # For FlakeHub OIDC - commented out to avoid FlakeHub login
 
     steps:
@@ -52,13 +53,40 @@ jobs:
         with:
           buildkitd-flags: --debug
 
+      - name: Debug GitHub Token and Registry Info
+        run: |
+          echo "GitHub Actor: ${{ github.actor }}"
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "Image Name: ${{ env.IMAGE_NAME }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Event Name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Token permissions:"
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }} \
+            -s | jq '.permissions // "No permissions in response"'
+          echo "Checking package visibility..."
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/user/packages/container/${{ env.IMAGE_NAME }}/versions \
+            -s 2>&1 | jq '. | length' || echo "Package might not exist yet"
+
       - name: Log in to the Container registry
         if: ${{ !inputs.build_only }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Verify Docker login
+        if: ${{ !inputs.build_only }}
+        run: |
+          echo "Testing docker login..."
+          docker pull ghcr.io/bolt-foundry/bfmono/codebot:latest || echo "Pull failed (expected if image doesn't exist yet)"
+          echo "Docker config:"
+          cat ~/.docker/config.json | jq '.auths["ghcr.io"] // "No ghcr.io auth found"'
+          echo "Login verification complete"
 
       - name: Extract metadata
         id: meta
@@ -111,6 +139,7 @@ jobs:
           echo "DOCKER_CONTEXT_PATH=$(pwd)/internalbf" >> $GITHUB_ENV
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.DOCKER_CONTEXT_PATH }}
@@ -123,6 +152,24 @@ jobs:
           platforms: linux/arm64
           build-args: |
             BUILDKIT_PROGRESS=plain
+      
+      - name: Debug push failure
+        if: ${{ failure() && steps.build.outcome == 'failure' }}
+        run: |
+          echo "Attempting manual push with debug info..."
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          # Try to get more info about the package
+          echo "Checking package settings via API..."
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/orgs/bolt-foundry/packages/container/bfmono%2Fcodebot \
+            -s | jq '.' || echo "Failed to get package info"
+          echo ""
+          echo "Checking current Docker config:"
+          cat ~/.docker/config.json | jq '.auths' || echo "No Docker config found"
+          echo ""
+          echo "Testing direct push with docker CLI:"
+          docker tag ${{ steps.meta.outputs.tags }} ghcr.io/bolt-foundry/bfmono/codebot:debug-test || true
+          docker push ghcr.io/bolt-foundry/bfmono/codebot:debug-test 2>&1 || true
 
       # Post-build debugging information
       - name: Show build logs on failure
