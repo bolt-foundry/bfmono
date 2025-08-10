@@ -58,7 +58,7 @@ jobs:
           find . -type f -size +5M | grep -v "\.git" | grep -v "\.sl" | xargs du -sh 2>/dev/null || echo "No large files found"
 
       # Push the cleaned repository to FlakeHub
-      - uses: DeterminateSystems/flakehub-push@v2
-        with:
-          rolling: true
-          visibility: public
+      # - uses: DeterminateSystems/flakehub-push@v2
+      #   with:
+      #     rolling: true
+      #     visibility: public
