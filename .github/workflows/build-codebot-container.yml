@@ -112,7 +112,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ../internalbf
-          file: ./internalbf/bfmono/infra/Dockerfile.infra
+          file: ../internalbf/bfmono/infra/Dockerfile.infra
           push: ${{ !inputs.build_only }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
