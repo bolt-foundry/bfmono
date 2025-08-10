@@ -56,7 +56,8 @@ WORKSPACE INFO:
 
 DEBUGGING:
   - Container name matches workspace name
-  - Access via: http://<workspace-name>.codebot.local:8000
+  - Access via: https://<workspace-name>.codebot.local
+  - Legacy HTTP: http://<workspace-name>.codebot.local:8000
   - Shell access: bft codebot --workspace <name> --shell
   - View logs: container logs <workspace-name>
 `,
