@@ -924,9 +924,8 @@ OPTIONS:
                 const reInspectResult = await reInspectCmd.output();
 
                 if (reInspectResult.success) {
-                  // Continue with the normal flow
-                  inspectResult.success = true;
-                  inspectResult.stdout = reInspectResult.stdout;
+                  // Continue with the normal flow - image now exists
+                  // No need to modify inspectResult, just continue
                 }
               } else {
                 const pullError = new TextDecoder().decode(pullResult.stderr);
