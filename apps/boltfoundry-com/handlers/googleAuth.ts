@@ -73,7 +73,18 @@ export async function handleGoogleAuthRequest(
               viewer.orgBfOid,
             );
 
-            logger.info("Dev auth completed successfully, sending response");
+            // Log the cookies being set
+            const setCookieHeaders = headers.getSetCookie();
+            logger.info("Setting cookies", {
+              numCookies: setCookieHeaders.length,
+              cookies: setCookieHeaders.map((c) => c.substring(0, 50) + "..."),
+            });
+
+            logger.info("Dev auth completed successfully, sending response", {
+              personGid: viewer.personBfGid,
+              orgOid: viewer.orgBfOid,
+              cookiesSet: headers.has("Set-Cookie"),
+            });
 
             return new Response(
               JSON.stringify({
@@ -83,6 +94,10 @@ export async function handleGoogleAuthRequest(
                 user: {
                   email: tokenData.email,
                   name: tokenData.name,
+                },
+                viewer: {
+                  personGid: viewer.personBfGid,
+                  orgOid: viewer.orgBfOid,
                 },
               }),
               {

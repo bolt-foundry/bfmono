@@ -130,6 +130,7 @@ export function initializeGoogleAuthDevMock(customEmail?: string) {
 
           // Add click handler
           button.onclick = () => {
+            console.log("[DEV MOCK] Button clicked!");
             logger.info("Mock Google Sign-In button clicked");
 
             // Simulate button press animation
@@ -155,7 +156,9 @@ export function initializeGoogleAuthDevMock(customEmail?: string) {
 
               // Get the stored callback
               const callback = mockState.callback;
+              console.log("[DEV MOCK] Callback exists:", !!callback);
               if (callback) {
+                console.log("[DEV MOCK] Calling callback with token");
                 logger.info("Triggering auth callback with dev token", {
                   devToken,
                 });
@@ -164,6 +167,7 @@ export function initializeGoogleAuthDevMock(customEmail?: string) {
                   select_by: "btn",
                 });
               } else {
+                console.error("[DEV MOCK] No callback found!");
                 logger.error(
                   "No callback found! Make sure google.accounts.id.initialize was called",
                 );

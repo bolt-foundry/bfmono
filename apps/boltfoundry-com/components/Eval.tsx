@@ -9,24 +9,7 @@ import { useEffect } from "react";
 
 function EvalContent() {
   const evalContext = useEvalContext();
-  const { addButton, removeButton, sendMessage } = useHud();
 
-  useEffect(() => {
-    // Add button to show eval context state
-    addButton({
-      id: "show-eval-state",
-      label: "Show Eval State",
-      onClick: () => {
-        sendMessage(JSON.stringify(evalContext, null, 2), "info");
-      },
-      icon: "info",
-    });
-
-    // Cleanup buttons on unmount
-    return () => {
-      removeButton("show-eval-state");
-    };
-  }, [evalContext, addButton, removeButton, sendMessage]);
   return (
     <div className="eval-page">
       <Header />
@@ -67,30 +50,22 @@ export const Eval = iso(`
     }
   }
 `)(function Eval({ data }) {
-  const { sendMessage } = useHud();
+  const { sendMessage, showHud } = useHud();
 
   useEffect(() => {
-    sendMessage("Eval component data:", "info");
-    sendMessage(JSON.stringify(data, null, 2), "info");
+    // Show HUD and display API key info (runs only once on mount)
+    showHud();
 
-    // Log deck data specifically
-    if (data?.currentViewer?.asCurrentViewerLoggedIn?.organization?.decks) {
-      sendMessage("Decks found:", "success");
-      const decks =
-        data.currentViewer.asCurrentViewerLoggedIn.organization.decks;
-      sendMessage(`Total deck edges: ${decks.edges?.length || 0}`, "info");
-      decks.edges?.forEach((edge, index) => {
-        if (edge && edge.node) {
-          sendMessage(
-            `Deck ${index + 1}: ${edge.node.name} (${edge.node.id})`,
-            "info",
-          );
-        }
-      });
+    const orgId = data?.currentViewer?.orgBfOid;
+    if (orgId) {
+      const apiKey = `bf+${orgId}`;
+      sendMessage(`Organization ID: ${orgId}`, "success");
+      sendMessage(`API Key: ${apiKey}`, "success");
+      sendMessage(`To use: export BF_API_KEY="${apiKey}"`, "info");
     } else {
-      sendMessage("No decks found in GraphQL response", "warning");
+      sendMessage("Not logged in - org ID not available", "warning");
     }
-  }, [data, sendMessage]);
+  }, []); // Empty dependency array - runs once on mount
 
   return (
     <EvalProvider>
