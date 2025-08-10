@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     net-tools \
     ripgrep \
     fd-find \
+    authbind \
     # Chrome dependencies (we'll install Chrome separately)
     fonts-liberation \
     libasound2 \
@@ -163,10 +164,8 @@ if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
     \n\
     # Start HTTPS proxy if certificate exists\n\
     if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ] && [ -f "/internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" ]; then\n\
-        # Grant deno capability to bind to privileged ports\n\
-        sudo setcap cap_net_bind_service=+ep $(which deno)\n\
-        # Start HTTPS proxy in background\n\
-        cd /internalbf/bfmono && deno run --allow-net --allow-read --allow-write infra/apps/codebot/https-proxy-server.ts > /tmp/https-proxy.log 2>&1 &\n\
+        # Start HTTPS proxy in background using authbind\n\
+        cd /internalbf/bfmono && authbind --deep deno run --allow-net --allow-read --allow-write infra/apps/codebot/https-proxy-server.ts > /tmp/https-proxy.log 2>&1 &\n\
         echo "HTTPS proxy started in background (PID: $!)"\n\
     fi\n\
 fi\n\
@@ -180,15 +179,16 @@ RUN echo "# Allow codebot to manage /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
-    echo "# Allow codebot to set capabilities on any file" >> /etc/sudoers.d/codebot && \
-    echo "codebot ALL=(ALL) NOPASSWD: /usr/sbin/setcap *" >> /etc/sudoers.d/codebot && \
-    echo "# Allow codebot to run HTTPS proxy with Deno from any path" >> /etc/sudoers.d/codebot && \
-    echo "codebot ALL=(ALL) NOPASSWD: /nix/store/*/bin/deno run * /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" >> /etc/sudoers.d/codebot && \
-    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/deno run * /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" >> /etc/sudoers.d/codebot && \
     chmod 0440 /etc/sudoers.d/codebot
 
 # Create non-root user (Debian uses useradd)
 RUN useradd -m -s /bin/bash codebot
+
+# Configure authbind for privileged ports
+RUN touch /etc/authbind/byport/80 && \
+    touch /etc/authbind/byport/443 && \
+    chown codebot:codebot /etc/authbind/byport/80 /etc/authbind/byport/443 && \
+    chmod 755 /etc/authbind/byport/80 /etc/authbind/byport/443
 
 # Create temp directory for Chrome with proper permissions
 RUN mkdir -p /home/codebot/tmp && \
