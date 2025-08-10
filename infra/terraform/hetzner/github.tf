@@ -169,22 +169,9 @@ resource "github_actions_repository_permissions" "bfmono" {
 }
 
 # Configure Actions permissions
-resource "github_repository_file" "actions_permissions" {
-  repository = github_repository.bfmono.name
-  file       = ".github/actions-permissions.yml"
-  content    = yamlencode({
-    permissions = {
-      contents = "write"
-      pull-requests = "write"
-      issues = "write"
-      actions = "write"
-    }
-  })
-  
-  lifecycle {
-    ignore_changes = [content]  # Don't overwrite if manually edited
-  }
-}
+# Note: Removed github_repository_file resource because it violates branch protection rules
+# that require all changes to go through pull requests with status checks and signed commits.
+# Actions permissions should be configured through the GitHub UI or via pull requests.
 
 # Outputs
 output "repository_url" {
