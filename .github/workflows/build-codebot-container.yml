@@ -107,12 +107,14 @@ jobs:
           ls -la internalbf/
           echo "Contents of internalbf/bfmono:"
           ls -la internalbf/bfmono/
+          # Store the absolute path for Docker context
+          echo "DOCKER_CONTEXT_PATH=$(pwd)/internalbf" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ../internalbf
-          file: ../internalbf/bfmono/infra/Dockerfile.infra
+          context: ${{ env.DOCKER_CONTEXT_PATH }}
+          file: ${{ env.DOCKER_CONTEXT_PATH }}/bfmono/infra/Dockerfile.infra
           push: ${{ !inputs.build_only }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
