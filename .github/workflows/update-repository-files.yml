@@ -1,0 +1,72 @@
+name: Update Repository Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_path:
+        description: 'Path to the file to update'
+        required: true
+        type: string
+      file_content:
+        description: 'Base64 encoded content of the file'
+        required: true
+        type: string
+      commit_message:
+        description: 'Commit message'
+        required: false
+        type: string
+        default: 'Update repository file via automation'
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create branch
+        run: |
+          BRANCH_NAME="update-file-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Update file
+        run: |
+          # Decode base64 content and write to file
+          echo "${{ inputs.file_content }}" | base64 -d > "${{ inputs.file_path }}"
+          
+          # Create directory if it doesn't exist
+          mkdir -p "$(dirname "${{ inputs.file_path }}")"
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ inputs.file_path }}"
+          git commit -m "${{ inputs.commit_message }}"
+
+      - name: Push branch
+        run: |
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '${{ inputs.commit_message }}',
+              body: `This PR was automatically generated to update \`${{ inputs.file_path }}\`.
+              
+              The file was updated via the Update Repository Files workflow.`,
+              head: process.env.BRANCH_NAME,
+              base: 'main'
+            });
+            
+            console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
+            
+            // Set output for other workflows
+            core.setOutput('pr_number', pr.data.number);
+            core.setOutput('pr_url', pr.data.html_url);
