@@ -93,11 +93,26 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 15
 
+      - name: Create expected directory structure
+        run: |
+          # Create internalbf directory structure to match local development
+          mkdir -p ../internalbf
+          # Move the repository into the expected location
+          cd ..
+          mv ${{ github.event.repository.name }} internalbf/bfmono
+          # Create a symlink for GitHub Actions to still find the workspace
+          ln -s internalbf/bfmono ${{ github.event.repository.name }}
+          # Verify the structure
+          echo "Directory structure:"
+          ls -la internalbf/
+          echo "Contents of internalbf/bfmono:"
+          ls -la internalbf/bfmono/
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./infra/Dockerfile.infra
+          context: ../internalbf
+          file: ./internalbf/bfmono/infra/Dockerfile.infra
           push: ${{ !inputs.build_only }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
