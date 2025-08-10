@@ -160,14 +160,23 @@ if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
         cd /internalbf/bfmono && deno run --allow-net --allow-run --allow-env --allow-read infra/apps/codebot/container-bridge.ts > /tmp/container-bridge.log 2>&1 &\n\
         echo "Container bridge started in background (PID: $!)"\n\
     fi\n\
+    \n\
+    # Start HTTPS proxy if certificate exists\n\
+    if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ] && [ -f "/internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" ]; then\n\
+        # Grant deno capability to bind to privileged ports\n\
+        sudo setcap cap_net_bind_service=+ep $(which deno)\n\
+        # Start HTTPS proxy in background\n\
+        cd /internalbf/bfmono && deno run --allow-net --allow-read --allow-write infra/apps/codebot/https-proxy-server.ts > /tmp/https-proxy.log 2>&1 &\n\
+        echo "HTTPS proxy started in background (PID: $!)"\n\
+    fi\n\
 fi\n\
 \n\
 # Execute bash with login shell\n\
 exec /bin/bash -l "$@"\n' > /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configure sudo for codebot user to allow /etc/hosts management without password
-RUN echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts, /usr/bin/tee /etc/hosts, /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
+# Configure sudo for codebot user to allow /etc/hosts management and setcap without password
+RUN echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts, /usr/bin/tee /etc/hosts, /usr/bin/tee -a /etc/hosts, /usr/sbin/setcap cap_net_bind_service=+ep /usr/bin/deno, /usr/sbin/setcap cap_net_bind_service=+ep /nix/*/bin/deno" >> /etc/sudoers.d/codebot && \
     chmod 0440 /etc/sudoers.d/codebot
 
 # Create non-root user (Debian uses useradd)

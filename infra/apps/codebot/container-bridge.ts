@@ -39,6 +39,7 @@ export function startContainerBridge(port = 8017) {
             status: appStatus,
             healthy: appHealthy,
             url: `http://${workspaceId}.codebot.local:8000`,
+            httpsUrl: `https://${workspaceId}.codebot.local`,
           },
         },
         workspaceId,
