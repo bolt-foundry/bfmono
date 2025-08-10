@@ -197,18 +197,20 @@ function getWorkspacesDirectory(): string {
     dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
   );
 
-  // Find internalbf directory
-  let internalbfDir: string;
+  // Find internalbf directory and go one level up
+  let internalbfParentDir: string;
   if (currentPath.includes("/bfmono")) {
-    internalbfDir = currentPath.substring(
+    const internalbfDir = currentPath.substring(
       0,
       currentPath.lastIndexOf("/bfmono"),
     );
+    internalbfParentDir = dirname(internalbfDir);
   } else {
-    internalbfDir = currentPath;
+    internalbfParentDir = dirname(currentPath);
   }
 
-  return join(internalbfDir, "codebot-workspaces");
+  // Store codebot-workspaces at the same level as internalbf
+  return join(internalbfParentDir, "codebot-workspaces");
 }
 
 async function cleanupStoppedContainers(): Promise<void> {
