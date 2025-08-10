@@ -148,8 +148,8 @@ resource "github_repository_ruleset" "main" {
     non_fast_forward = true  # Prevents force pushes
     deletion         = true  # Prevents branch deletion
 
-    # Require signed commits
-    required_signatures = true  # All commits must be GPG or SSH signed
+    # Signed commits are optional
+    required_signatures = false  # Signed commits not required
 
     # Note: linear_history and required_merge_queue are not available in github_repository_ruleset
     # These need to be configured through branch protection rules or GitHub UI
