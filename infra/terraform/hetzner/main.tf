@@ -209,14 +209,16 @@ resource "aws_s3_bucket" "assets" {
 # These can be configured via Hetzner's console if needed
 
 # Cloudflare DNS record for CDN domain
-resource "cloudflare_record" "bltcdn" {
-  zone_id = var.cloudflare_zone_id
-  name    = "bltcdn"
-  value   = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"  # Helsinki bucket endpoint
-  type    = "CNAME"
-  ttl     = 1  # Auto TTL
-  proxied = true  # Enable Cloudflare CDN
-}
+# TEMPORARY: Commented out due to existing record conflict
+# TODO: Import existing record with: terraform import cloudflare_record.bltcdn <zone_id>/<record_id>
+# resource "cloudflare_record" "bltcdn" {
+#   zone_id = var.cloudflare_zone_id
+#   name    = "bltcdn"
+#   value   = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"  # Helsinki bucket endpoint
+#   type    = "CNAME"
+#   ttl     = 1  # Auto TTL
+#   proxied = true  # Enable Cloudflare CDN
+# }
 
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
