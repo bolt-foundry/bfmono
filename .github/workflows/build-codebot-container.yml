@@ -32,8 +32,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-      pull-requests: read  # Add this for PR builds
-      # id-token: write # For FlakeHub OIDC - commented out to avoid FlakeHub login
+      pull-requests: read # Add this for PR builds
+    # id-token: write # For FlakeHub OIDC - commented out to avoid FlakeHub login
 
     steps:
       - name: Checkout repository
@@ -152,7 +152,7 @@ jobs:
           platforms: linux/arm64
           build-args: |
             BUILDKIT_PROGRESS=plain
-      
+
       - name: Debug push failure
         if: ${{ failure() && steps.build.outcome == 'failure' }}
         run: |
