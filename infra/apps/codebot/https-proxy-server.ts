@@ -8,38 +8,59 @@ const logger = getLogger(import.meta);
 const certPath = "/internalbf/bfmono/shared/certs/codebot-wildcard.pem";
 const keyPath = "/internalbf/bfmono/shared/certs/codebot-wildcard-key.pem";
 
-// Known backend routes from boltfoundry-com
-const backendRoutes = new Set([
-  // App routes
-  "/",
-  "/login",
-  "/rlhf",
-  "/eval",
-  "/plinko",
-  "/ui",
-  // API routes
-  "/health",
-  "/api/telemetry",
-  "/graphql",
-  "/api/auth/google",
-  "/api/auth/dev-popup",
-]);
-
-const backendPatterns = [
-  /^\/ui\/.*/, // /ui/* routes
-  /^\/static\/.*/, // Static assets served by backend
-];
-
+// Pattern-based routing instead of hardcoded lists
 function shouldRouteToBackend(pathname: string): boolean {
-  // Check exact routes
-  if (backendRoutes.has(pathname)) return true;
+  // Always route API endpoints to backend
+  if (pathname.startsWith("/api/")) return true;
+  if (pathname === "/graphql") return true;
+  if (pathname === "/health") return true;
+  if (pathname === "/logout") return true;
 
-  // Check patterns
-  for (const pattern of backendPatterns) {
-    if (pattern.test(pathname)) return true;
+  // Route UI pages to backend (they'll serve the React app)
+  if (
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/eval" ||
+    pathname === "/rlhf" ||
+    pathname === "/plinko"
+  ) return true;
+
+  // Route /ui/* to backend
+  if (pathname.startsWith("/ui/")) return true;
+
+  // Route static assets served by backend
+  if (pathname.startsWith("/static/")) return true;
+
+  // Everything else (including HMR, Vite assets) goes to Vite
+  return false;
+}
+
+// Alternative: Try backend first, fallback to Vite on 404
+async function tryBackendFirst(req: Request): Promise<Response | null> {
+  const url = new URL(req.url);
+  const targetUrl = new URL(url);
+  targetUrl.protocol = "http:";
+  targetUrl.hostname = "localhost";
+  targetUrl.port = "8000";
+
+  try {
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers: req.headers,
+      body: req.body,
+      // Don't follow redirects automatically so we can preserve them
+      redirect: "manual",
+    });
+
+    // If backend handles it (not a 404), use that response
+    if (response.status !== 404) {
+      return response;
+    }
+  } catch (error) {
+    logger.debug(`Backend request failed, will try Vite: ${error}`);
   }
 
-  return false;
+  return null;
 }
 
 async function startHTTPSProxy() {
@@ -70,20 +91,76 @@ async function startHTTPSProxy() {
       hostname: "0.0.0.0",
       handler: async (req) => {
         const url = new URL(req.url);
-        const targetPort = shouldRouteToBackend(url.pathname) ? 8000 : 8080;
 
+        // Handle WebSocket upgrade for Vite HMR
+        if (
+          url.pathname === "/vite-hmr" &&
+          req.headers.get("upgrade") === "websocket"
+        ) {
+          logger.info(`WebSocket upgrade request for Vite HMR`);
+
+          // Forward WebSocket to Vite directly
+          const viteWsUrl = new URL(url);
+          viteWsUrl.protocol = "ws:";
+          viteWsUrl.hostname = "localhost";
+          viteWsUrl.port = "8080";
+
+          // Note: Deno doesn't have native WebSocket proxy support
+          // We'll need to handle this differently or use Vite's built-in proxy
+          // For now, let Vite handle it through its own WebSocket server
+        }
+
+        // Smart routing: Try backend first for non-asset paths
+        // This eliminates the need to maintain a hardcoded route list
+        const isLikelyAsset = url.pathname.includes(".") &&
+          !url.pathname.endsWith(".html") &&
+          !url.pathname.startsWith("/api") &&
+          !url.pathname.startsWith("/vite-hmr");
+
+        let response: Response | null = null;
+
+        if (!isLikelyAsset) {
+          // Try backend first for routes that might be handled there
+          response = await tryBackendFirst(req.clone());
+
+          if (response) {
+            logger.info(
+              `HTTPS ${req.method} ${url.pathname} → backend:8000 (${response.status})`,
+            );
+
+            // Create new headers to avoid immutable headers issue
+            const headers = new Headers();
+            response.headers.forEach((value, key) => {
+              // Skip hop-by-hop headers
+              if (
+                !["connection", "keep-alive", "transfer-encoding"].includes(
+                  key.toLowerCase(),
+                )
+              ) {
+                headers.set(key, value);
+              }
+            });
+
+            return new Response(response.body, {
+              status: response.status,
+              statusText: response.statusText,
+              headers,
+            });
+          }
+        }
+
+        // Fallback to Vite for assets and unhandled routes
         logger.info(
-          `HTTPS ${req.method} ${url.pathname} → localhost:${targetPort}`,
+          `HTTPS ${req.method} ${url.pathname} → vite:8080`,
         );
 
-        // Proxy to the appropriate service
-        const targetUrl = new URL(url);
-        targetUrl.protocol = "http:";
-        targetUrl.hostname = "localhost";
-        targetUrl.port = String(targetPort);
+        const viteUrl = new URL(url);
+        viteUrl.protocol = "http:";
+        viteUrl.hostname = "localhost";
+        viteUrl.port = "8080";
 
         try {
-          const response = await fetch(targetUrl, {
+          const viteResponse = await fetch(viteUrl, {
             method: req.method,
             headers: req.headers,
             body: req.body,
@@ -91,7 +168,7 @@ async function startHTTPSProxy() {
 
           // Create new headers to avoid immutable headers issue
           const headers = new Headers();
-          response.headers.forEach((value, key) => {
+          viteResponse.headers.forEach((value, key) => {
             // Skip hop-by-hop headers
             if (
               !["connection", "keep-alive", "transfer-encoding"].includes(
@@ -102,9 +179,9 @@ async function startHTTPSProxy() {
             }
           });
 
-          return new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
+          return new Response(viteResponse.body, {
+            status: viteResponse.status,
+            statusText: viteResponse.statusText,
             headers,
           });
         } catch (error) {
