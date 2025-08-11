@@ -1,10 +1,10 @@
-name: Deploy boltfoundry-com
+name: Deploy promptgrade-ai
 
 on:
   push:
     branches: [main]
     paths:
-      - "apps/boltfoundry-com/**"
+      - "apps/promptgrade-ai/**"
       - "infra/terraform/hetzner/**"
   workflow_dispatch:
 
@@ -25,7 +25,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: DeterminateSystems/nix-installer-action@main
-      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
 
       - name: Build binary and sync production env
         run: |
@@ -36,7 +35,7 @@ jobs:
               bft sitevar sync --force
             fi
             # Build the binary
-            bft compile boltfoundry-com
+            bft compile promptgrade-ai
           "
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
@@ -48,14 +47,14 @@ jobs:
         run: |
           # Build with git hash and latest tags
           docker build \
-            -t ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} \
+            -t ghcr.io/${{ github.repository_owner }}/promptgrade-ai:${{ github.sha }} \
             -f infra/Dockerfile.deploy \
-            --build-arg BINARY_PATH=build/boltfoundry-com \
-            --build-arg BINARY_NAME=boltfoundry-com \
+            --build-arg BINARY_PATH=build/promptgrade-ai \
+            --build-arg BINARY_NAME=promptgrade-ai \
             .
-          docker tag ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest
-          docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest
+          docker tag ghcr.io/${{ github.repository_owner }}/promptgrade-ai:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/promptgrade-ai:latest
+          docker push ghcr.io/${{ github.repository_owner }}/promptgrade-ai:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/promptgrade-ai:latest
 
       - name: Setup SSH
         run: |
@@ -126,7 +125,7 @@ jobs:
             fi
 
             # Store the IP for the deployment step
-            echo \"BOLTFOUNDRY_COM_SERVER_IP=\$FLOATING_IP\" >> .env.secrets
+            echo \"PROMPTGRADE_AI_SERVER_IP=\$FLOATING_IP\" >> .env.secrets
 
             # Add server to known_hosts now that we have the IP
             ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts
@@ -145,7 +144,7 @@ jobs:
             bft sitevar sync --force --secret-only
 
             # Generate Kamal config dynamically based on available secrets
-            bft generate-kamal-config infra/terraform/hetzner/deploy.yml.tpl config/deploy.yml production
+            bft generate-kamal-config infra/terraform/hetzner/deploy-promptgrade-ai.yml.tpl config/deploy.yml production
 
             # Create .env file for Kamal with production secrets
             cp .env.secrets .env
@@ -174,7 +173,7 @@ jobs:
           # Health check with retries
           echo "🩺 Testing health endpoint..."
           for i in {1..60}; do
-            if curl -f -L -s https://boltfoundry.com/ > /dev/null 2>&1; then
+            if curl -f -L -s https://promptgrade.ai/ > /dev/null 2>&1; then
               echo "✅ Health endpoint responded successfully"
               break
             fi
@@ -191,7 +190,7 @@ jobs:
           # Test main page endpoint
           echo "🏠 Testing main page endpoint..."
           for i in {1..10}; do
-            response_code=$(curl -L -s -o /dev/null -w "%{http_code}" https://boltfoundry.com/)
+            response_code=$(curl -L -s -o /dev/null -w "%{http_code}" https://promptgrade.ai/)
             if [ "$response_code" = "200" ]; then
               echo "✅ Main page responded with 200 OK"
               break
@@ -208,7 +207,7 @@ jobs:
 
           # Enhanced health check - get detailed health info
           echo "🔬 Performing detailed health check..."
-          health_response=$(curl -L -s https://boltfoundry.com/)
+          health_response=$(curl -L -s https://promptgrade.ai/)
           if echo "$health_response" | grep -q 'html\|HTML'; then
             echo "✅ Detailed health check passed"
             echo "Health response contains HTML content"
@@ -228,7 +227,7 @@ jobs:
 
           # Monitor for 2 minutes to catch early failures
           for i in {1..12}; do
-            response_code=$(curl -L -s -o /dev/null -w "%{http_code}" https://boltfoundry.com/)
+            response_code=$(curl -L -s -o /dev/null -w "%{http_code}" https://promptgrade.ai/)
             if [ "$response_code" != "200" ]; then
               echo "❌ Stability check failed with response code: $response_code at check $i/12"
               echo "🔄 Attempting rollback..."
@@ -245,14 +244,14 @@ jobs:
         if: success()
         run: |
           echo "🚀 Deployment completed successfully!"
-          echo "✅ Service URL: https://boltfoundry.com"
-          echo "✅ Health Check: https://boltfoundry.com/"
+          echo "✅ Service URL: https://promptgrade.ai"
+          echo "✅ Health Check: https://promptgrade.ai/"
           echo "✅ Deployment validated and stable"
 
       - name: Deployment failure notification
         if: failure()
         run: |
           echo "💥 Deployment failed!"
-          echo "❌ Service may be unresponsive at: https://boltfoundry.com"
+          echo "❌ Service may be unresponsive at: https://promptgrade.ai"
           echo "🔍 Check logs above for specific failure reason"
           echo "⚠️ Manual intervention may be required"

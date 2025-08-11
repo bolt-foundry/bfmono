@@ -30,6 +30,7 @@ runs:
           export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
           export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
           export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+          export TF_VAR_cloudflare_zone_id_promptgrade=\$CLOUDFLARE_ZONE_ID_PROMPTGRADE
           export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
           export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
           export TF_VAR_s3_access_key=\$AWS_ACCESS_KEY_ID
@@ -53,6 +54,7 @@ runs:
           echo \"TF_VAR_hcloud_token=\$TF_VAR_hcloud_token\" >> \$GITHUB_ENV
           echo \"TF_VAR_cloudflare_api_token=\$TF_VAR_cloudflare_api_token\" >> \$GITHUB_ENV
           echo \"TF_VAR_cloudflare_zone_id=\$TF_VAR_cloudflare_zone_id\" >> \$GITHUB_ENV
+          echo \"TF_VAR_cloudflare_zone_id_promptgrade=\$TF_VAR_cloudflare_zone_id_promptgrade\" >> \$GITHUB_ENV
           echo \"TF_VAR_ssh_public_key=\$TF_VAR_ssh_public_key\" >> \$GITHUB_ENV
           echo \"TF_VAR_hyperdx_api_key=\$TF_VAR_hyperdx_api_key\" >> \$GITHUB_ENV
           echo \"TF_VAR_s3_access_key=\$TF_VAR_s3_access_key\" >> \$GITHUB_ENV
