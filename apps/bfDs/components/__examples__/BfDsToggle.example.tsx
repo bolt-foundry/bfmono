@@ -91,7 +91,7 @@ export function BfDsToggleExample() {
               label="Auto-save documents"
             />
 
-            <BfDsFormSubmitButton text="Submit Form" />
+            <BfDsFormSubmitButton text="Submit form" />
           </div>
         </BfDsForm>
         <BfDsCallout
@@ -143,13 +143,13 @@ export function BfDsToggleExample() {
           />
 
           <BfDsToggle
-            label="Disabled Unchecked"
+            label="Disabled unchecked"
             defaultChecked={false}
             disabled
           />
 
           <BfDsToggle
-            label="Disabled Checked"
+            label="Disabled checked"
             defaultChecked
             disabled
           />
@@ -157,7 +157,7 @@ export function BfDsToggleExample() {
           <BfDsToggle label="Without onChange Handler" />
 
           <BfDsToggle
-            label="No Label"
+            label="No label"
             defaultChecked={false}
           />
         </div>

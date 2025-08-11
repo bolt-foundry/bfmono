@@ -46,7 +46,7 @@ function UserForm() {
           spinner={loading}
           disabled={loading}
         >
-          {loading ? "Saving..." : "Save User"}
+          {loading ? "Saving..." : "Save user"}
         </BfDsButton>
       </div>
     </BfDsCard>

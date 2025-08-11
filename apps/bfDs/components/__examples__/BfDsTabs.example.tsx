@@ -97,10 +97,10 @@ const tabs: Array<BfDsTabItem> = [
       subtabs: [
         {
           id: "getting-started",
-          label: "Getting Started",
+          label: "Getting started",
           content: (
             <div style={{ padding: "20px" }}>
-              <h3>Getting Started</h3>
+              <h3>Getting started</h3>
               <p>
                 Welcome to our documentation! Here's how to get started with the
                 platform.
@@ -171,7 +171,7 @@ DELETE /api/users/:id`}
         },
         {
           id: "contact",
-          label: "Contact Us",
+          label: "Contact us",
           disabled: true,
           content: (
             <div style={{ padding: "20px" }}>
