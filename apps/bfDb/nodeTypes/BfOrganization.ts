@@ -7,8 +7,17 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
       .string("name")
       .string("domain")
       .connection("decks", () => BfDeck, {
-        resolve: async (org, args) => {
-          return await org.connectionForDecks(args);
+        resolve: async (org, args, ctx) => {
+          // The 'org' here is a plain object from toGraphql(), not a BfOrganization instance
+          // We need to fetch the actual organization instance to use its methods
+          const actualOrg = await BfOrganization.find(
+            ctx.getCurrentViewer(),
+            org.id,
+          );
+          if (!actualOrg) {
+            throw new Error(`Organization not found: ${org.id}`);
+          }
+          return await actualOrg.connectionForDecks(args);
         },
       })
     // Removing the members relationship for now to focus on 1:1
