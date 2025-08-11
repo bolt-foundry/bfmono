@@ -1,8 +1,9 @@
 #!/usr/bin/env -S deno run -A
 
 import { getLogger } from "@bolt-foundry/logger";
-import { TaskDefinition } from "../bft.ts";
+import type { TaskDefinition } from "../bft.ts";
 import { parseArgs } from "@std/cli/parse-args";
+import type { Args } from "@std/cli/parse-args";
 
 const logger = getLogger(import.meta);
 
@@ -21,14 +22,14 @@ async function exec(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return { stdout, stderr };
 }
 
-interface ProxyOptions {
+interface ProxyOptions extends Args {
   start?: boolean;
   stop?: boolean;
   restart?: boolean;
   status?: boolean;
   logs?: boolean;
   foreground?: boolean;
-  _?: string[];
+  f?: boolean;
 }
 
 async function getProxyProcessInfo() {
@@ -191,19 +192,19 @@ async function showProxyLogs() {
   try {
     await Deno.stat(logFile);
     const { stdout } = await exec(`tail -50 ${logFile}`);
-    console.log(stdout);
+    logger.info(stdout);
   } catch {
     logger.error(`No log file found at: ${logFile}`);
   }
 }
 
-async function proxy(rawArgs: string[]) {
-  const args = parseArgs<ProxyOptions>(rawArgs, {
+async function proxy(rawArgs: Array<string>): Promise<number> {
+  const args = parseArgs(rawArgs, {
     boolean: ["start", "stop", "restart", "status", "logs", "foreground"],
     alias: {
       f: "foreground",
     },
-  });
+  }) as ProxyOptions;
 
   // Default to status if no action specified
   const actionCount =
@@ -232,6 +233,8 @@ async function proxy(rawArgs: string[]) {
   } else if (args.logs) {
     await showProxyLogs();
   }
+
+  return 0;
 }
 
 export const bftDefinition = {
