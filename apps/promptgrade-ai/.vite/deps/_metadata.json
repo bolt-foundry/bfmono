@@ -1,0 +1,61 @@
+{
+  "hash": "76dcba2c",
+  "configHash": "3508562c",
+  "lockfileHash": "e3b0c442",
+  "browserHash": "bab3bbe6",
+  "optimized": {
+    "react": {
+      "src": "../../../../node_modules/.deno/react@19.1.0/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "c172aca1",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../../../node_modules/.deno/react-dom@19.1.0/node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "c99f09d2",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../../../node_modules/.deno/react@19.1.0/node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "785cf532",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../../../node_modules/.deno/react@19.1.0/node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "595da249",
+      "needsInterop": true
+    },
+    "loglevel": {
+      "src": "../../../../node_modules/.deno/loglevel@1.9.2/node_modules/loglevel/lib/loglevel.js",
+      "file": "loglevel.js",
+      "fileHash": "c5e6a770",
+      "needsInterop": true
+    },
+    "loglevel-plugin-prefix": {
+      "src": "../../../../node_modules/.deno/loglevel-plugin-prefix@0.8.4/node_modules/loglevel-plugin-prefix/lib/loglevel-plugin-prefix.js",
+      "file": "loglevel-plugin-prefix.js",
+      "fileHash": "7b93fbec",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../../node_modules/.deno/react-dom@19.1.0/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "a944c99f",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-Y6RR4B2Z": {
+      "file": "chunk-Y6RR4B2Z.js"
+    },
+    "chunk-BE6Q6XBD": {
+      "file": "chunk-BE6Q6XBD.js"
+    },
+    "chunk-BUSYA2B4": {
+      "file": "chunk-BUSYA2B4.js"
+    }
+  }
+}
