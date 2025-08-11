@@ -23,7 +23,7 @@ export function BfDsHudExample() {
     // Add example buttons
     addButton({
       id: "btn-1",
-      label: "Say Hello",
+      label: "Say hello",
       icon: "messageSquare",
       onClick: () => {
         const { input1, input2 } = getInputs();
@@ -33,7 +33,7 @@ export function BfDsHudExample() {
 
     addButton({
       id: "btn-2",
-      label: "Test Success",
+      label: "Test success",
       icon: "checkCircle",
       variant: "primary",
       onClick: () => {
@@ -43,7 +43,7 @@ export function BfDsHudExample() {
 
     addButton({
       id: "btn-3",
-      label: "Test Warning",
+      label: "Test warning",
       icon: "alertTriangle",
       variant: "outline",
       onClick: () => {
@@ -53,7 +53,7 @@ export function BfDsHudExample() {
 
     addButton({
       id: "btn-4",
-      label: "Test Error",
+      label: "Test error",
       icon: "alertCircle",
       variant: "ghost",
       onClick: () => {
@@ -63,7 +63,7 @@ export function BfDsHudExample() {
 
     addButton({
       id: "btn-5",
-      label: "Log Inputs",
+      label: "Log inputs",
       icon: "terminal",
       variant: "secondary",
       onClick: () => {
@@ -75,7 +75,7 @@ export function BfDsHudExample() {
     // Add toggleable buttons
     addButton({
       id: "btn-6",
-      label: "Debug Mode",
+      label: "Debug mode",
       toggleable: true,
       value: debugMode,
       variant: "ghost",
@@ -162,7 +162,7 @@ function MyComponent() {
   useEffect(() => {
     addButton({
       id: "my-action",
-      label: "Run Action",
+      label: "Run action",
       icon: "play",
       variant: "primary",
       onClick: () => {
@@ -180,7 +180,7 @@ function MyComponent() {
   useEffect(() => {
     addButton({
       id: "toggle-feature",
-      label: "Feature Flag",
+      label: "Feature flag",
       toggleable: true,
       value: featureEnabled,
       onToggle: (newValue) => {
@@ -278,7 +278,7 @@ function MyComponent() {
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
             <BfDsToggle
-              label="Debug Mode"
+              label="Debug mode"
               checked={debugMode}
               onChange={(checked) => {
                 setDebugMode(checked);
@@ -305,11 +305,11 @@ function MyComponent() {
         <div style={{ marginTop: "1rem" }}>
           <h4>Try these interactions:</h4>
           <ol>
-            <li>Type your name in Input 1 and click "Say Hello"</li>
-            <li>Enter values in both inputs and click "Log Inputs"</li>
+            <li>Type your name in Input 1 and click "Say hello"</li>
+            <li>Enter values in both inputs and click "Log inputs"</li>
             <li>Test different message types with the colored buttons</li>
             <li>
-              Toggle "Debug Mode" and "API Access" buttons to see the toggle
+              Toggle "Debug mode" and "API access" buttons to see the toggle
               icons change
             </li>
             <li>Navigate through message history with arrow buttons</li>
@@ -338,7 +338,7 @@ const [featureEnabled, setFeatureEnabled] = useState(false);
 
 addButton({
   id: "toggle-feature",
-  label: "Toggle Feature",
+  label: "Toggle feature",
   toggleable: true,
   value: featureEnabled,
   onToggle: (newValue) => {
@@ -355,7 +355,7 @@ addButton({
 // Admin Actions
 addButton({
   id: "user-action",
-  label: "User Action",
+  label: "User action",
   icon: "user",
   variant: "primary",
   onClick: async () => {

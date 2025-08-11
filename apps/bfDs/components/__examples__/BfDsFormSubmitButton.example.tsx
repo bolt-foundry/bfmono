@@ -68,11 +68,11 @@ import { BfDsForm } from "@bfmono/apps/bfDs/components/BfDsForm.tsx";
           <div className="bfds-example__group">
             <BfDsInput
               name="name"
-              label="Your Name"
+              label="Your name"
               placeholder="Enter your name"
               required
             />
-            <BfDsFormSubmitButton text="Submit Form" />
+            <BfDsFormSubmitButton text="Submit form" />
           </div>
         </BfDsForm>
         <BfDsCallout
