@@ -18,9 +18,11 @@ const tabs: Array<BfDsTabItem> = [
     id: "tab1",
     label: "Tab 1",
     content: <div>Tab 1 content</div>,
-    icon: "autoframe",      // optional
-    disabled: false,        // optional
-    subtabs: [...]         // optional nested tabs
+    icon: "autoframe",              // optional
+    badge: "New",                   // optional badge text
+    badgeVariant: "success",        // optional badge color variant
+    disabled: false,                // optional
+    subtabs: [...]                 // optional nested tabs
   }
 ];
 
@@ -46,6 +48,8 @@ const tabs: Array<BfDsTabItem> = [
       id: "tab1",
       label: "Overview",
       icon: "autoframe",
+      badge: "New",
+      badgeVariant: "success",
       content: (
         <div style={{ padding: "20px" }}>
           <h3>Overview Content</h3>
@@ -60,6 +64,8 @@ const tabs: Array<BfDsTabItem> = [
       id: "tab2",
       label: "Settings",
       icon: "burgerMenu",
+      badge: "Popular",
+      badgeVariant: "primary",
       content: (
         <div style={{ padding: "20px" }}>
           <h3>Settings Content</h3>
@@ -74,6 +80,8 @@ const tabs: Array<BfDsTabItem> = [
       id: "tab3",
       label: "Analytics",
       icon: "arrowsLeftRight",
+      badge: "Coming Soon",
+      badgeVariant: "secondary",
       disabled: true,
       content: (
         <div style={{ padding: "20px" }}>
@@ -98,6 +106,8 @@ const tabs: Array<BfDsTabItem> = [
         {
           id: "getting-started",
           label: "Getting started",
+          badge: "Updated",
+          badgeVariant: "info",
           content: (
             <div style={{ padding: "20px" }}>
               <h3>Getting started</h3>
@@ -139,6 +149,8 @@ DELETE /api/users/:id`}
         {
           id: "examples",
           label: "Examples",
+          badge: "Beta",
+          badgeVariant: "warning",
           content: (
             <div style={{ padding: "20px" }}>
               <h3>Code Examples</h3>
