@@ -59,7 +59,7 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     interface KamalConfig {
       env?: {
         clear?: Record<string, unknown>;
-        secret?: string[];
+        secret?: Array<string>;
       };
       [key: string]: unknown;
     }
