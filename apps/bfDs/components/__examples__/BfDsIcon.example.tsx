@@ -223,7 +223,7 @@ export function BfDsIconExample() {
 
       <div className="bfds-example__section">
         <h3>
-          {showGeneratedOnly ? "Generated Icons" : "All Icons"}{" "}
+          {showGeneratedOnly ? "Generated icons" : "All icons"}{" "}
           ({filteredIcons.length} found)
         </h3>
         <div className="bfds-example__grid">

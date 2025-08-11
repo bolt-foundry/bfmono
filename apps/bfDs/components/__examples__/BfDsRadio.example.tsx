@@ -25,16 +25,16 @@ export function BfDsRadioExample() {
   ];
 
   const themeOptions: Array<BfDsRadioOption> = [
-    { value: "light", label: "Light Theme" },
-    { value: "dark", label: "Dark Theme" },
+    { value: "light", label: "Light theme" },
+    { value: "dark", label: "Dark theme" },
     { value: "auto", label: "Auto (System)" },
   ];
 
   const planOptions: Array<BfDsRadioOption> = [
-    { value: "free", label: "Free Plan" },
-    { value: "pro", label: "Pro Plan" },
-    { value: "enterprise", label: "Enterprise Plan" },
-    { value: "beta", label: "Beta Plan", disabled: true },
+    { value: "free", label: "Free plan" },
+    { value: "pro", label: "Pro plan" },
+    { value: "enterprise", label: "Enterprise plan" },
+    { value: "beta", label: "Beta plan", disabled: true },
   ];
 
   return (
@@ -138,7 +138,7 @@ export function BfDsRadioExample() {
               options={planOptions}
             />
 
-            <BfDsFormSubmitButton text="Submit Form" />
+            <BfDsFormSubmitButton text="Submit form" />
           </div>
         </BfDsForm>
         <BfDsCallout
@@ -166,7 +166,7 @@ export function BfDsRadioExample() {
 
           <BfDsRadio
             name="horizontal-example"
-            label="Horizontal Layout"
+            label="Horizontal layout"
             options={themeOptions}
             orientation="horizontal"
             defaultValue="dark"
@@ -179,21 +179,21 @@ export function BfDsRadioExample() {
         <div className="bfds-example__group">
           <BfDsRadio
             name="small-example"
-            label="Small Size"
+            label="Small size"
             options={[{ value: "small", label: "Small" }]}
             size="small"
             defaultValue="small"
           />
           <BfDsRadio
             name="medium-example"
-            label="Medium Size"
+            label="Medium size"
             options={[{ value: "medium", label: "Medium" }]}
             size="medium"
             defaultValue="medium"
           />
           <BfDsRadio
             name="large-example"
-            label="Large Size"
+            label="Large size"
             options={[{ value: "large", label: "Large" }]}
             size="large"
             defaultValue="large"
@@ -206,7 +206,7 @@ export function BfDsRadioExample() {
         <div className="bfds-example__group">
           <BfDsRadio
             name="disabled-example"
-            label="Disabled Group"
+            label="Disabled group"
             options={sizeOptions}
             disabled
           />
