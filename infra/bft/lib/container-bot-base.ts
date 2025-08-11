@@ -852,9 +852,14 @@ OPTIONS:
           const versions = await apiResponse.json();
 
           // Find the version with the "latest" tag
-          const latestVersion = versions.find((v: any) =>
-            v.metadata?.container?.tags?.includes("latest")
-          );
+          const latestVersion = versions.find((v: {
+            metadata?: {
+              container?: {
+                tags?: Array<string>;
+              };
+            };
+            created_at: string;
+          }) => v.metadata?.container?.tags?.includes("latest"));
 
           if (!latestVersion) {
             throw new Error("No latest tag found in remote registry");
