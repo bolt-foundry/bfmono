@@ -27,13 +27,14 @@ import { BfDsBadgeExample } from "../components/__examples__/BfDsBadge.example.t
 import { BfDsListBarExample } from "../components/__examples__/BfDsListBar.example.tsx";
 import { BfDsCodeExampleBasic } from "../components/__examples__/BfDsCodeExample.example.tsx";
 import { BfDsHudExample } from "@bfmono/apps/bfDs/components/__examples__/BfDsHud.example.tsx";
+import { DefaultPricingTable } from "../components/__examples__/BfDsPricingTable.example.tsx";
 
 type ComponentSection = {
   id: string;
   name: string;
   description: string;
   component: React.ComponentType;
-  category: "Core" | "Form" | "Navigation";
+  category: "Core" | "Form" | "Navigation" | "Advanced";
 };
 
 const componentSections: Array<ComponentSection> = [
@@ -213,6 +214,14 @@ const componentSections: Array<ComponentSection> = [
     description: "Floating console with action buttons and message history",
     component: BfDsHudExample,
     category: "Core",
+  },
+  {
+    id: "pricing-table",
+    name: "Pricing table",
+    description:
+      "Responsive pricing table with tiers, features, and CTAs built with Cards",
+    component: DefaultPricingTable,
+    category: "Advanced",
   },
 ];
 
