@@ -6,6 +6,7 @@
 import type * as React from "react";
 import { useEffect, useState } from "react";
 import { BfDsIcon, type BfDsIconName } from "./BfDsIcon.tsx";
+import { BfDsBadge, type BfDsBadgeVariant } from "./BfDsBadge.tsx";
 
 export type BfDsTabItem = {
   /** Unique identifier for the tab */
@@ -20,6 +21,10 @@ export type BfDsTabItem = {
   disabled?: boolean;
   /** Optional nested subtabs */
   subtabs?: Array<BfDsTabItem>;
+  /** Optional badge text to display as a small dot indicator on the tab (e.g., "New", "Popular", "Coming Soon") */
+  badge?: string;
+  /** Badge variant determining the dot color: "primary", "secondary", "success", "warning", "error", "info" */
+  badgeVariant?: BfDsBadgeVariant;
 };
 
 /**
@@ -71,11 +76,32 @@ export type BfDsTabsState = {
  * />
  *
  * @example
- * // Tabs with icons and different variants
+ * // Tabs with icons, badges, and different variants
  * const tabsWithIcons = [
- *   { id: "dashboard", label: "Dashboard", icon: "autoframe", content: <DashboardContent /> },
- *   { id: "analytics", label: "Analytics", icon: "arrowsLeftRight", content: <AnalyticsContent /> },
- *   { id: "settings", label: "Settings", icon: "settings", content: <SettingsContent /> },
+ *   {
+ *     id: "dashboard",
+ *     label: "Dashboard",
+ *     icon: "autoframe",
+ *     badge: "New",
+ *     badgeVariant: "success",
+ *     content: <DashboardContent />
+ *   },
+ *   {
+ *     id: "analytics",
+ *     label: "Analytics",
+ *     icon: "arrowsLeftRight",
+ *     badge: "Popular",
+ *     badgeVariant: "primary",
+ *     content: <AnalyticsContent />
+ *   },
+ *   {
+ *     id: "settings",
+ *     label: "Settings",
+ *     icon: "settings",
+ *     badge: "Coming Soon",
+ *     badgeVariant: "secondary",
+ *     content: <SettingsContent />
+ *   },
  * ];
  * <BfDsTabs tabs={tabsWithIcons} variant="secondary" size="large" />
  *
@@ -231,6 +257,7 @@ export function BfDsTabs({
       `bfds-tab--${size}`,
       isActive && "bfds-tab--active",
       tab.disabled && "bfds-tab--disabled",
+      tab.badge && "bfds-tab--with-badge",
     ].filter(Boolean).join(" ");
 
     return (
@@ -244,17 +271,28 @@ export function BfDsTabs({
         aria-selected={isActive}
         aria-controls={`panel-${tab.id}`}
       >
-        {tab.icon && (
-          <BfDsIcon
-            name={tab.icon}
-            size={size === "small"
-              ? "small"
-              : size === "large"
-              ? "large"
-              : "medium"}
-          />
-        )}
-        <span>{tab.label}</span>
+        <div className="bfds-tab__content flexRow alignItemsCenter gapMedium">
+          {tab.icon && (
+            <BfDsIcon
+              name={tab.icon}
+              size={size === "small"
+                ? "small"
+                : size === "large"
+                ? "large"
+                : "medium"}
+            />
+          )}
+          <span className="bfds-tab__label">{tab.label}</span>
+          {tab.badge && (
+            <BfDsBadge
+              variant={tab.badgeVariant || "primary"}
+              dot
+              className="bfds-tab__badge"
+            >
+              {tab.badge}
+            </BfDsBadge>
+          )}
+        </div>
       </button>
     );
   };
@@ -272,6 +310,7 @@ export function BfDsTabs({
       `bfds-subtab--${size}`,
       isActive && "bfds-subtab--active",
       subtab.disabled && "bfds-subtab--disabled",
+      subtab.badge && "bfds-subtab--with-badge",
     ].filter(Boolean).join(" ");
 
     return (
@@ -285,13 +324,24 @@ export function BfDsTabs({
         aria-selected={isActive}
         aria-controls={`subpanel-${parentTab.id}-${subtab.id}`}
       >
-        {subtab.icon && (
-          <BfDsIcon
-            name={subtab.icon}
-            size="small"
-          />
-        )}
-        <span>{subtab.label}</span>
+        <div className="bfds-subtab__content flexRow alignItemsCenter gapMedium">
+          {subtab.icon && (
+            <BfDsIcon
+              name={subtab.icon}
+              size="small"
+            />
+          )}
+          <span className="bfds-subtab__label">{subtab.label}</span>
+          {subtab.badge && (
+            <BfDsBadge
+              variant={subtab.badgeVariant || "primary"}
+              dot
+              className="bfds-subtab__badge"
+            >
+              {subtab.badge}
+            </BfDsBadge>
+          )}
+        </div>
       </button>
     );
   };
