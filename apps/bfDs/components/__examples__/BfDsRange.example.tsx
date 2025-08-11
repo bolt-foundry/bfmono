@@ -68,13 +68,13 @@ export function BfDsRangeExample() {
         <h3 className="bfds-example__subtitle">Controlled vs Uncontrolled</h3>
         <div className="bfds-example__items">
           <BfDsRange
-            label="Controlled Range"
+            label="Controlled range"
             value={value}
             onChange={(e) => setValue(Number(e.target.value))}
             helpText={`Current value: ${value}`}
           />
           <BfDsRange
-            label="Uncontrolled Range"
+            label="Uncontrolled range"
             defaultValue={30}
             helpText="Manages its own state internally"
           />
@@ -106,24 +106,24 @@ export function BfDsRangeExample() {
         <h3 className="bfds-example__subtitle">States</h3>
         <div className="bfds-example__items">
           <BfDsRange
-            label="Default State"
+            label="Default state"
             defaultValue={25}
             helpText="This is a help text"
           />
           <BfDsRange
-            label="Error State"
+            label="Error state"
             state="error"
             defaultValue={50}
             errorMessage="Value must be between 0 and 40"
           />
           <BfDsRange
-            label="Success State"
+            label="Success state"
             state="success"
             defaultValue={75}
             successMessage="Perfect value!"
           />
           <BfDsRange
-            label="Disabled State"
+            label="Disabled state"
             disabled
             defaultValue={50}
           />
@@ -228,17 +228,17 @@ export function BfDsRangeExample() {
         <h3 className="bfds-example__subtitle">Custom Colors</h3>
         <div className="bfds-example__items">
           <BfDsRange
-            label="Red Range"
+            label="Red range"
             color="#ef4444"
             defaultValue={60}
           />
           <BfDsRange
-            label="Green Range"
+            label="Green range"
             color="#10b981"
             defaultValue={40}
           />
           <BfDsRange
-            label="Purple Range"
+            label="Purple range"
             color="#8b5cf6"
             defaultValue={80}
             showTicks
