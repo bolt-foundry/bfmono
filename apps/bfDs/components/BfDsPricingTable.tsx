@@ -3,10 +3,12 @@
  * @author Claude <noreply@anthropic.com>
  * @since 2.0.0
  */
+import { useEffect, useState } from "react";
 import { BfDsCard } from "./BfDsCard.tsx";
 import { BfDsButton } from "./BfDsButton.tsx";
 import { BfDsBadge, type BfDsBadgeVariant } from "./BfDsBadge.tsx";
 import { BfDsIcon } from "./BfDsIcon.tsx";
+import { type BfDsTabItem, BfDsTabs } from "./BfDsTabs.tsx";
 
 /**
  * Props for individual pricing tier
@@ -49,6 +51,7 @@ export type BfDsPricingTableProps = {
 /**
  * A responsive pricing table component that displays pricing tiers using BfDsCard.
  * Features support for highlighted tiers, coming soon states, and customizable CTAs.
+ * On mobile devices, tiers are displayed as tabs for better navigation.
  *
  * @param tiers - Array of pricing tiers to display
  * @param className - Additional CSS classes
@@ -79,83 +82,137 @@ export type BfDsPricingTableProps = {
  * ```
  */
 export function BfDsPricingTable({ tiers, className }: BfDsPricingTableProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(globalThis.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    globalThis.addEventListener("resize", checkIfMobile);
+
+    return () => globalThis.removeEventListener("resize", checkIfMobile);
+  }, []);
+
+  const renderTierCard = (
+    tier: PricingTier,
+    index: number,
+    showBadge: boolean = true,
+  ) => (
+    <BfDsCard
+      key={`${tier.name}-${index}`}
+      variant={tier.highlighted ? "elevated" : "outlined"}
+      className={[
+        "bfds-pricing-table__card",
+        tier.highlighted && "bfds-pricing-table__card--highlighted",
+        tier.disabled && "bfds-pricing-table__card--disabled",
+      ].filter(Boolean).join(" ")}
+      header={
+        <div className="bfds-pricing-table__header">
+          {tier.badge && showBadge && (
+            <BfDsBadge
+              variant={tier.badgeVariant || "primary"}
+              className="bfds-pricing-table__badge"
+            >
+              {tier.badge}
+            </BfDsBadge>
+          )}
+          <h3 className="bfds-pricing-table__tier-name">
+            {tier.name}
+          </h3>
+          <div className="bfds-pricing-table__price">
+            <span className="bfds-pricing-table__price-amount">
+              {tier.price}
+            </span>
+            {tier.period && (
+              <span className="bfds-pricing-table__price-period">
+                {tier.period}
+              </span>
+            )}
+          </div>
+        </div>
+      }
+      footer={
+        <div className="bfds-pricing-table__footer">
+          <BfDsButton
+            variant={tier.buttonVariant ||
+              (tier.highlighted ? "primary" : "outline")}
+            disabled={tier.disabled}
+            onClick={tier.onButtonClick}
+            className="bfds-pricing-table__cta"
+          >
+            {tier.buttonText}
+          </BfDsButton>
+        </div>
+      }
+    >
+      <div className="bfds-pricing-table__features">
+        <ul className="bfds-pricing-table__features-list">
+          {tier.features.map((feature, featureIndex) => (
+            <li
+              key={featureIndex}
+              className="bfds-pricing-table__feature"
+            >
+              <BfDsIcon
+                name="check"
+                size="small"
+                className="bfds-pricing-table__feature-icon"
+              />
+              <span className="bfds-pricing-table__feature-text">
+                {feature}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </BfDsCard>
+  );
+
   const containerClasses = [
     "bfds-pricing-table",
+    isMobile && "bfds-pricing-table--mobile",
     className,
   ].filter(Boolean).join(" ");
+
+  if (isMobile) {
+    const tabItems: Array<BfDsTabItem> = tiers.map((tier, index) => ({
+      id: tier.name.toLowerCase().replace(/\s+/g, "-"),
+      label: tier.name,
+      badge: tier.badge,
+      badgeVariant: tier.badgeVariant,
+      content: (
+        <div
+          className="bfds-pricing-table__mobile-content"
+          style={{ marginTop: "1.5rem" }}
+        >
+          {renderTierCard(tier, index, false)}
+        </div>
+      ),
+    }));
+
+    const highlightedTierIndex = tiers.findIndex((tier) => tier.highlighted);
+    const defaultActiveTab = highlightedTierIndex >= 0
+      ? tabItems[highlightedTierIndex].id
+      : tabItems[0]?.id;
+
+    return (
+      <div className={containerClasses}>
+        <BfDsTabs
+          tabs={tabItems}
+          defaultActiveTab={defaultActiveTab}
+          variant="primary"
+          size="medium"
+          className="bfds-pricing-table__tabs bfds-pricing-table__tabs--full-width"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={containerClasses}>
       <div className="bfds-pricing-table__grid">
-        {tiers.map((tier, index) => (
-          <BfDsCard
-            key={`${tier.name}-${index}`}
-            variant={tier.highlighted ? "elevated" : "outlined"}
-            className={[
-              "bfds-pricing-table__card",
-              tier.highlighted && "bfds-pricing-table__card--highlighted",
-              tier.disabled && "bfds-pricing-table__card--disabled",
-            ].filter(Boolean).join(" ")}
-            header={
-              <div className="bfds-pricing-table__header">
-                {tier.badge && (
-                  <BfDsBadge
-                    variant={tier.badgeVariant || "primary"}
-                    className="bfds-pricing-table__badge"
-                  >
-                    {tier.badge}
-                  </BfDsBadge>
-                )}
-                <h3 className="bfds-pricing-table__tier-name">
-                  {tier.name}
-                </h3>
-                <div className="bfds-pricing-table__price">
-                  <span className="bfds-pricing-table__price-amount">
-                    {tier.price}
-                  </span>
-                  {tier.period && (
-                    <span className="bfds-pricing-table__price-period">
-                      {tier.period}
-                    </span>
-                  )}
-                </div>
-              </div>
-            }
-            footer={
-              <div className="bfds-pricing-table__footer">
-                <BfDsButton
-                  variant={tier.buttonVariant ||
-                    (tier.highlighted ? "primary" : "outline")}
-                  disabled={tier.disabled}
-                  onClick={tier.onButtonClick}
-                  className="bfds-pricing-table__cta"
-                >
-                  {tier.buttonText}
-                </BfDsButton>
-              </div>
-            }
-          >
-            <div className="bfds-pricing-table__features">
-              <ul className="bfds-pricing-table__features-list">
-                {tier.features.map((feature, featureIndex) => (
-                  <li
-                    key={featureIndex}
-                    className="bfds-pricing-table__feature"
-                  >
-                    <BfDsIcon
-                      name="check"
-                      size="small"
-                      className="bfds-pricing-table__feature-icon"
-                    />
-                    <span className="bfds-pricing-table__feature-text">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </BfDsCard>
-        ))}
+        {tiers.map((tier, index) => renderTierCard(tier, index))}
       </div>
     </div>
   );
