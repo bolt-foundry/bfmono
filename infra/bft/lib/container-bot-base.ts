@@ -31,6 +31,7 @@ export interface ContainerArgs {
   cpus?: string;
   checkout?: string;
   "debug-logs"?: boolean;
+  "force-local"?: boolean;
 }
 
 interface ContainerConfig {
@@ -433,6 +434,7 @@ OPTIONS:
   --memory <size>         Container memory limit (e.g., 4g, 8192m)
   --cpus <count>          Number of CPUs (e.g., 4)
   --force-rebuild         (Deprecated - build container manually)
+  --force-local           Skip remote updates and use outdated local container
   --debug-logs            Enable debug logging
   --help                  Show this help
 `,
@@ -450,6 +452,7 @@ OPTIONS:
       "cleanup-containers",
       "resume",
       "debug-logs",
+      "force-local",
     ],
     string: ["exec", "workspace", "memory", "cpus", "checkout"],
   }) as ContainerArgs;
@@ -811,7 +814,196 @@ OPTIONS:
       stderr: "null",
     });
 
-    const inspectResult = await inspectCmd.output();
+    let inspectResult = await inspectCmd.output();
+
+    // Check remote container date first if we have a local image
+    if (inspectResult.success && !parsed["force-local"]) {
+      ui.output("🌐 Checking remote container for updates...");
+
+      try {
+        // Get remote image creation date using GitHub API
+        // ghcr.io images can be queried via GitHub's package API
+        const ghTokenCmd = new Deno.Command("gh", {
+          args: ["auth", "token"],
+          stdout: "piped",
+          stderr: "null",
+        });
+        const ghTokenResult = await ghTokenCmd.output();
+
+        if (!ghTokenResult.success) {
+          throw new Error("GitHub CLI not authenticated");
+        }
+
+        const githubToken = new TextDecoder().decode(ghTokenResult.stdout)
+          .trim();
+
+        // Query GitHub Container Registry API for package versions
+        const apiResponse = await fetch(
+          "https://api.github.com/orgs/bolt-foundry/packages/container/bfmono%2Fcodebot/versions",
+          {
+            headers: {
+              "Authorization": `Bearer ${githubToken}`,
+              "Accept": "application/vnd.github.v3+json",
+            },
+          },
+        );
+
+        if (apiResponse.ok) {
+          const versions = await apiResponse.json();
+
+          // Find the version with the "latest" tag
+          const latestVersion = versions.find((v: any) =>
+            v.metadata?.container?.tags?.includes("latest")
+          );
+
+          if (!latestVersion) {
+            throw new Error("No latest tag found in remote registry");
+          }
+
+          const remoteCreatedTime = new Date(latestVersion.created_at)
+            .getTime();
+
+          // Get local image creation time
+          const localData = JSON.parse(
+            new TextDecoder().decode(inspectResult.stdout),
+          );
+          const localCreatedTime = new Date(localData[0].Created).getTime();
+
+          if (remoteCreatedTime > localCreatedTime) {
+            ui.output("🆕 Newer image available on ghcr.io");
+            ui.output(`  Local:  ${new Date(localCreatedTime).toISOString()}`);
+            ui.output(`  Remote: ${new Date(remoteCreatedTime).toISOString()}`);
+
+            // Pull the newer image
+            ui.output("🚢 Pulling newer image from ghcr.io...");
+
+            // Set up ghcr.io authentication (reuse existing code)
+            const ghCheckCmd = new Deno.Command("gh", {
+              args: ["--version"],
+              stdout: "null",
+              stderr: "null",
+            });
+            const ghCheckResult = await ghCheckCmd.output();
+
+            if (ghCheckResult.success) {
+              // Get current default registry
+              const defaultRegistryCmd = new Deno.Command("container", {
+                args: ["registry", "default", "inspect"],
+                stdout: "piped",
+                stderr: "null",
+              });
+              const defaultRegistryResult = await defaultRegistryCmd.output();
+              const currentRegistry = new TextDecoder().decode(
+                defaultRegistryResult.stdout,
+              ).trim();
+
+              // Set default registry to ghcr.io
+              ui.output("🔧 Setting default registry to ghcr.io...");
+              const setRegistryCmd = new Deno.Command("container", {
+                args: ["registry", "default", "set", "ghcr.io"],
+                stdout: "null",
+                stderr: "null",
+              });
+              await setRegistryCmd.output();
+
+              try {
+                // Login to ghcr.io using gh auth token
+                ui.output("🔐 Logging into ghcr.io...");
+                const ghUserCmd = new Deno.Command("gh", {
+                  args: ["api", "user", "--jq", ".login"],
+                  stdout: "piped",
+                  stderr: "null",
+                });
+                const ghUserResult = await ghUserCmd.output();
+                const githubUser = new TextDecoder().decode(ghUserResult.stdout)
+                  .trim();
+
+                const ghTokenCmd = new Deno.Command("gh", {
+                  args: ["auth", "token"],
+                  stdout: "piped",
+                  stderr: "null",
+                });
+                const ghTokenResult = await ghTokenCmd.output();
+                const githubToken = new TextDecoder().decode(
+                  ghTokenResult.stdout,
+                )
+                  .trim();
+
+                const loginCmd = new Deno.Command("container", {
+                  args: [
+                    "registry",
+                    "login",
+                    "--username",
+                    githubUser,
+                    "--password-stdin",
+                    "ghcr.io",
+                  ],
+                  stdin: "piped",
+                  stdout: "null",
+                  stderr: "piped",
+                });
+                const loginProcess = loginCmd.spawn();
+                const writer = loginProcess.stdin.getWriter();
+                await writer.write(new TextEncoder().encode(githubToken));
+                await writer.close();
+                const loginResult = await loginProcess.output();
+
+                if (loginResult.success) {
+                  ui.output("✅ Logged into ghcr.io");
+
+                  // Pull the image
+                  const pullCmd = new Deno.Command("container", {
+                    args: [
+                      "pull",
+                      "ghcr.io/bolt-foundry/bfmono/codebot:latest",
+                    ],
+                    stdout: "inherit",
+                    stderr: "inherit",
+                  });
+                  const pullResult = await pullCmd.output();
+
+                  if (pullResult.success) {
+                    // Tag the pulled image as 'codebot' for local use
+                    ui.output("🏷️  Tagging image as 'codebot'...");
+                    const tagCmd = new Deno.Command("container", {
+                      args: [
+                        "tag",
+                        "ghcr.io/bolt-foundry/bfmono/codebot:latest",
+                        "codebot",
+                      ],
+                      stdout: "null",
+                      stderr: "null",
+                    });
+                    await tagCmd.output();
+
+                    ui.output(
+                      "✅ Successfully updated to latest codebot image",
+                    );
+
+                    // Re-inspect to get updated image info
+                    inspectResult = await inspectCmd.output();
+                  }
+                }
+              } finally {
+                // Restore original default registry if it was different
+                if (currentRegistry && currentRegistry !== "ghcr.io") {
+                  const restoreRegistryCmd = new Deno.Command("container", {
+                    args: ["registry", "default", "set", currentRegistry],
+                    stdout: "null",
+                    stderr: "null",
+                  });
+                  await restoreRegistryCmd.output();
+                }
+              }
+            }
+          } else {
+            ui.output("✅ Local image is up to date");
+          }
+        }
+      } catch (error) {
+        ui.warn(`⚠️  Could not check remote image: ${error}`);
+      }
+    }
 
     if (!inspectResult.success) {
       // No local image found, try pulling from ghcr.io
@@ -995,6 +1187,8 @@ OPTIONS:
       "flake.lock",
     );
 
+    let filesOutOfDate = false;
+
     try {
       const dockerfileStat = await Deno.stat(dockerfilePath);
       const flakeStat = await Deno.stat(flakePath);
@@ -1004,22 +1198,34 @@ OPTIONS:
       const flakeModified = flakeStat.mtime?.getTime() || 0;
       const flakeLockModified = flakeLockStat.mtime?.getTime() || 0;
 
-      if (imageCreatedTime > 0) {
+      if (imageCreatedTime > 0 && !parsed["force-local"]) {
         if (dockerfileModified > imageCreatedTime) {
-          ui.warn(
-            "⚠️ Dockerfile.infra has been modified since the image was built",
+          ui.error(
+            "❌ Dockerfile.infra has been modified since the image was built",
           );
-          ui.warn("   Consider rebuilding with: bft codebot build");
-        } else if (
+          filesOutOfDate = true;
+        }
+
+        if (
           flakeModified > imageCreatedTime ||
           flakeLockModified > imageCreatedTime
         ) {
-          ui.warn("⚠️ Nix flake has been modified since the image was built");
-          ui.warn("   Consider rebuilding with: bft codebot build");
+          ui.error("❌ Nix flake has been modified since the image was built");
+          filesOutOfDate = true;
         }
       }
     } catch (error) {
       logger.debug(`Could not check file timestamps: ${error}`);
+    }
+
+    if (filesOutOfDate) {
+      ui.output("");
+      ui.output("To proceed, you can either:");
+      ui.output("  1. Rebuild the container: bft codebot build");
+      ui.output(
+        "  2. Use the outdated container: bft codebot --force-local",
+      );
+      throw new Error("Container is out of date with local files");
     }
 
     ui.output("📦 Container image ready");
