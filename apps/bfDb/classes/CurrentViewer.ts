@@ -170,6 +170,8 @@ export abstract class CurrentViewer extends GraphQLObjectBase {
         org = await BfOrganization.__DANGEROUS__createUnattached(cv, {
           name: `Dev Org (${domain})`,
           domain: domain,
+        }, {
+          bfGid: orgId, // Ensure the org has the expected ID
         });
       }
 
