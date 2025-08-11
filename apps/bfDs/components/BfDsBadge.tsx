@@ -34,6 +34,8 @@ export type BfDsBadgeProps = {
   outlined?: boolean;
   /** Whether the badge should be rendered with rounded corners (pill shape) for a more modern look */
   rounded?: boolean;
+  /** Whether the badge should be rendered as a small colored dot indicator instead of text */
+  dot?: boolean;
   /** Whether the badge is clickable. When true, adds hover states, focus indicators, and keyboard navigation */
   clickable?: boolean;
   /** Click handler function for clickable badges. Only called when clickable is true */
@@ -104,6 +106,11 @@ export type BfDsBadgeProps = {
  * <BfDsBadge variant="error" size="small" rounded>12</BfDsBadge>
  *
  * @example
+ * // Dot indicators for compact spaces
+ * <BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+ * <BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+ *
+ * @example
  * // Environment labels
  * <BfDsBadge variant="success" rounded outlined>Production</BfDsBadge>
  * <BfDsBadge variant="warning" rounded outlined>Staging</BfDsBadge>
@@ -162,6 +169,7 @@ export function BfDsBadge({
   icon,
   outlined = false,
   rounded = false,
+  dot = false,
   clickable = false,
   onClick,
   removable = false,
@@ -175,6 +183,7 @@ export function BfDsBadge({
     `bfds-badge--${size}`,
     outlined && "bfds-badge--outlined",
     rounded && "bfds-badge--rounded",
+    dot && "bfds-badge--dot",
     clickable && "bfds-badge--clickable",
     removable && "bfds-badge--removable",
     className,
@@ -205,6 +214,21 @@ export function BfDsBadge({
     : size === "large"
     ? "medium"
     : "small";
+
+  if (dot) {
+    return (
+      <span
+        {...props}
+        className={classes}
+        onClick={clickable ? handleClick : undefined}
+        onKeyDown={clickable ? handleKeyDown : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        role={clickable ? "button" : undefined}
+        title={typeof children === "string" ? children : undefined}
+        style={props.style}
+      />
+    );
+  }
 
   return (
     <span

@@ -51,6 +51,7 @@ export function BfDsBadgeExample() {
   icon="checkCircle"     // BfDsIconName
   outlined={false}       // boolean
   rounded={false}        // boolean
+  dot={false}           // boolean - renders as compact dot indicator
   clickable={false}      // boolean
   onClick={() => {}}     // () => void
   removable={false}      // boolean
@@ -59,7 +60,12 @@ export function BfDsBadgeExample() {
   style={{}}            // React.CSSProperties
 >
   Badge Content
-</BfDsBadge>`}
+</BfDsBadge>
+
+// Dot variant examples
+<BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+<BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+<BfDsBadge variant="primary" dot>New</BfDsBadge>`}
         />
       </div>
 
@@ -135,6 +141,96 @@ export function BfDsBadgeExample() {
           </BfDsBadge>
           <BfDsBadge variant="warning" rounded>Draft</BfDsBadge>
           <BfDsBadge variant="error" rounded outlined>Deprecated</BfDsBadge>
+        </div>
+      </div>
+
+      <div className="bfds-example__section">
+        <h3>Dot Indicators</h3>
+        <p>
+          Compact dot indicators perfect for tabs, navigation, and
+          space-constrained layouts. Hover to see the full text via tooltip.
+        </p>
+        <div
+          className="bfds-example__group"
+          style={{ alignItems: "center", flexWrap: "wrap" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>Free</span>
+            <BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>Pro</span>
+            <BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>Enterprise</span>
+            <BfDsBadge variant="primary" dot>New</BfDsBadge>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>Beta Feature</span>
+            <BfDsBadge variant="warning" dot>Limited Access</BfDsBadge>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span>Deprecated API</span>
+            <BfDsBadge variant="error" dot>Deprecated</BfDsBadge>
+          </div>
+        </div>
+
+        <h4>Mobile Tab Example</h4>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div
+            style={{
+              display: "flex",
+              border: "1px solid var(--bfds-border)",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                background: "var(--bfds-background-hover)",
+                borderRight: "1px solid var(--bfds-border)",
+              }}
+            >
+              <span>Free</span>
+              <BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                background: "var(--bfds-accent-primary)",
+                color: "white",
+                borderRight: "1px solid var(--bfds-border)",
+              }}
+            >
+              <span>Pro</span>
+              <BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                background: "var(--bfds-background-hover)",
+              }}
+            >
+              <span>Enterprise</span>
+            </div>
+          </div>
         </div>
       </div>
 

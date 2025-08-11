@@ -3768,6 +3768,47 @@ a.bfds-button:hover {
   background: var(--bfds-info-01);
 }
 
+/* Badge Dot Variant */
+.bfds-badge--dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  min-height: unset;
+  gap: unset;
+}
+
+.bfds-badge--dot.bfds-badge--default {
+  background-color: var(--bfds-secondary);
+}
+
+.bfds-badge--dot.bfds-badge--primary {
+  background-color: var(--bfds-primary);
+}
+
+.bfds-badge--dot.bfds-badge--secondary {
+  background-color: var(--bfds-secondary);
+}
+
+.bfds-badge--dot.bfds-badge--success {
+  background-color: var(--bfds-success);
+}
+
+.bfds-badge--dot.bfds-badge--warning {
+  background-color: var(--bfds-warning);
+}
+
+.bfds-badge--dot.bfds-badge--error {
+  background-color: var(--bfds-error);
+}
+
+.bfds-badge--dot.bfds-badge--info {
+  background-color: var(--bfds-info);
+}
+
 /* HUD Styles */
 .hud-container {
   width: 600px;
