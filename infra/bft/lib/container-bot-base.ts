@@ -821,26 +821,47 @@ OPTIONS:
       ui.output("🌐 Checking remote container for updates...");
 
       try {
-        // Get remote image creation date
-        const remoteInspectCmd = new Deno.Command("container", {
-          args: [
-            "manifest",
-            "inspect",
-            "ghcr.io/bolt-foundry/bfmono/codebot:latest",
-          ],
+        // Get remote image creation date using GitHub API
+        // ghcr.io images can be queried via GitHub's package API
+        const ghTokenCmd = new Deno.Command("gh", {
+          args: ["auth", "token"],
           stdout: "piped",
           stderr: "null",
         });
+        const ghTokenResult = await ghTokenCmd.output();
 
-        const remoteResult = await remoteInspectCmd.output();
+        if (!ghTokenResult.success) {
+          throw new Error("GitHub CLI not authenticated");
+        }
 
-        if (remoteResult.success) {
-          const remoteData = JSON.parse(
-            new TextDecoder().decode(remoteResult.stdout),
+        const githubToken = new TextDecoder().decode(ghTokenResult.stdout)
+          .trim();
+
+        // Query GitHub Container Registry API for package versions
+        const apiResponse = await fetch(
+          "https://api.github.com/orgs/bolt-foundry/packages/container/bfmono%2Fcodebot/versions",
+          {
+            headers: {
+              "Authorization": `Bearer ${githubToken}`,
+              "Accept": "application/vnd.github.v3+json",
+            },
+          },
+        );
+
+        if (apiResponse.ok) {
+          const versions = await apiResponse.json();
+
+          // Find the version with the "latest" tag
+          const latestVersion = versions.find((v: any) =>
+            v.metadata?.container?.tags?.includes("latest")
           );
-          const remoteCreatedTime = new Date(
-            remoteData.created || remoteData.config?.created,
-          ).getTime();
+
+          if (!latestVersion) {
+            throw new Error("No latest tag found in remote registry");
+          }
+
+          const remoteCreatedTime = new Date(latestVersion.created_at)
+            .getTime();
 
           // Get local image creation time
           const localData = JSON.parse(
