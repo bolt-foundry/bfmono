@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -22,7 +21,6 @@ export function GradingInbox({
   onClose,
   onComplete,
 }: GradingInboxProps) {
-  const { sendMessage } = useHud();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [gradedSampleIds, setGradedSampleIds] = useState<Array<string>>([]);
@@ -41,20 +39,6 @@ export function GradingInbox({
   const { samples, loading, error, saveGrade, saving } = useGradingSamples(
     deckId,
   );
-
-  useEffect(() => {
-    sendMessage(
-      `GradingInbox mounted for deck: ${deckName} (ID: ${deckId})`,
-      "info",
-    );
-  }, [deckId, deckName, sendMessage]);
-
-  useEffect(() => {
-    if (samples) {
-      sendMessage(`Samples loaded: ${samples.length} samples`, "success");
-      sendMessage(`Sample IDs: ${samples.map((s) => s.id).join(", ")}`, "info");
-    }
-  }, [samples, sendMessage]);
 
   // Handle loading and error states
   if (loading) {
