@@ -8,33 +8,6 @@ const logger = getLogger(import.meta);
 const certPath = "/internalbf/bfmono/shared/certs/codebot-wildcard.pem";
 const keyPath = "/internalbf/bfmono/shared/certs/codebot-wildcard-key.pem";
 
-// Pattern-based routing instead of hardcoded lists
-function shouldRouteToBackend(pathname: string): boolean {
-  // Always route API endpoints to backend
-  if (pathname.startsWith("/api/")) return true;
-  if (pathname === "/graphql") return true;
-  if (pathname === "/health") return true;
-  if (pathname === "/logout") return true;
-
-  // Route UI pages to backend (they'll serve the React app)
-  if (
-    pathname === "/" ||
-    pathname === "/login" ||
-    pathname === "/eval" ||
-    pathname === "/rlhf" ||
-    pathname === "/plinko"
-  ) return true;
-
-  // Route /ui/* to backend
-  if (pathname.startsWith("/ui/")) return true;
-
-  // Route static assets served by backend
-  if (pathname.startsWith("/static/")) return true;
-
-  // Everything else (including HMR, Vite assets) goes to Vite
-  return false;
-}
-
 // Alternative: Try backend first, fallback to Vite on 404
 async function tryBackendFirst(req: Request): Promise<Response | null> {
   const url = new URL(req.url);
