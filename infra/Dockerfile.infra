@@ -163,10 +163,10 @@ if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
     fi\n\
     \n\
     # Start HTTPS proxy if certificate exists\n\
-    if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ] && [ -f "/internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts" ]; then\n\
-        # Start HTTPS proxy in background using authbind\n\
-        cd /internalbf/bfmono && authbind --deep deno run --allow-net --allow-read --allow-write --allow-env infra/apps/codebot/https-proxy-server.ts > /tmp/https-proxy.log 2>&1 &\n\
-        echo "HTTPS proxy started in background (PID: $!)"\n\
+    if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ] && [ -f "/internalbf/bfmono/infra/bft/bft.ts" ]; then\n\
+        # Start HTTPS proxy in background using bft proxy command\n\
+        cd /internalbf/bfmono && bft proxy --start > /tmp/bft-proxy-start.log 2>&1 &\n\
+        echo "HTTPS proxy starting via bft proxy command"\n\
     fi\n\
     \n\
     # Start boltfoundry-com development server\n\
