@@ -39,7 +39,7 @@ export function BfDsModalExample() {
 <BfDsModal
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
-  title="Modal Title"
+  title="Modal title"
 >
   <p>Modal content</p>
 </BfDsModal>
@@ -48,7 +48,7 @@ export function BfDsModalExample() {
 <BfDsModal
   isOpen={true}                   // boolean (required) - visibility
   onClose={() => {}}              // () => void (required) - close handler
-  title="Modal Title"             // string - header title
+  title="Modal title"             // string - header title
   footer={<div />}                // ReactNode - custom footer
   size="medium"                   // "small" | "medium" | "large" | "fullscreen"
   closeOnBackdropClick={true}     // boolean - close on backdrop click
@@ -65,7 +65,7 @@ export function BfDsModalExample() {
         <h3>Basic Modal</h3>
         <div className="bfds-example__group">
           <BfDsButton onClick={() => setBasicModalOpen(true)}>
-            Open Basic Modal
+            Open basic modal
           </BfDsButton>
         </div>
 
@@ -88,7 +88,7 @@ export function BfDsModalExample() {
                   setBasicModalOpen(false);
                 }}
               >
-                Save Changes
+                Save changes
               </BfDsButton>
             </>
           }
@@ -123,7 +123,7 @@ export function BfDsModalExample() {
             onClose={() => setSizeModalOpen(null)}
             title={`${
               sizeModalOpen.charAt(0).toUpperCase() + sizeModalOpen.slice(1)
-            } Modal`}
+            } modal`}
             size={sizeModalOpen}
             footer={
               <BfDsButton
@@ -154,7 +154,7 @@ export function BfDsModalExample() {
         <BfDsModal
           isOpen={formModalOpen}
           onClose={() => setFormModalOpen(false)}
-          title="Create New Item"
+          title="Create new item"
           footer={
             <>
               <BfDsButton
@@ -213,7 +213,7 @@ export function BfDsModalExample() {
         <BfDsModal
           isOpen={noFooterModalOpen}
           onClose={() => setNoFooterModalOpen(false)}
-          title="Modal Without Footer"
+          title="Modal without footer"
         >
           <p>
             This modal has no footer. It's useful for informational content that
@@ -228,7 +228,7 @@ export function BfDsModalExample() {
         <BfDsModal
           isOpen={preventCloseModalOpen}
           onClose={() => setPreventCloseModalOpen(false)}
-          title="Important Action Required"
+          title="Important action required"
           closeOnBackdropClick={false}
           closeOnEscape={false}
           showCloseButton={false}
@@ -237,7 +237,7 @@ export function BfDsModalExample() {
               variant="primary"
               onClick={() => setPreventCloseModalOpen(false)}
             >
-              I Understand
+              I understand
             </BfDsButton>
           }
         >
