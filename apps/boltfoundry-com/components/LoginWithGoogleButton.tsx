@@ -234,8 +234,12 @@ export function LoginWithGoogleButton() {
       logger.info("Login successful", result);
 
       // Redirect to the specified location from the server response
-      // Temporarily disabled redirect to /eval
-      // globalThis.location.href = "/";
+      if (result.redirectTo) {
+        globalThis.location.href = result.redirectTo;
+      } else {
+        // Default redirect if no specific location provided
+        globalThis.location.href = "/";
+      }
     } catch (err) {
       setIsLoading(false);
       setError("Failed to sign in with Google. Please try again.");
