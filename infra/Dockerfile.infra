@@ -288,13 +288,15 @@ fi
 
 # Load environment files if they exist
 if [ -f "/internalbf/bfmono/.env.config" ]; then
+  set -a
   source /internalbf/bfmono/.env.config
-  echo "✅ Loaded .env.config"
+  set +a
 fi
 
 if [ -f "/internalbf/bfmono/.env.secrets" ]; then
+  set -a
   source /internalbf/bfmono/.env.secrets
-  echo "✅ Loaded .env.secrets"
+  set +a
 fi
 
 # Add Nix and BF_ROOT to PATH

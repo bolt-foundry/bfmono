@@ -203,6 +203,7 @@ Examples:
     // Use shell to execute the nohup command
     const backgroundProcess = new Deno.Command("sh", {
       args: ["-c", backgroundCommand],
+      env: Deno.env.toObject(), // Pass all current env vars including those from .env.secrets
     });
 
     const result = backgroundProcess.outputSync();
