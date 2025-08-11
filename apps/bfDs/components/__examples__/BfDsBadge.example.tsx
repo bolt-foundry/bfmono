@@ -51,6 +51,7 @@ export function BfDsBadgeExample() {
   icon="checkCircle"     // BfDsIconName
   outlined={false}       // boolean
   rounded={false}        // boolean
+  dot={false}           // boolean - renders as compact dot indicator
   clickable={false}      // boolean
   onClick={() => {}}     // () => void
   removable={false}      // boolean
@@ -59,16 +60,18 @@ export function BfDsBadgeExample() {
   style={{}}            // React.CSSProperties
 >
   Badge Content
-</BfDsBadge>`}
+</BfDsBadge>
+
+// Dot variant examples
+<BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+<BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+<BfDsBadge variant="primary" dot>New</BfDsBadge>`}
         />
       </div>
 
       <div className="bfds-example__section">
         <h3>Basic Variants</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge variant="default">Default</BfDsBadge>
           <BfDsBadge variant="primary">Primary</BfDsBadge>
           <BfDsBadge variant="secondary">Secondary</BfDsBadge>
@@ -81,10 +84,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Outlined Variants</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge variant="default" outlined>Default</BfDsBadge>
           <BfDsBadge variant="primary" outlined>Primary</BfDsBadge>
           <BfDsBadge variant="secondary" outlined>Secondary</BfDsBadge>
@@ -97,10 +97,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Size Variants</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge size="small" variant="primary">Small</BfDsBadge>
           <BfDsBadge size="medium" variant="primary">Medium</BfDsBadge>
           <BfDsBadge size="large" variant="primary">Large</BfDsBadge>
@@ -109,10 +106,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>With Icons</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge variant="success" icon="checkCircle">Approved</BfDsBadge>
           <BfDsBadge variant="warning" icon="exclamationTriangle">
             Warning
@@ -125,10 +119,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Rounded Badges</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge variant="primary" rounded>Beta</BfDsBadge>
           <BfDsBadge variant="success" rounded icon="checkCircle">
             Live
@@ -139,11 +130,38 @@ export function BfDsBadgeExample() {
       </div>
 
       <div className="bfds-example__section">
+        <h3>Dot Indicators</h3>
+        <p>
+          Compact dot indicators perfect for tabs, navigation, and
+          space-constrained layouts. Hover to see the full text via tooltip.
+        </p>
+        <div className="bfds-example__group alignItemsCenter flexWrap">
+          <div className="flexRow alignItemsCenter gapMedium">
+            <span>Free</span>
+            <BfDsBadge variant="secondary" dot>Coming Soon</BfDsBadge>
+          </div>
+          <div className="flexRow alignItemsCenter gapMedium">
+            <span>Pro</span>
+            <BfDsBadge variant="success" dot>Most Popular</BfDsBadge>
+          </div>
+          <div className="flexRow alignItemsCenter gapMedium">
+            <span>Enterprise</span>
+            <BfDsBadge variant="primary" dot>New</BfDsBadge>
+          </div>
+          <div className="flexRow alignItemsCenter gapMedium">
+            <span>Beta Feature</span>
+            <BfDsBadge variant="warning" dot>Limited Access</BfDsBadge>
+          </div>
+          <div className="flexRow alignItemsCenter gapMedium">
+            <span>Deprecated API</span>
+            <BfDsBadge variant="error" dot>Deprecated</BfDsBadge>
+          </div>
+        </div>
+      </div>
+
+      <div className="bfds-example__section">
         <h3>Clickable Badges</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <BfDsBadge
             variant="primary"
             clickable
@@ -172,10 +190,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Removable Badges</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           {badges.map((badge) => (
             <BfDsBadge
               key={badge.id}
@@ -235,10 +250,7 @@ export function BfDsBadgeExample() {
 
       <div className="bfds-example__section">
         <h3>Counter Badges</h3>
-        <div
-          className="bfds-example__group"
-          style={{ alignItems: "center", flexWrap: "wrap" }}
-        >
+        <div className="bfds-example__group alignItemsCenter flexWrap">
           <div style={{ position: "relative", display: "inline-block" }}>
             <span
               style={{
