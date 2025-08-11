@@ -82,7 +82,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "submit-button",
-    name: "Submit Button",
+    name: "Submit button",
     description: "Form submission buttons with automatic integration",
     component: BfDsFormSubmitButtonExample,
     category: "Form",
@@ -96,14 +96,14 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "list-item",
-    name: "List Item",
+    name: "List item",
     description: "Individual list items with states and interactions",
     component: BfDsListItemExample,
     category: "Navigation",
   },
   {
     id: "list-bar",
-    name: "List Bar",
+    name: "List bar",
     description: "Horizontal bars with left, center, and right sections",
     component: BfDsListBarExample,
     category: "Navigation",
@@ -181,7 +181,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "empty-state",
-    name: "Empty State",
+    name: "Empty state",
     description: "Display when there's no data or content to show",
     component: BfDsEmptyStateExample,
     category: "Core",
@@ -202,7 +202,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "code-example",
-    name: "Code Example",
+    name: "Code example",
     description:
       "Collapsible code blocks with syntax highlighting and copy functionality",
     component: BfDsCodeExampleBasic,

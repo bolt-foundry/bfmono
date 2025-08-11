@@ -76,7 +76,7 @@ export function BfDsTextAreaExample() {
         <h3>TextArea States</h3>
         <div className="bfds-example__group">
           <BfDsTextArea
-            label="Error State"
+            label="Error state"
             placeholder="Enter some content"
             state="error"
             errorMessage="Content is too short"
@@ -84,7 +84,7 @@ export function BfDsTextAreaExample() {
             defaultValue=""
           />
           <BfDsTextArea
-            label="Success State"
+            label="Success state"
             placeholder="Valid content"
             state="success"
             value={value3}
@@ -93,7 +93,7 @@ export function BfDsTextAreaExample() {
             rows={3}
           />
           <BfDsTextArea
-            label="Disabled State"
+            label="Disabled state"
             placeholder="Cannot edit this"
             state="disabled"
             defaultValue="This content cannot be edited"
@@ -106,14 +106,14 @@ export function BfDsTextAreaExample() {
         <h3>Resize Options</h3>
         <div className="bfds-example__group">
           <BfDsTextArea
-            label="No Resize"
+            label="No resize"
             placeholder="Cannot be resized"
             resize="none"
             rows={2}
             defaultValue=""
           />
           <BfDsTextArea
-            label="Horizontal Resize"
+            label="Horizontal resize"
             placeholder="Can be resized horizontally"
             resize="horizontal"
             rows={2}
@@ -127,7 +127,7 @@ export function BfDsTextAreaExample() {
             defaultValue=""
           />
           <BfDsTextArea
-            label="Both Directions"
+            label="Both directions"
             placeholder="Can be resized in both directions"
             resize="both"
             rows={2}

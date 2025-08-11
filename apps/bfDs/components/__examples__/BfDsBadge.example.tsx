@@ -15,7 +15,7 @@ export function BfDsBadgeExample() {
   const [badges, setBadges] = useState<Array<Badge>>([
     { id: 1, label: "React", variant: "primary" },
     { id: 2, label: "TypeScript", variant: "info" },
-    { id: 3, label: "Design System", variant: "success" },
+    { id: 3, label: "Design system", variant: "success" },
   ]);
 
   const removeBadge = (id: number) => {
