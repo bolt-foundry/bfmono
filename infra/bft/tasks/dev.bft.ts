@@ -9,17 +9,36 @@ import { debounce } from "@std/async/debounce";
 const logger = getLogger(import.meta);
 
 async function dev(args: Array<string>): Promise<number> {
+  // Define available apps
+  const availableApps = {
+    "boltfoundry-com": {
+      description: "Bolt Foundry landing page",
+      port: 8000,
+      vitePort: 8080,
+      hmrPort: 8081,
+    },
+    "promptgrade-ai": {
+      description: "promptgrade.ai marketing site",
+      port: 9001,
+      vitePort: 9081,
+      hmrPort: 9082,
+    },
+  };
+
   // Check for global help flag
   if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
     ui.output(`Usage: bft dev <app-name> [OPTIONS]
 
 Launch web applications in development mode
 
-Available apps:
-  boltfoundry-com    Bolt Foundry landing page
-
+Available apps:`);
+    for (const [app, config] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${config.description}`);
+    }
+    ui.output(`
 Examples:
   bft dev boltfoundry-com           # Run boltfoundry-com in development mode
+  bft dev promptgrade-ai            # Run promptgrade-ai in development mode
   bft dev boltfoundry-com --help    # Show app-specific help`);
     return 0;
   }
@@ -27,21 +46,27 @@ Examples:
   if (args.length === 0) {
     ui.error("Usage: bft dev <app-name> [OPTIONS]");
     ui.output("Available apps:");
-    ui.output("  boltfoundry-com    Bolt Foundry landing page");
+    for (const [app, config] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${config.description}`);
+    }
     return 1;
   }
 
   const appName = args[0];
   const devArgs = args.slice(1);
 
-  if (appName !== "boltfoundry-com") {
+  if (!(appName in availableApps)) {
     ui.error(`Unknown app: ${appName}`);
     ui.output("Available apps:");
-    ui.output("  boltfoundry-com    Bolt Foundry landing page");
+    for (const [app, config] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${config.description}`);
+    }
     return 1;
   }
 
-  // Handle boltfoundry.com app in development mode
+  const appConfig = availableApps[appName as keyof typeof availableApps];
+
+  // Handle app in development mode
   const flags = parseArgs(devArgs, {
     boolean: [
       "build",
@@ -55,20 +80,20 @@ Examples:
     ],
     string: ["port", "log-file"],
     default: {
-      port: "8000",
+      port: String(appConfig.port),
     },
   });
 
   if (flags.help) {
-    ui.output(`Usage: bft dev boltfoundry-com [OPTIONS]
+    ui.output(`Usage: bft dev ${appName} [OPTIONS]
 
-Launch the Bolt Foundry landing page in development mode
+Launch the ${appConfig.description} in development mode
 
 Options:
   --build            Build assets without starting server
   --stop             Stop the running development server
   --restart          Stop and restart the development server
-  --port             Specify server port (default: 8000)
+  --port             Specify server port (default: ${appConfig.port})
   --no-open          Don't auto-open browser on startup
   --log-file         Write logs to specified file instead of default tmp location
   --no-log           Disable logging to file (output to console)
@@ -77,27 +102,27 @@ Options:
   --help             Show this help message
 
 Examples:
-  bft dev boltfoundry-com                          # Run in background (logs to tmp/boltfoundry-com-dev.log)
-  bft dev boltfoundry-com --stop                   # Stop the running server
-  bft dev boltfoundry-com --restart                # Restart the server
-  bft dev boltfoundry-com --build                  # Build assets only
-  bft dev boltfoundry-com --port 4000              # Run on port 4000
-  bft dev boltfoundry-com --log-file dev.log       # Log to custom file
-  bft dev boltfoundry-com --foreground             # Run in foreground
-  bft dev boltfoundry-com --no-log --foreground    # Run in foreground with console output
-  bft dev boltfoundry-com --no-codegen             # Disable automatic code generation`);
+  bft dev ${appName}                          # Run in background (logs to tmp/${appName}-dev.log)
+  bft dev ${appName} --stop                   # Stop the running server
+  bft dev ${appName} --restart                # Restart the server
+  bft dev ${appName} --build                  # Build assets only
+  bft dev ${appName} --port 4000              # Run on port 4000
+  bft dev ${appName} --log-file dev.log       # Log to custom file
+  bft dev ${appName} --foreground             # Run in foreground
+  bft dev ${appName} --no-log --foreground    # Run in foreground with console output
+  bft dev ${appName} --no-codegen             # Disable automatic code generation`);
     return 0;
   }
 
   // Handle --restart flag
   if (flags.restart) {
-    ui.output("Restarting boltfoundry-com development server...");
+    ui.output(`Restarting ${appName} development server...`);
 
     // First stop the server
     const psCommand = new Deno.Command("sh", {
       args: [
         "-c",
-        "ps aux | grep -E '(bft dev boltfoundry-com|vite.*8080|server\\.tsx.*8000)' | grep -v grep | awk '{print $2}'",
+        `ps aux | grep -E '(bft dev ${appName}|vite.*${appConfig.vitePort}|server\\.tsx.*${appConfig.port})' | grep -v grep | awk '{print $2}'`,
       ],
       stdout: "piped",
     });
@@ -134,13 +159,13 @@ Examples:
 
   // Handle --stop flag
   if (flags.stop) {
-    ui.output("Stopping boltfoundry-com development server...");
+    ui.output(`Stopping ${appName} development server...`);
 
     // Find and kill all related processes
     const psCommand = new Deno.Command("sh", {
       args: [
         "-c",
-        "ps aux | grep -E '(bft dev boltfoundry-com|vite.*8080|server\\.tsx.*8000)' | grep -v grep | awk '{print $2}'",
+        `ps aux | grep -E '(bft dev ${appName}|vite.*${appConfig.vitePort}|server\\.tsx.*${appConfig.port})' | grep -v grep | awk '{print $2}'`,
       ],
       stdout: "piped",
     });
@@ -150,7 +175,7 @@ Examples:
       .filter(Boolean);
 
     if (pids.length === 0) {
-      ui.output("No running boltfoundry-com server found.");
+      ui.output(`No running ${appName} server found.`);
       return 0;
     }
 
@@ -177,14 +202,14 @@ Examples:
   }
 
   const appPath =
-    new URL(import.meta.resolve("@bfmono/apps/boltfoundry-com")).pathname;
+    new URL(import.meta.resolve(`@bfmono/apps/${appName}`)).pathname;
 
   // Check if we should run in background (default) or foreground
   const runInBackground = !flags.foreground;
 
   if (runInBackground && !flags.build) {
     // Run the entire command in background using nohup
-    ui.output("Starting boltfoundry-com in background mode...");
+    ui.output(`Starting ${appName} in background mode...`);
 
     // Ensure tmp directory exists
     await Deno.mkdir("tmp", { recursive: true });
@@ -192,11 +217,11 @@ Examples:
     // Build the command to run
     const bftPath =
       new URL(import.meta.resolve("@bfmono/infra/bft/bin/bft.ts")).pathname;
-    const logPath = "tmp/boltfoundry-com-dev.log";
+    const logPath = `tmp/${appName}-dev.log`;
 
     // Construct the full command with nohup
     const backgroundCommand =
-      `nohup deno run -A ${bftPath} dev boltfoundry-com --foreground ${
+      `nohup deno run -A ${bftPath} dev ${appName} --foreground ${
         devArgs.filter((arg) => arg !== "--foreground").join(" ")
       } > ${logPath} 2>&1 &`;
 
@@ -235,7 +260,7 @@ Examples:
 
     if (!serverReady) {
       ui.error(
-        "Server failed to start. Check tmp/boltfoundry-com-dev.log for details.",
+        `Server failed to start. Check tmp/${appName}-dev.log for details.`,
       );
       return 1;
     }
@@ -243,9 +268,9 @@ Examples:
     const hostname = Deno.hostname();
     ui.output(`Background server started on http://localhost:${port}`);
     ui.output(`Also available at http://${hostname}.codebot.local:${port}`);
-    ui.output("Logs are being written to tmp/boltfoundry-com-dev.log");
+    ui.output(`Logs are being written to tmp/${appName}-dev.log`);
     ui.output(
-      "Use 'bft dev boltfoundry-com --foreground' to run in foreground",
+      `Use 'bft dev ${appName} --foreground' to run in foreground`,
     );
 
     return 0;
@@ -260,7 +285,7 @@ Examples:
 
   if (shouldLogToFile) {
     // Use custom log file path or default to tmp
-    logFilePath = flags["log-file"] || "tmp/boltfoundry-com-dev.log";
+    logFilePath = flags["log-file"] || `tmp/${appName}-dev.log`;
 
     try {
       // Ensure tmp directory exists
@@ -284,7 +309,7 @@ Examples:
   const stderrOpt = shouldLogToFile ? "piped" : "inherit";
 
   if (flags.build) {
-    ui.output("Building boltfoundry-com assets...");
+    ui.output(`Building ${appName} assets...`);
 
     // Run vite build
     const buildCommand = new Deno.Command("deno", {
@@ -327,7 +352,7 @@ Examples:
   }
 
   // Start Vite dev server (always in development mode)
-  const vitePort = 8080; // Fixed Vite port
+  const vitePort = appConfig.vitePort;
 
   ui.output(`Starting Vite dev server on port ${vitePort}...`);
 
@@ -345,7 +370,7 @@ Examples:
     stderr: stderrOpt,
     env: {
       ...Deno.env.toObject(),
-      VITE_HMR_PORT: "8081",
+      VITE_HMR_PORT: String(appConfig.hmrPort),
     },
   });
 
@@ -417,12 +442,12 @@ Examples:
   ui.output("Vite dev server ready");
 
   // Start the backend server in development mode with smart watching
-  ui.output(`Starting boltfoundry-com server on http://localhost:${port}`);
+  ui.output(`Starting ${appName} server on http://localhost:${port}`);
 
   const serverArgs = [
     "run",
     "-A",
-    new URL(import.meta.resolve("@bfmono/apps/boltfoundry-com/server.tsx"))
+    new URL(import.meta.resolve(`@bfmono/apps/${appName}/server.tsx`))
       .pathname,
     "--port",
     String(port),

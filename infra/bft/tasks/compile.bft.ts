@@ -5,17 +5,26 @@ import { ui } from "@bfmono/packages/tui/tui.ts";
 import { parseArgs } from "@std/cli";
 
 async function compile(args: Array<string>): Promise<number> {
+  // Define available apps
+  const availableApps = {
+    "boltfoundry-com": "Bolt Foundry landing page",
+    "promptgrade-ai": "promptgrade.ai marketing site",
+  };
+
   // Check for global help flag
   if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
     ui.output(`Usage: bft compile <app-name> [OPTIONS]
 
 Compile applications to single executable binaries.
 
-Available apps:
-  boltfoundry-com    Bolt Foundry landing page
-
+Available apps:`);
+    for (const [app, description] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${description}`);
+    }
+    ui.output(`
 Examples:
   bft compile boltfoundry-com           # Compile boltfoundry-com to binary
+  bft compile promptgrade-ai            # Compile promptgrade-ai to binary
   bft compile boltfoundry-com --help    # Show app-specific help`);
     return 0;
   }
@@ -23,40 +32,46 @@ Examples:
   if (args.length === 0) {
     ui.error("Usage: bft compile <app-name>");
     ui.output("Available apps:");
-    ui.output("  boltfoundry-com    Bolt Foundry landing page");
+    for (const [app, description] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${description}`);
+    }
     return 1;
   }
 
   const appName = args[0];
   const compileArgs = args.slice(1);
 
-  if (appName !== "boltfoundry-com") {
+  if (!(appName in availableApps)) {
     ui.error(`Unknown app: ${appName}`);
     ui.output("Available apps:");
-    ui.output("  boltfoundry-com    Bolt Foundry landing page");
+    for (const [app, description] of Object.entries(availableApps)) {
+      ui.output(`  ${app.padEnd(18)} ${description}`);
+    }
     return 1;
   }
 
-  // Handle boltfoundry-com compilation
+  // Handle app compilation
   const flags = parseArgs(compileArgs, {
     boolean: ["help", "quiet"],
   });
 
   if (flags.help) {
-    ui.output(`Usage: bft compile boltfoundry-com
+    ui.output(`Usage: bft compile ${appName}
 
-Compile Bolt Foundry landing page to single executable binary.
+Compile ${
+      availableApps[appName as keyof typeof availableApps]
+    } to single executable binary.
 This will build frontend assets and compile the server into a standalone binary.
 
-The binary will be output to: ./build/boltfoundry-com
+The binary will be output to: ./build/${appName}
 
 Examples:
-  bft compile boltfoundry-com    # Build assets and compile to binary`);
+  bft compile ${appName}    # Build assets and compile to binary`);
     return 0;
   }
 
   const appPath =
-    new URL(import.meta.resolve("../../../apps/boltfoundry-com")).pathname;
+    new URL(import.meta.resolve(`../../../apps/${appName}`)).pathname;
   const buildDir = new URL(import.meta.resolve("../../../build")).pathname;
 
   // Ensure build directory exists
@@ -132,7 +147,7 @@ Examples:
     ui.output("Compiling server to single binary...");
   }
 
-  const binaryPath = `${buildDir}/boltfoundry-com`;
+  const binaryPath = `${buildDir}/${appName}`;
   const serverPath = `${appPath}/server.tsx`;
 
   // Remove old binary if it exists
