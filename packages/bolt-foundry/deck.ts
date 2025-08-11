@@ -309,6 +309,9 @@ export async function readLocalDeck(path: string, options?: {
         headers: { "x-bf-api-key": apiKey },
       });
 
+      // Consume response body even if we're not using it
+      await response.text();
+
       // Process includes to get full deck content
       const { processedContent } = deck.processMarkdownIncludes(
         markdownContent,
@@ -317,7 +320,7 @@ export async function readLocalDeck(path: string, options?: {
 
       if (response.status === 404) {
         // Create deck if it doesn't exist
-        await fetch(`${apiEndpoint}/decks`, {
+        const createResponse = await fetch(`${apiEndpoint}/decks`, {
           method: "POST",
           headers: {
             "x-bf-api-key": apiKey,
@@ -329,9 +332,11 @@ export async function readLocalDeck(path: string, options?: {
             processedContent: processedContent, // Full content with embeds resolved
           }),
         });
+        // Consume the response body to avoid leaks
+        await createResponse.text();
       } else {
         // Update existing deck with latest content from disk
-        await fetch(`${apiEndpoint}/decks/${deckId}`, {
+        const updateResponse = await fetch(`${apiEndpoint}/decks/${deckId}`, {
           method: "PUT",
           headers: {
             "x-bf-api-key": apiKey,
@@ -342,6 +347,8 @@ export async function readLocalDeck(path: string, options?: {
             processedContent: processedContent, // Full content with embeds resolved
           }),
         });
+        // Consume the response body to avoid leaks
+        await updateResponse.text();
       }
 
       deckCache.add(deckId);

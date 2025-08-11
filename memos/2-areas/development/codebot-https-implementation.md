@@ -20,6 +20,17 @@ accessed via `https://<workspace-name>.codebot.local` URLs.
 
 ## Implementation Plan
 
+### Confirmed Architecture
+
+Based on discussion:
+
+- HTTPS proxy listens on port 443 inside container (host already maps this)
+- HTTP server on port 80 redirects to HTTPS
+- Proxy routes requests:
+  - Vite dev server assets/HMR → port 8080 (or 5173)
+  - API/pages → backend server port 8000
+- No additional port mapping needed on host
+
 ### 1. Container Privilege Setup
 
 Since authbind is not available in nixpkgs, use `setcap` (the NixOS-preferred
@@ -33,26 +44,64 @@ RUN echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts, /usr/bin/tee /etc/ho
 
 ### 2. Certificate Management
 
-Create a local CA and dynamic certificate generation system:
+Create a wildcard certificate for `*.codebot.local`:
 
 ```typescript
-// In container-bot-base.ts
-async function ensureCertificates(): Promise<void> {
-  const certDir = `${homeDir}/.codebot/certs`;
-  const caCertPath = `${certDir}/ca.pem`;
-  const caKeyPath = `${certDir}/ca-key.pem`;
+// In container-bot-base.ts (runs on host)
+async function ensureWildcardCertificate(): Promise<void> {
+  // Store certificates in shared folder for host-container communication
+  const sharedCertDir = `${homeDir}/internalbf/bfmono/shared/certs`;
+  const wildcardCertPath = `${sharedCertDir}/codebot-wildcard.pem`;
+  const wildcardKeyPath = `${sharedCertDir}/codebot-wildcard-key.pem`;
 
-  if (!await exists(caCertPath)) {
-    await Deno.mkdir(certDir, { recursive: true });
+  if (!await exists(wildcardCertPath)) {
+    await Deno.mkdir(sharedCertDir, { recursive: true });
 
-    // Generate self-signed CA
-    await generateCA(caCertPath, caKeyPath);
+    // Generate self-signed wildcard certificate for *.codebot.local
+    await generateWildcardCert(wildcardCertPath, wildcardKeyPath);
 
-    // Install CA in system trust store
-    if (Deno.build.os === "darwin") {
-      await installCertMacOS(caCertPath);
-    }
+    // Trust the certificate in the system keychain (on host)
+    await trustCertificate(wildcardCertPath);
+
+    console.log("Certificate generated and trusted for HTTPS support");
   }
+}
+
+async function trustCertificate(certPath: string): Promise<void> {
+  if (Deno.build.os === "darwin") {
+    // macOS: Add to system keychain and trust
+    const command = new Deno.Command("sudo", {
+      args: [
+        "security",
+        "add-trusted-cert",
+        "-d",
+        "-r",
+        "trustRoot",
+        "-k",
+        "/Library/Keychains/System.keychain",
+        certPath,
+      ],
+    });
+    await command.output();
+  } else if (Deno.build.os === "linux") {
+    // Linux: Copy to system trust store
+    const command = new Deno.Command("sudo", {
+      args: [
+        "cp",
+        certPath,
+        "/usr/local/share/ca-certificates/codebot-wildcard.crt",
+      ],
+    });
+    await command.output();
+
+    // Update CA certificates
+    const updateCommand = new Deno.Command("sudo", {
+      args: ["update-ca-certificates"],
+    });
+    await updateCommand.output();
+  }
+
+  console.log("Certificate trusted. You may need to restart your browser.");
 }
 ```
 
@@ -61,26 +110,81 @@ async function ensureCertificates(): Promise<void> {
 Create `https-proxy-server.ts` that:
 
 - Listens on ports 80/443 inside the container
-- Dynamically generates certificates for each workspace
+- Uses the wildcard certificate for all requests
 - Proxies requests to the appropriate services
 
 ```typescript
-// apps/codebot/https-proxy-server.ts
+// infra/apps/codebot/https-proxy-server.ts (runs inside container)
 import { serveTls } from "@std/http/server";
 
-const proxy = Deno.serve({
+// Load wildcard certificate from shared folder
+const certPath = "/internalbf/bfmono/shared/certs/codebot-wildcard.pem";
+const keyPath = "/internalbf/bfmono/shared/certs/codebot-wildcard-key.pem";
+
+// Known backend routes from boltfoundry-com
+const backendRoutes = new Set([
+  // App routes
+  "/",
+  "/login",
+  "/rlhf",
+  "/eval",
+  "/plinko",
+  "/ui",
+  // API routes
+  "/health",
+  "/api/telemetry",
+  "/graphql",
+  "/api/auth/google",
+  "/api/auth/dev-popup",
+]);
+
+const backendPatterns = [
+  /^\/ui\/.*/, // /ui/* routes
+  /^\/static\/.*/, // Static assets served by backend
+];
+
+function shouldRouteToBackend(pathname: string): boolean {
+  // Check exact routes
+  if (backendRoutes.has(pathname)) return true;
+
+  // Check patterns
+  for (const pattern of backendPatterns) {
+    if (pattern.test(pathname)) return true;
+  }
+
+  return false;
+}
+
+const httpsProxy = Deno.serve({
   port: 443,
   cert: await Deno.readTextFile(certPath),
   key: await Deno.readTextFile(keyPath),
   handler: async (req) => {
-    const hostname = new URL(req.url).hostname;
-    const workspace = hostname.replace(".codebot.local", "");
+    const url = new URL(req.url);
+    const targetPort = shouldRouteToBackend(url.pathname) ? 8000 : 8080;
 
-    // Get or generate certificate for this workspace
-    const { cert, key } = await getOrGenerateCert(workspace);
+    // Proxy to the appropriate service
+    const targetUrl = new URL(url);
+    targetUrl.protocol = "http:";
+    targetUrl.port = String(targetPort);
 
-    // Proxy to appropriate service
-    return await proxyRequest(req, workspace);
+    return await fetch(targetUrl, {
+      method: req.method,
+      headers: req.headers,
+      body: req.body,
+    });
+  },
+});
+
+// HTTP redirect server
+const httpRedirect = Deno.serve({
+  port: 80,
+  handler: (req) => {
+    const url = new URL(req.url);
+    return Response.redirect(
+      `https://${url.host}${url.pathname}${url.search}`,
+      301,
+    );
   },
 });
 ```
@@ -98,25 +202,19 @@ Update the entrypoint script to:
 sudo setcap cap_net_bind_service=+ep $(which deno)
 
 # Start HTTPS proxy in background
-deno run --allow-net --allow-read --allow-write \
-  /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts &
+bft proxy --start
 ```
 
-### 5. Port Mapping Updates
+### 5. No Port Mapping Changes Needed
 
-Update container creation to map HTTPS port:
-
-```typescript
-// In buildContainerArgs
-"-p", `${config.httpPort || 9280}:80`,
-"-p", `${config.httpsPort || 9283}:443`,
-```
+The existing codebot container setup already maps the necessary ports, so no
+changes are required to the port mapping configuration.
 
 ## Benefits
 
-1. Seamless HTTPS support without certificate warnings
+1. Simple wildcard certificate covers all workspaces
 2. No need for sudo when running servers
-3. Each workspace gets its own certificate
+3. Single certificate generation and management
 4. Compatible with existing DNS resolution
 
 ## Testing Plan

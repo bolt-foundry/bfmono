@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     net-tools \
     ripgrep \
     fd-find \
+    authbind \
     # Chrome dependencies (we'll install Chrome separately)
     fonts-liberation \
     libasound2 \
@@ -122,7 +123,7 @@ RUN npm install -g @anthropic-ai/claude-code
 RUN (google-chrome --version || chromium --version) || echo "WARNING: Chrome/Chromium may not be properly configured"
 
 # Copy Puppeteer test helper script
-COPY infra/apps/codebot/puppeteer-test-helper.sh /usr/local/bin/puppeteer-test
+COPY bfmono/infra/apps/codebot/puppeteer-test-helper.sh /usr/local/bin/puppeteer-test
 RUN chmod +x /usr/local/bin/puppeteer-test
 
 # Create entrypoint script that ensures /etc/hosts exists (must be done as root)
@@ -160,18 +161,40 @@ if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
         cd /internalbf/bfmono && deno run --allow-net --allow-run --allow-env --allow-read infra/apps/codebot/container-bridge.ts > /tmp/container-bridge.log 2>&1 &\n\
         echo "Container bridge started in background (PID: $!)"\n\
     fi\n\
+    \n\
+    # Start HTTPS proxy if certificate exists\n\
+    if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ] && [ -f "/internalbf/bfmono/infra/bft/bft.ts" ]; then\n\
+        # Start HTTPS proxy in background using bft proxy command\n\
+        cd /internalbf/bfmono && bft proxy --start > /tmp/bft-proxy-start.log 2>&1 &\n\
+        echo "HTTPS proxy starting via bft proxy command"\n\
+    fi\n\
+    \n\
+    # Start boltfoundry-com development server\n\
+    if [ -f "/internalbf/bfmono/infra/bft/bft.ts" ]; then\n\
+        cd /internalbf/bfmono && bft dev boltfoundry-com > /tmp/boltfoundry-com.log 2>&1 &\n\
+        echo "boltfoundry-com development server started in background"\n\
+    fi\n\
 fi\n\
 \n\
 # Execute bash with login shell\n\
 exec /bin/bash -l "$@"\n' > /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configure sudo for codebot user to allow /etc/hosts management without password
-RUN echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts, /usr/bin/tee /etc/hosts, /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
+# Configure sudo for codebot user - allow specific commands without password
+RUN echo "# Allow codebot to manage /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
     chmod 0440 /etc/sudoers.d/codebot
 
 # Create non-root user (Debian uses useradd)
 RUN useradd -m -s /bin/bash codebot
+
+# Configure authbind for privileged ports
+RUN touch /etc/authbind/byport/80 && \
+    touch /etc/authbind/byport/443 && \
+    chown codebot:codebot /etc/authbind/byport/80 /etc/authbind/byport/443 && \
+    chmod 755 /etc/authbind/byport/80 /etc/authbind/byport/443
 
 # Create temp directory for Chrome with proper permissions
 RUN mkdir -p /home/codebot/tmp && \
@@ -190,6 +213,7 @@ ENV CHROME_DEVEL_SANDBOX=/opt/google/chrome/chrome-sandbox
 ENV BF_ROOT=/internalbf/bfmono
 ENV INTERNALBF_ROOT=/internalbf
 ENV PATH="$BF_ROOT/infra/bin:$PATH"
+ENV HOME=/home/codebot
 ENV DENO_DIR="${HOME}/.cache/deno"
 ENV GH_REPO="bolt-foundry/bolt-foundry"
 
@@ -264,13 +288,15 @@ fi
 
 # Load environment files if they exist
 if [ -f "/internalbf/bfmono/.env.config" ]; then
+  set -a
   source /internalbf/bfmono/.env.config
-  echo "✅ Loaded .env.config"
+  set +a
 fi
 
 if [ -f "/internalbf/bfmono/.env.secrets" ]; then
+  set -a
   source /internalbf/bfmono/.env.secrets
-  echo "✅ Loaded .env.secrets"
+  set +a
 fi
 
 # Add Nix and BF_ROOT to PATH

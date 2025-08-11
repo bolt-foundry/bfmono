@@ -40,6 +40,15 @@ RUN --mount=type=secret,id=op_token \
     else \
       echo 'No OP_SERVICE_ACCOUNT_TOKEN provided, using example env files'; \
     fi; \
+    # Ensure env files exist (use examples as fallback) \
+    if [ ! -f .env.config ]; then \
+      echo 'Creating .env.config from example...'; \
+      cp .env.config.example .env.config || echo '# Empty config' > .env.config; \
+    fi; \
+    if [ ! -f .env.secrets ]; then \
+      echo 'Creating .env.secrets from example...'; \
+      cp .env.secrets.example .env.secrets || echo '# Empty secrets' > .env.secrets; \
+    fi; \
     # Build the binary \
     echo 'Building ${BINARY_NAME}...'; \
     bft compile ${BINARY_NAME}; \
@@ -64,9 +73,13 @@ ARG BINARY_NAME=boltfoundry-com
 COPY --from=builder /workspace/build/${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
 RUN chmod +x /usr/local/bin/${BINARY_NAME}
 
-# Copy environment files from builder (these were synced from 1Password)
-COPY --from=builder /workspace/.env.config /app/.env.config
-COPY --from=builder /workspace/.env.secrets /app/.env.secrets
+# Copy environment files from builder (these were synced from 1Password or created from examples)
+# Use conditional copy pattern to handle missing files gracefully
+COPY --from=builder /workspace/.env.* /tmp/
+RUN mkdir -p /app && \
+    if [ -f /tmp/.env.config ]; then mv /tmp/.env.config /app/.env.config; else echo '# Empty config' > /app/.env.config; fi && \
+    if [ -f /tmp/.env.secrets ]; then mv /tmp/.env.secrets /app/.env.secrets; else echo '# Empty secrets' > /app/.env.secrets; fi && \
+    rm -f /tmp/.env.*
 
 # Set working directory
 WORKDIR /app

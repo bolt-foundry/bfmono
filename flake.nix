@@ -64,6 +64,7 @@
           # Linux-only packages
           pkgs.chromium
           pkgs.iproute2
+          pkgs.libcap  # For setcap to allow binding to privileged ports
         ];
 
       ##################################################################

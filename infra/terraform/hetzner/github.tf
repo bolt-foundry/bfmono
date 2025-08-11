@@ -38,7 +38,7 @@ resource "github_repository" "bfmono" {
       has_projects,
       has_wiki,
       homepage_url,
-      private,
+      # private is deprecated, use visibility instead
       topics,
       visibility
     ]
@@ -148,23 +148,11 @@ resource "github_repository_ruleset" "main" {
     non_fast_forward = true  # Prevents force pushes
     deletion         = true  # Prevents branch deletion
 
-    # Enforce linear history
-    linear_history = true  # Prevents merge commits, requires rebasing
+    # Signed commits are optional
+    required_signatures = false  # Signed commits not required
 
-    # Require signed commits
-    required_signatures = true  # All commits must be GPG or SSH signed
-
-    # Enable merge queue
-    required_merge_queue {
-      merge_method                    = "REBASE"  # Maintains linear history
-      build_concurrency               = 3
-      min_entries_to_merge            = 1
-      wait_timer                      = 0
-      entry_timeout                   = 60
-      merge_timeout                   = 15
-      response_timeout                = 10
-      check_response_timeout          = 10
-    }
+    # Note: linear_history and required_merge_queue are not available in github_repository_ruleset
+    # These need to be configured through branch protection rules or GitHub UI
   }
 }
 
@@ -180,22 +168,47 @@ resource "github_actions_repository_permissions" "bfmono" {
   allowed_actions = "all"
 }
 
-# Configure Actions permissions
-resource "github_repository_file" "actions_permissions" {
-  repository = github_repository.bfmono.name
-  file       = ".github/actions-permissions.yml"
-  content    = yamlencode({
-    permissions = {
-      contents = "write"
-      pull-requests = "write"
-      issues = "write"
-      actions = "write"
-    }
-  })
-  
-  lifecycle {
-    ignore_changes = [content]  # Don't overwrite if manually edited
+# Configure Actions permissions file through workflow
+# This triggers a workflow that creates a PR with the file changes,
+# respecting branch protection rules
+resource "null_resource" "actions_permissions_pr" {
+  triggers = {
+    content_hash = sha256(jsonencode({
+      permissions = {
+        contents      = "write"
+        pull-requests = "write"
+        issues        = "write"
+        actions       = "write"
+      }
+    }))
   }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Encode the content as base64
+      CONTENT=$(echo '${jsonencode({
+        permissions = {
+          contents      = "write"
+          pull-requests = "write"
+          issues        = "write"
+          actions       = "write"
+        }
+      })}' | base64 -w 0)
+      
+      # Trigger the workflow
+      gh workflow run update-repository-files.yml \
+        --repo ${var.github_username}/${github_repository.bfmono.name} \
+        --field file_path=".github/actions-permissions.yml" \
+        --field file_content="$CONTENT" \
+        --field commit_message="Update GitHub Actions permissions"
+    EOT
+    
+    environment = {
+      GITHUB_TOKEN = var.github_token
+    }
+  }
+  
+  depends_on = [github_repository.bfmono]
 }
 
 # Outputs

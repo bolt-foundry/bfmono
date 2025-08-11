@@ -39,7 +39,8 @@ export function LoginWithGoogleButton() {
   const [error, setError] = useState<string | null>(null);
   const [forceRealButton, setForceRealButton] = useState(false);
   const appEnvironment = useAppEnvironment();
-  const { input1, setInput1, addButton, removeButton, sendMessage } = useHud();
+  const { input1, setInput1, addButton, removeButton, sendMessage, showHud } =
+    useHud();
 
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef<
@@ -211,6 +212,10 @@ export function LoginWithGoogleButton() {
       hasCredential: !!response.credential,
     });
 
+    // Show HUD with logging in message
+    showHud();
+    sendMessage("Logging in...", "info");
+
     try {
       // Send credential to backend for verification and session creation
       const loginResponse = await fetch("/api/auth/google", {
@@ -229,7 +234,12 @@ export function LoginWithGoogleButton() {
       logger.info("Login successful", result);
 
       // Redirect to the specified location from the server response
-      globalThis.location.href = result.redirectTo || "/";
+      if (result.redirectTo) {
+        globalThis.location.href = result.redirectTo;
+      } else {
+        // Default redirect if no specific location provided
+        globalThis.location.href = "/";
+      }
     } catch (err) {
       setIsLoading(false);
       setError("Failed to sign in with Google. Please try again.");
