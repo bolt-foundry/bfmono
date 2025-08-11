@@ -202,8 +202,7 @@ Update the entrypoint script to:
 sudo setcap cap_net_bind_service=+ep $(which deno)
 
 # Start HTTPS proxy in background
-deno run --allow-net --allow-read --allow-write \
-  /internalbf/bfmono/infra/apps/codebot/https-proxy-server.ts &
+bft proxy --start
 ```
 
 ### 5. No Port Mapping Changes Needed
