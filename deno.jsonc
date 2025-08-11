@@ -181,6 +181,7 @@
   "workspace": [
     "apps/aibff/gui",
     "apps/boltfoundry-com",
+    "apps/promptgrade-ai",
     "packages/bolt-foundry",
     "packages/logger",
     "packages/get-configuration-var",
