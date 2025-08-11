@@ -24,7 +24,7 @@ export default defineConfig({
   server: {
     port: 8080,
     hmr: {
-      port: 8081, // Dynamic port will be set by CLI
+      port: 8081,
     },
     allowedHosts,
     fs: {
