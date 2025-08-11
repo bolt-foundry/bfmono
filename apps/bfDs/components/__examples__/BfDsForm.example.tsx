@@ -104,13 +104,13 @@ import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmi
           <div className="bfds-example__group">
             <BfDsInput
               name="name"
-              label="Your Name"
+              label="Your name"
               placeholder="Enter your name"
               required
             />
             <BfDsInput
               name="email"
-              label="Email Address"
+              label="Email address"
               type="email"
               placeholder="email@example.com"
               required
@@ -141,7 +141,7 @@ import { BfDsFormSubmitButton } from "@bfmono/apps/bfDs/components/BfDsFormSubmi
               options={[
                 { value: "email", label: "Email" },
                 { value: "phone", label: "Phone" },
-                { value: "text", label: "Text Message" },
+                { value: "text", label: "Text message" },
               ]}
             />
             <BfDsToggle

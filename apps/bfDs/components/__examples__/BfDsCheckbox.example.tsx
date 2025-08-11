@@ -54,7 +54,7 @@ export function BfDsCheckboxExample() {
         <h3>Controlled vs Uncontrolled</h3>
         <div className="bfds-example__group">
           <BfDsCheckbox
-            label="Controlled Checkbox"
+            label="Controlled checkbox"
             checked={standaloneChecked}
             onChange={setStandaloneChecked}
           />
@@ -98,7 +98,7 @@ export function BfDsCheckboxExample() {
               label="Enable push notifications"
             />
 
-            <BfDsFormSubmitButton text="Submit Form" />
+            <BfDsFormSubmitButton text="Submit form" />
           </div>
         </BfDsForm>
         <BfDsCallout
@@ -127,13 +127,13 @@ export function BfDsCheckboxExample() {
           />
 
           <BfDsCheckbox
-            label="Disabled Unchecked"
+            label="Disabled unchecked"
             defaultChecked={false}
             disabled
           />
 
           <BfDsCheckbox
-            label="Disabled Checked"
+            label="Disabled checked"
             defaultChecked
             disabled
           />
@@ -145,7 +145,7 @@ export function BfDsCheckboxExample() {
           />
 
           <BfDsCheckbox
-            label="No Label"
+            label="No label"
             onChange={() => {}}
           />
         </div>

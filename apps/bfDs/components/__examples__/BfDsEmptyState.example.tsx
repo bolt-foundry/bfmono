@@ -42,12 +42,12 @@ export function BfDsEmptyStateExample() {
   description="Add some items"    // string (optional)
   size="medium"                   // "small" | "medium" | "large"
   action={{                       // Optional primary action
-    label: "Add Item",
+    label: "Add item",
     onClick: () => {},
     variant: "primary"            // "primary" | "secondary" | "outline"
   }}
   secondaryAction={{              // Optional secondary action
-    label: "Learn More",
+    label: "Learn more",
     onClick: () => {}
   }}
   className=""                    // string (optional)
@@ -90,7 +90,7 @@ export function BfDsEmptyStateExample() {
             title="Create your first deck"
             description="Evaluation decks help you maintain consistent AI feedback"
             action={{
-              label: "Create Deck",
+              label: "Create deck",
               onClick: () => logger.info("Create deck clicked"),
               variant: "primary",
             }}
@@ -113,12 +113,12 @@ export function BfDsEmptyStateExample() {
             title="No results found"
             description="Try adjusting your search criteria or filters"
             action={{
-              label: "Clear Filters",
+              label: "Clear filters",
               onClick: () => logger.info("Clear filters clicked"),
               variant: "primary",
             }}
             secondaryAction={{
-              label: "Learn More",
+              label: "Learn more",
               onClick: () => logger.info("Learn more clicked"),
             }}
           />

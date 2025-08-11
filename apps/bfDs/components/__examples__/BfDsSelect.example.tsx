@@ -29,17 +29,17 @@ export function BfDsSelectExample() {
   ];
 
   const sizeOptions: Array<BfDsSelectOption> = [
-    { value: "xs", label: "Extra Small" },
+    { value: "xs", label: "Extra small" },
     { value: "s", label: "Small" },
     { value: "m", label: "Medium" },
     { value: "l", label: "Large" },
-    { value: "xl", label: "Extra Large" },
+    { value: "xl", label: "Extra large" },
   ];
 
   const priorityOptions: Array<BfDsSelectOption> = [
-    { value: "low", label: "Low Priority" },
-    { value: "medium", label: "Medium Priority" },
-    { value: "high", label: "High Priority" },
+    { value: "low", label: "Low priority" },
+    { value: "medium", label: "Medium priority" },
+    { value: "high", label: "High priority" },
     { value: "urgent", label: "Urgent", disabled: true },
   ];
 
@@ -279,7 +279,7 @@ const options: Array<BfDsSelectOption> = [
         <h3>Controlled vs Uncontrolled</h3>
         <div className="bfds-example__group">
           <BfDsSelect
-            label="Controlled Select"
+            label="Controlled select"
             options={countryOptions}
             value={standaloneValue}
             onChange={setStandaloneValue}
@@ -288,7 +288,7 @@ const options: Array<BfDsSelectOption> = [
           <p>Selected: {standaloneValue || "None"}</p>
 
           <BfDsSelect
-            label="Uncontrolled Select"
+            label="Uncontrolled select"
             options={sizeOptions}
             defaultValue="m"
             placeholder="Choose a size"
@@ -365,7 +365,7 @@ const options: Array<BfDsSelectOption> = [
 
             <BfDsSelect
               name="searchableCountry"
-              label="Searchable Country"
+              label="Searchable country"
               options={largeDatasetOptions}
               placeholder="Type to search countries..."
               typeahead
@@ -415,7 +415,7 @@ const options: Array<BfDsSelectOption> = [
         <h3>Typeahead States</h3>
         <div className="bfds-example__group">
           <BfDsSelect
-            label="Typeahead Required"
+            label="Typeahead required"
             options={countryOptions}
             placeholder="This is required with typeahead"
             typeahead
@@ -423,7 +423,7 @@ const options: Array<BfDsSelectOption> = [
           />
 
           <BfDsSelect
-            label="Typeahead Disabled"
+            label="Typeahead disabled"
             options={countryOptions}
             placeholder="This is disabled with typeahead"
             typeahead
