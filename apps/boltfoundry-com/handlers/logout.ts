@@ -2,9 +2,9 @@ import { getLogger } from "@bolt-foundry/logger";
 
 const logger = getLogger(import.meta);
 
-export async function handleLogoutRequest(
+export function handleLogoutRequest(
   _request: Request,
-): Promise<Response> {
+): Response {
   logger.info("Processing logout request");
 
   // Clear authentication cookies by setting them with expired dates
