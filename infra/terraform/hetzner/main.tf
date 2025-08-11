@@ -53,6 +53,11 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
+variable "cloudflare_zone_id_promptgrade" {
+  description = "Cloudflare Zone ID for promptgrade.ai"
+  type        = string
+}
+
 variable "github_username" {
   description = "GitHub username for container registry"
   type        = string
@@ -194,6 +199,16 @@ resource "hcloud_snapshot" "server_backup" {
 resource "cloudflare_record" "web" {
   zone_id = var.cloudflare_zone_id
   name    = var.domain_name == "boltfoundry.com" ? "@" : replace(var.domain_name, ".boltfoundry.com", "")
+  value   = hcloud_floating_ip.web.ip_address
+  type    = "A"
+  ttl     = 1  # Auto TTL
+  proxied = true  # Enable Cloudflare proxy for SSL termination and protection
+}
+
+# Cloudflare DNS record for promptgrade.ai
+resource "cloudflare_record" "promptgrade" {
+  zone_id = var.cloudflare_zone_id_promptgrade
+  name    = "@"
   value   = hcloud_floating_ip.web.ip_address
   type    = "A"
   ttl     = 1  # Auto TTL
