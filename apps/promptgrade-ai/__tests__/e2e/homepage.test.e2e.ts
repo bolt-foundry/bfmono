@@ -20,7 +20,8 @@ Deno.test("promptgrade.ai homepage loads with welcome message", async () => {
 
     // Add annotation
     await context.page.evaluate(() => {
-      console.timeStamp("Navigation Complete");
+      // Add performance mark instead of console.timeStamp
+      performance.mark("Navigation Complete");
     });
 
     // Wait for content to load
@@ -41,7 +42,8 @@ Deno.test("promptgrade.ai homepage loads with welcome message", async () => {
 
     // Add annotation for title check
     await context.page.evaluate(() => {
-      console.timeStamp("Title Verified");
+      // Add performance mark instead of console.timeStamp
+      performance.mark("Title Verified");
     });
 
     // Check for the welcome message
@@ -58,7 +60,8 @@ Deno.test("promptgrade.ai homepage loads with welcome message", async () => {
 
     // Add annotation for content verification
     await context.page.evaluate(() => {
-      console.timeStamp("Welcome Message Verified");
+      // Add performance mark instead of console.timeStamp
+      performance.mark("Welcome Message Verified");
     });
 
     // Check React hydration status
@@ -73,7 +76,8 @@ Deno.test("promptgrade.ai homepage loads with welcome message", async () => {
 
     // Add annotation for React check
     await context.page.evaluate(() => {
-      console.timeStamp("React Hydration Verified");
+      // Add performance mark instead of console.timeStamp
+      performance.mark("React Hydration Verified");
     });
 
     // Take a screenshot with annotation

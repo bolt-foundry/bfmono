@@ -63,7 +63,7 @@ async function loadAssetPaths(
 
 async function handler(
   request: Request,
-  isDev: boolean,
+  _isDev: boolean,
   assetPaths: { cssPath?: string; jsPath: string },
 ): Promise<Response> {
   const url = new URL(request.url);
