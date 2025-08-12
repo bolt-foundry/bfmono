@@ -119,9 +119,6 @@
           # Set up Bolt Foundry environment
           # Only set BF_ROOT if not already set (allows parent directories to override)
           export BF_ROOT="''${BF_ROOT:-$PWD}"
-          export PATH="$BF_ROOT/bin:$BF_ROOT/infra/bin:$PATH"
-          export DENO_DIR="''${HOME}/.cache/deno"
-          export GH_REPO="bolt-foundry/bolt-foundry"
           
           # Set INTERNALBF_ROOT to parent directory if we're in bfmono
           if [[ "$PWD" == */bfmono ]]; then
@@ -129,6 +126,10 @@
           else
             export INTERNALBF_ROOT="$PWD"
           fi
+          
+          export PATH="$BF_ROOT/bin:$BF_ROOT/infra/bin:$INTERNALBF_ROOT/infra/bin:$PATH"
+          export DENO_DIR="''${HOME}/.cache/deno"
+          export GH_REPO="bolt-foundry/bolt-foundry"
 
           # Auto-sync sitevars from 1Password if enabled
           ${if autoSyncSitevars then syncSitevarsIfNeeded { inherit pkgs; bfRoot = "$BF_ROOT"; } else ""}
