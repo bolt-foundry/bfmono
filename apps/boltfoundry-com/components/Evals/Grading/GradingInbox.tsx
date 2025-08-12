@@ -4,6 +4,7 @@ import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
+import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -13,6 +14,14 @@ interface GradingInboxProps {
   deckName: string;
   onClose: () => void;
   onComplete?: (gradedSampleIds: Array<string>, avgScore: number) => void;
+  samples?: Array<GradingSample> | null;
+  saveGrade?: (
+    sampleId: string,
+    grades: Array<
+      { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
+    >,
+  ) => Promise<void>;
+  saving?: boolean;
 }
 
 export function GradingInbox({
@@ -20,6 +29,9 @@ export function GradingInbox({
   deckName,
   onClose,
   onComplete,
+  samples: propSamples,
+  saveGrade: propSaveGrade,
+  saving: propSaving,
 }: GradingInboxProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
@@ -35,10 +47,13 @@ export function GradingInbox({
     >
   >({});
 
-  // Use the Isograph hook to fetch and manage samples
-  const { samples, loading, error, saveGrade, saving } = useGradingSamples(
-    deckId,
-  );
+  // Use the Isograph hook to fetch and manage samples (fallback when not provided as props)
+  const hookResult = useGradingSamples(deckId);
+  const samples = propSamples ?? hookResult.samples;
+  const loading = propSamples ? false : hookResult.loading;
+  const error = propSamples ? null : hookResult.error;
+  const saveGrade = propSaveGrade ?? hookResult.saveGrade;
+  const saving = propSaving ?? hookResult.saving;
 
   // Handle loading and error states
   if (loading) {
@@ -124,6 +139,7 @@ export function GradingInbox({
     graderId: string,
     rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
+    shouldProceedNext = false,
   ) => {
     // Store draft grades locally
     setDraftGrades((prev) => ({
@@ -133,6 +149,13 @@ export function GradingInbox({
         [graderId]: { rating, comment },
       },
     }));
+
+    // If shouldProceedNext is true, trigger handleNext after state update
+    if (shouldProceedNext) {
+      setTimeout(() => {
+        handleNextWithAutoAdvance(graderId, rating, comment);
+      }, 100);
+    }
   };
 
   // Get current draft ratings for this sample, or use existing saved grades
@@ -162,8 +185,73 @@ export function GradingInbox({
       currentSampleRatings[id]?.rating !== undefined
     );
 
+  const handleNextWithAutoAdvance = async (
+    graderId: string,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
+    comment: string,
+  ) => {
+    logger.info("Saving sample grades (auto-advance)", {
+      sampleId: currentSample.id,
+      graderId,
+      rating,
+      comment,
+    });
+
+    try {
+      // Prepare grades for submission - just the one grader from agree action
+      const gradesToSave = [{
+        graderId,
+        score: rating!,
+        reason: comment,
+      }];
+
+      // Save via GraphQL mutation
+      await saveGrade(currentSample.id, gradesToSave);
+
+      // Track graded sample and scores
+      setGradedSampleIds((prev) => [...prev, currentSample.id]);
+      const avgHumanScore = rating!;
+      setHumanScores((prev) => [...prev, avgHumanScore]);
+
+      // Clear draft for this sample
+      setDraftGrades((prev) => {
+        const updated = { ...prev };
+        delete updated[currentSample.id];
+        return updated;
+      });
+
+      setCompletedCount((prev) => prev + 1);
+
+      // Move to next sample
+      if (currentIndex < samples.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        // All samples graded - trigger completion callback
+        logger.info("All samples graded", {
+          deckId,
+          completedCount: completedCount + 1,
+        });
+
+        if (onComplete) {
+          const finalGradedIds = [...gradedSampleIds, currentSample.id];
+          const finalScores = [...humanScores, avgHumanScore];
+          const overallAvg = finalScores.reduce((sum, s) => sum + s, 0) /
+            finalScores.length;
+          onComplete(finalGradedIds, overallAvg);
+        } else {
+          onClose();
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to save grade (auto-advance)", error);
+      // Keep the draft and let user retry
+    }
+  };
+
   const handleNext = async () => {
-    if (!allGradersRated) return;
+    if (!allGradersRated) {
+      return;
+    }
 
     logger.info("Saving sample grades", {
       sampleId: currentSample.id,
