@@ -50,7 +50,7 @@ export function BfDsCopyButtonExample() {
             <BfDsCopyButton
               textToCopy="npm install @bolt-foundry/bolt-foundry"
               iconOnly={false}
-              buttonText="Copy Command"
+              buttonText="Copy command"
               copiedText="Copied!"
             />
           </div>

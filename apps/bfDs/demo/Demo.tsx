@@ -27,13 +27,14 @@ import { BfDsBadgeExample } from "../components/__examples__/BfDsBadge.example.t
 import { BfDsListBarExample } from "../components/__examples__/BfDsListBar.example.tsx";
 import { BfDsCodeExampleBasic } from "../components/__examples__/BfDsCodeExample.example.tsx";
 import { BfDsHudExample } from "@bfmono/apps/bfDs/components/__examples__/BfDsHud.example.tsx";
+import { DefaultPricingTable } from "../components/__examples__/BfDsPricingTable.example.tsx";
 
 type ComponentSection = {
   id: string;
   name: string;
   description: string;
   component: React.ComponentType;
-  category: "Core" | "Form" | "Navigation";
+  category: "Core" | "Form" | "Navigation" | "Advanced";
 };
 
 const componentSections: Array<ComponentSection> = [
@@ -81,7 +82,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "submit-button",
-    name: "Submit Button",
+    name: "Submit button",
     description: "Form submission buttons with automatic integration",
     component: BfDsFormSubmitButtonExample,
     category: "Form",
@@ -95,14 +96,14 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "list-item",
-    name: "List Item",
+    name: "List item",
     description: "Individual list items with states and interactions",
     component: BfDsListItemExample,
     category: "Navigation",
   },
   {
     id: "list-bar",
-    name: "List Bar",
+    name: "List bar",
     description: "Horizontal bars with left, center, and right sections",
     component: BfDsListBarExample,
     category: "Navigation",
@@ -180,7 +181,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "empty-state",
-    name: "Empty State",
+    name: "Empty state",
     description: "Display when there's no data or content to show",
     component: BfDsEmptyStateExample,
     category: "Core",
@@ -201,7 +202,7 @@ const componentSections: Array<ComponentSection> = [
   },
   {
     id: "code-example",
-    name: "Code Example",
+    name: "Code example",
     description:
       "Collapsible code blocks with syntax highlighting and copy functionality",
     component: BfDsCodeExampleBasic,
@@ -213,6 +214,14 @@ const componentSections: Array<ComponentSection> = [
     description: "Floating console with action buttons and message history",
     component: BfDsHudExample,
     category: "Core",
+  },
+  {
+    id: "pricing-table",
+    name: "Pricing table",
+    description:
+      "Responsive pricing table with tiers, features, and CTAs built with Cards",
+    component: DefaultPricingTable,
+    category: "Advanced",
   },
 ];
 
