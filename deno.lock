@@ -67,8 +67,8 @@
     "jsr:@std/yaml@^1.0.9": "1.0.9",
     "jsr:@ts-morph/bootstrap@0.24": "0.24.0",
     "jsr:@ts-morph/common@0.24": "0.24.0",
-    "npm:@anthropic-ai/claude-code@*": "1.0.65",
-    "npm:@anthropic-ai/claude-code@^1.0.65": "1.0.65",
+    "npm:@anthropic-ai/claude-code@*": "1.0.73",
+    "npm:@anthropic-ai/claude-code@^1.0.73": "1.0.73",
     "npm:@babel/preset-react@^7.25.7": "7.27.1_@babel+core@7.28.0",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.5_vite@6.3.5__picomatch@4.0.2_@types+node@22.15.15",
     "npm:@graphql-tools/schema@^10.0.6": "10.0.23_graphql@16.11.0",
@@ -392,8 +392,8 @@
         "@jridgewell/trace-mapping"
       ]
     },
-    "@anthropic-ai/claude-code@1.0.65": {
-      "integrity": "sha512-MUpHFOzdx8EKw3DogQObsL5nseXbMInGHInqRyMVBf2/aLnD4IHEFOuyR5SfnINI9E8lEiqIOy0p3muu60j3uA==",
+    "@anthropic-ai/claude-code@1.0.73": {
+      "integrity": "sha512-UVBkta/BWy49xR9fgi/Oy2tl7p/k+lOCinv21zSK/E9KB4JObAAZ1BAOWteu4fhv7gs3Ipfev5r6yo3OplmwNg==",
       "optionalDependencies": [
         "@img/sharp-darwin-arm64",
         "@img/sharp-darwin-x64",
@@ -3538,7 +3538,7 @@
       "jsr:@std/testing@^1.0.9",
       "jsr:@std/toml@^1.0.4",
       "jsr:@std/yaml@^1.0.9",
-      "npm:@anthropic-ai/claude-code@^1.0.65",
+      "npm:@anthropic-ai/claude-code@^1.0.73",
       "npm:@graphql-tools/schema@^10.0.6",
       "npm:@isograph/babel-plugin@~0.3.1",
       "npm:@isograph/react@~0.3.1",
