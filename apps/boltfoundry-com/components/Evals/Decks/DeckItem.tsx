@@ -1,6 +1,5 @@
 import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
-import { BfDsPill } from "@bfmono/apps/bfDs/components/BfDsPill.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
@@ -26,12 +25,6 @@ interface DeckItemProps {
 export function DeckItem({ deck, onClick }: DeckItemProps) {
   const getStatusVariant = (status: string) => {
     return status === "active" ? "success" : "default";
-  };
-
-  const getAgreementVariant = (rate: number) => {
-    if (rate >= 90) return "success";
-    if (rate >= 80) return "warning";
-    return "error";
   };
 
   const leftContent = (
@@ -68,10 +61,6 @@ export function DeckItem({ deck, onClick }: DeckItemProps) {
 
   const rightContent = (
     <div className="deck-bar-right">
-      <BfDsPill
-        variant={getAgreementVariant(deck.agreementRate)}
-        text={`${deck.agreementRate}% agreement`}
-      />
       <BfDsButton
         variant="ghost"
         size="small"
