@@ -140,37 +140,43 @@ identified:
 - Navigation through grading interface works ✅
 - Frontend displays mock data in grading interface ✅
 
-#### Requires Additional Implementation
+#### Future Goals (requires GraphQL implementation)
 
-- Frontend displays the created samples from backend ❌ (still using mock data)
-- Grading actions persist to database ❌ (currently local state only)
-- Real samples appear in frontend ❌ (requires GraphQL integration)
-- Sample state tracking across page reloads ❌ (no persistence)
-- Full end-to-end data flow ❌ (missing GraphQL connections)
-- GraphQL queries for fetching samples ❌ (not implemented)
-- GraphQL mutations for saving grades ❌ (not implemented)
+- API keys displayed in settings page from real data
+- Samples created in backend appear in frontend grading
+- Grading actions persist to database
+- Full end-to-end sample lifecycle tracking
 
-## Changes to Existing Eval Test
+## Next Steps
 
-The current eval.test.e2e.ts tests:
+1. **Complete Phase 0** - Implement API key management page
+2. **Test Phases 1-3** - Verify the complete flow works
+3. **Implement GraphQL integration** - Replace mocks with real data
+4. **Add sample persistence** - Save grading results
+5. **Enhance tracking** - Better sample ID management through the pipeline
 
-1. Navigate to homepage and login
-2. Navigate to eval page
-3. Verify deck list loads (currently with mock data)
-4. Click on deck and verify grading inbox (currently disabled)
+## Files Modified
 
-We will extend it to:
+### Backend (bfDb)
 
-1. After login, navigate to /settings to get API key
-2. Use BfClient to create real samples with that API key
-3. Navigate to eval page and verify real samples appear
-4. Test actual grading functionality
+- `/apps/bfDb/nodeTypes/BfApiKey.ts` - New API key node type
+- `/apps/bfDb/nodeTypes/BfOrganization.ts` - Added apiKeys connection
+- `/apps/bfDb/graphql/roots/Query.ts` - Added organizationApiKeys query
+- `/apps/bfDb/graphql/__generated__/schema.graphql` - Generated schema updates
+- `/apps/bfDb/models/__generated__/nodeTypesList.ts` - Added BfApiKey export
 
-## Current Status
+### Frontend (boltfoundry-com)
 
-- [x] Requirements gathered
-- [x] Implementation plan updated
-- [ ] Phase 0: Build API keys page
-- [ ] Phase 1: Extend eval test to get API key
-- [ ] Phase 2: Add backend sample creation
-- [ ] Phase 3: Update frontend grading flow
+- `/components/Settings.tsx` - New API keys management page
+- `/components/Nav.tsx` - Added Settings button
+- `/routes.ts` - Added /settings route
+- `/__tests__/e2e/eval.test.e2e.ts` - Extended test with phases 0-3
+
+### Configuration
+
+- `/deno.jsonc` - Updated Claude Code version
+- `/deno.lock` - Updated dependencies
+
+This implementation provides a solid foundation for end-to-end testing of the
+Bolt Foundry platform, with room for future enhancements as GraphQL integration
+becomes more complete.
