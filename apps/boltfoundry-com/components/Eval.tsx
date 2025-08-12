@@ -48,10 +48,9 @@ export const Eval = iso(`
     }
   }
 `)(function Eval({ data }) {
-  const { sendMessage, showHud } = useHud();
+  const { sendMessage } = useHud();
 
   useEffect(() => {
-    showHud();
     sendMessage(`Isograph data:\n${JSON.stringify(data, null, 2)}`, "info");
   }, []);
 
