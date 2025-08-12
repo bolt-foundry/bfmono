@@ -105,7 +105,7 @@ export function GradingSamplesList({
       // Generate mock data
       const historicalSamples = generateMockHistoricalSamples(10);
       setGradedSamples(historicalSamples);
-      setUngradedCount(Math.floor(Math.random() * 5) + 3); // 3-7 ungraded samples
+      setUngradedCount(3); // Always 3 ungraded samples
       setLoading(false);
     }, 500);
   }, [deckId]);
@@ -147,10 +147,14 @@ export function GradingSamplesList({
 
       {/* Ungraded samples callout */}
       {ungradedCount > 0 && !completionSummary && (
-        <div className="grading-summary-callout">
+        <div
+          className="grading-summary-callout"
+          onClick={onStartGrading}
+          style={{ cursor: "pointer" }}
+        >
           <BfDsIcon name="bell" size="medium" />
           <div className="callout-content">
-            <h3>{ungradedCount} New Samples to Grade</h3>
+            <h3>3 New Samples to Grade</h3>
             <p>New samples are ready for human evaluation</p>
           </div>
           <BfDsButton

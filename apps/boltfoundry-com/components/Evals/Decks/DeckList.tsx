@@ -12,6 +12,17 @@ const logger = getLogger(import.meta);
 // Mock data for demonstration
 const mockDecks = [
   {
+    id: "fastpitch",
+    name: "Fastpitch Story Selection",
+    description:
+      "Evaluates the quality of curated AI news story selections from the latest articles",
+    graderCount: 3,
+    lastModified: "2025-08-12",
+    status: "active" as const,
+    agreementRate: 88,
+    totalTests: 156,
+  },
+  {
     id: "1",
     name: "Customer Support Quality",
     description:

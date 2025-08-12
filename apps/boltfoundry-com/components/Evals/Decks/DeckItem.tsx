@@ -1,6 +1,6 @@
 import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
-import { BfDsPill } from "@bfmono/apps/bfDs/components/BfDsPill.tsx";
+import type { BfDsPill } from "@bfmono/apps/bfDs/components/BfDsPill.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
@@ -68,10 +68,12 @@ export function DeckItem({ deck, onClick }: DeckItemProps) {
 
   const rightContent = (
     <div className="deck-bar-right">
-      <BfDsPill
+      {
+        /* <BfDsPill
         variant={getAgreementVariant(deck.agreementRate)}
         text={`${deck.agreementRate}% agreement`}
-      />
+      /> */
+      }
       <BfDsButton
         variant="ghost"
         size="small"

@@ -5,21 +5,28 @@ import { BfDsTextArea } from "@bfmono/apps/bfDs/components/BfDsTextArea.tsx";
 interface GraderHumanRatingProps {
   graderId: string;
   graderName: string;
+  aiGraderScore: -3 | -2 | -1 | 1 | 2 | 3;
   initialRating?: -3 | -2 | -1 | 1 | 2 | 3 | null;
   initialComment?: string;
   onRatingChange: (
     graderId: string,
     rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
+    shouldProceedNext?: boolean,
   ) => void;
+  onAgreeAndNext?: () => void;
+  canProceed?: boolean;
 }
 
 export function GraderHumanRating({
   graderId,
   graderName,
+  aiGraderScore,
   initialRating = null,
   initialComment = "",
   onRatingChange,
+  onAgreeAndNext: _onAgreeAndNext,
+  canProceed: _canProceed,
 }: GraderHumanRatingProps) {
   const [selectedScore, setSelectedScore] = useState<
     -3 | -2 | -1 | 1 | 2 | 3 | null
@@ -37,12 +44,24 @@ export function GraderHumanRating({
   const handleScoreSelect = (score: -3 | -2 | -1 | 1 | 2 | 3) => {
     const newScore = selectedScore === score ? null : score;
     setSelectedScore(newScore);
-    onRatingChange(graderId, newScore, comment);
+    onRatingChange(graderId, newScore, comment, false);
   };
 
   const handleCommentChange = (newComment: string) => {
     setComment(newComment);
-    onRatingChange(graderId, selectedScore, newComment);
+    onRatingChange(graderId, selectedScore, newComment, false);
+  };
+
+  const handleAgreeClick = async () => {
+    setSelectedScore(aiGraderScore);
+    setComment("Agree with AI grader assessment");
+    // Signal that we want to proceed to next after this rating change
+    onRatingChange(
+      graderId,
+      aiGraderScore,
+      "Agree with AI grader assessment",
+      true,
+    );
   };
 
   return (
@@ -104,6 +123,24 @@ export function GraderHumanRating({
           className="human-rating-button positive"
         >
           <span>+3</span>
+        </BfDsButton>
+
+        <div
+          className="rating-divider"
+          style={{ margin: "0 8px", color: "#ccc", alignSelf: "center" }}
+        >
+          |
+        </div>
+
+        <BfDsButton
+          variant={selectedScore === aiGraderScore
+            ? "secondary"
+            : "outline-secondary"}
+          size="small"
+          onClick={handleAgreeClick}
+          className="human-rating-button agree"
+        >
+          <span>Agree ({aiGraderScore > 0 ? "+" : ""}{aiGraderScore})</span>
         </BfDsButton>
       </div>
 
