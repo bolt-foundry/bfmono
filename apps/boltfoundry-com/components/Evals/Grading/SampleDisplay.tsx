@@ -21,8 +21,12 @@ interface SampleDisplayProps {
 }
 
 export function SampleDisplay(
-  { sample, displaySchema, onHumanRatingChange, currentRatings = {} }:
-    SampleDisplayProps,
+  {
+    sample,
+    displaySchema,
+    onHumanRatingChange,
+    currentRatings = {},
+  }: SampleDisplayProps,
 ) {
   const [showRawJson, setShowRawJson] = useState(true);
 
@@ -51,6 +55,22 @@ export function SampleDisplay(
           <span>{sample.provider}</span>
         </div>
       </div>
+
+      {sample.graderEvaluations && sample.graderEvaluations.length > 0 && (
+        <div className="grader-evaluations-section">
+          <h3>AI Grader Evaluations</h3>
+          <div className="grader-evaluations">
+            {sample.graderEvaluations.map((evaluation, index) => (
+              <GraderEvaluation
+                key={index}
+                evaluation={evaluation}
+                onHumanRatingChange={onHumanRatingChange}
+                currentRating={currentRatings[evaluation.graderId]}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {previousMessages.length > 0 && (
         <ConversationHistory messages={previousMessages} />
@@ -94,22 +114,6 @@ export function SampleDisplay(
             )}
         </div>
       </div>
-
-      {sample.graderEvaluations && sample.graderEvaluations.length > 0 && (
-        <div className="grader-evaluations-section">
-          <h3>AI Grader Evaluations</h3>
-          <div className="grader-evaluations">
-            {sample.graderEvaluations.map((evaluation, index) => (
-              <GraderEvaluation
-                key={index}
-                evaluation={evaluation}
-                onHumanRatingChange={onHumanRatingChange}
-                currentRating={currentRatings[evaluation.graderId]}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

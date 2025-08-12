@@ -34,12 +34,22 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
     // For now, we'll simulate the GraphQL response structure
     setTimeout(async () => {
       try {
-        const { mockGradingSamples } = await import(
-          "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
-        );
+        let samples;
+
+        if (deckId === "fastpitch") {
+          const { fastpitchGradingSamples } = await import(
+            "@bfmono/apps/boltfoundry-com/mocks/fastpitchSamples.ts"
+          );
+          samples = fastpitchGradingSamples;
+        } else {
+          const { mockGradingSamples } = await import(
+            "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
+          );
+          samples = mockGradingSamples;
+        }
 
         // All samples start ungraded
-        setSamples(mockGradingSamples);
+        setSamples(samples);
         setLoading(false);
       } catch (err) {
         logger.error("Failed to fetch samples", err);

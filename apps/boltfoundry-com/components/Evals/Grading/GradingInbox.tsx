@@ -124,6 +124,7 @@ export function GradingInbox({
     graderId: string,
     rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
+    shouldProceedNext = false,
   ) => {
     // Store draft grades locally
     setDraftGrades((prev) => ({
@@ -133,6 +134,13 @@ export function GradingInbox({
         [graderId]: { rating, comment },
       },
     }));
+
+    // If shouldProceedNext is true, trigger handleNext after state update
+    if (shouldProceedNext) {
+      setTimeout(() => {
+        handleNextWithAutoAdvance(graderId, rating, comment);
+      }, 100);
+    }
   };
 
   // Get current draft ratings for this sample, or use existing saved grades
@@ -162,8 +170,73 @@ export function GradingInbox({
       currentSampleRatings[id]?.rating !== undefined
     );
 
+  const handleNextWithAutoAdvance = async (
+    graderId: string,
+    rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
+    comment: string,
+  ) => {
+    logger.info("Saving sample grades (auto-advance)", {
+      sampleId: currentSample.id,
+      graderId,
+      rating,
+      comment,
+    });
+
+    try {
+      // Prepare grades for submission - just the one grader from agree action
+      const gradesToSave = [{
+        graderId,
+        score: rating!,
+        reason: comment,
+      }];
+
+      // Save via GraphQL mutation
+      await saveGrade(currentSample.id, gradesToSave);
+
+      // Track graded sample and scores
+      setGradedSampleIds((prev) => [...prev, currentSample.id]);
+      const avgHumanScore = rating!;
+      setHumanScores((prev) => [...prev, avgHumanScore]);
+
+      // Clear draft for this sample
+      setDraftGrades((prev) => {
+        const updated = { ...prev };
+        delete updated[currentSample.id];
+        return updated;
+      });
+
+      setCompletedCount((prev) => prev + 1);
+
+      // Move to next sample
+      if (currentIndex < samples.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        // All samples graded - trigger completion callback
+        logger.info("All samples graded", {
+          deckId,
+          completedCount: completedCount + 1,
+        });
+
+        if (onComplete) {
+          const finalGradedIds = [...gradedSampleIds, currentSample.id];
+          const finalScores = [...humanScores, avgHumanScore];
+          const overallAvg = finalScores.reduce((sum, s) => sum + s, 0) /
+            finalScores.length;
+          onComplete(finalGradedIds, overallAvg);
+        } else {
+          onClose();
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to save grade (auto-advance)", error);
+      // Keep the draft and let user retry
+    }
+  };
+
   const handleNext = async () => {
-    if (!allGradersRated) return;
+    if (!allGradersRated) {
+      return;
+    }
 
     logger.info("Saving sample grades", {
       sampleId: currentSample.id,
