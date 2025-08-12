@@ -1,5 +1,6 @@
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import { assert } from "@std/assert";
+import { getConfigurationVariable } from "@bfmono/packages/get-configuration-var/get-configuration-var.ts";
 import {
   navigateTo,
   teardownE2ETest,
