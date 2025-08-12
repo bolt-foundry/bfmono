@@ -2050,6 +2050,7 @@ a.bfds-button:hover {
 /* Pricing Table Styles */
 .bfds-pricing-table {
   width: 100%;
+  margin-top: 2rem;
 }
 
 .bfds-pricing-table__grid {

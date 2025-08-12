@@ -3,6 +3,7 @@ import { GradingSamplesList } from "./GradingSamplesList.tsx";
 import { GradingInbox } from "./GradingInbox.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
 interface GradingContainerProps {
@@ -18,6 +19,7 @@ export function GradingContainer({
   deckName,
   onClose,
 }: GradingContainerProps) {
+  const { samples, saveGrade, saving } = useGradingSamples(deckId);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [viewingSample, setViewingSample] = useState<GradingSample | null>(
     null,
@@ -59,11 +61,14 @@ export function GradingContainer({
 
   if (viewMode === "grading") {
     return (
-      <GradingInboxWrapper
+      <GradingInbox
         deckId={deckId}
         deckName={deckName}
         onClose={onClose}
         onComplete={handleGradingComplete}
+        samples={samples}
+        saveGrade={saveGrade}
+        saving={saving}
       />
     );
   }
@@ -110,30 +115,7 @@ export function GradingContainer({
       onViewSample={handleViewSample}
       justCompletedIds={justCompletedIds}
       completionSummary={completionSummary}
-    />
-  );
-}
-
-// Wrapper to handle the GradingInbox completion
-interface GradingInboxWrapperProps {
-  deckId: string;
-  deckName: string;
-  onClose: () => void;
-  onComplete: (gradedSampleIds: Array<string>, avgScore: number) => void;
-}
-
-function GradingInboxWrapper({
-  deckId,
-  deckName,
-  onClose,
-  onComplete,
-}: GradingInboxWrapperProps) {
-  return (
-    <GradingInbox
-      deckId={deckId}
-      deckName={deckName}
-      onClose={onClose}
-      onComplete={onComplete}
+      availableSamples={samples || []}
     />
   );
 }

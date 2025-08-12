@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
+import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
@@ -17,6 +18,7 @@ interface GradingSamplesListProps {
     totalGraded: number;
     averageScore: number;
   };
+  availableSamples?: Array<GradingSample>;
 }
 
 // Generate mock historical samples
@@ -91,6 +93,7 @@ export function GradingSamplesList({
   onViewSample,
   justCompletedIds = [],
   completionSummary,
+  availableSamples = [],
 }: GradingSamplesListProps) {
   const [loading, setLoading] = useState(true);
   const [gradedSamples, setGradedSamples] = useState<Array<GradingSample>>([]);
@@ -102,13 +105,28 @@ export function GradingSamplesList({
     setLoading(true);
 
     setTimeout(() => {
-      // Generate mock data
-      const historicalSamples = generateMockHistoricalSamples(10);
-      setGradedSamples(historicalSamples);
-      setUngradedCount(Math.floor(Math.random() * 5) + 3); // 3-7 ungraded samples
+      // Get graded samples from the available samples (those with humanGrade)
+      const actualGradedSamples = availableSamples.filter((sample) =>
+        sample.humanGrade
+      );
+
+      // Generate mock historical data (but fewer since we now have real data)
+      const historicalSamples = generateMockHistoricalSamples(7);
+
+      // Combine actual graded samples with historical ones, with actual ones first
+      const allGradedSamples = [...actualGradedSamples, ...historicalSamples];
+
+      setGradedSamples(allGradedSamples);
+
+      // Count ungraded samples from available samples
+      const actualUngradedCount = availableSamples.filter((sample) =>
+        !sample.humanGrade
+      ).length;
+      setUngradedCount(actualUngradedCount);
+
       setLoading(false);
     }, 500);
-  }, [deckId]);
+  }, [deckId, availableSamples]);
 
   if (loading) {
     return (
@@ -147,10 +165,17 @@ export function GradingSamplesList({
 
       {/* Ungraded samples callout */}
       {ungradedCount > 0 && !completionSummary && (
-        <div className="grading-summary-callout">
+        <div
+          className="grading-summary-callout"
+          onClick={onStartGrading}
+          style={{ cursor: "pointer" }}
+        >
           <BfDsIcon name="bell" size="medium" />
           <div className="callout-content">
-            <h3>{ungradedCount} New Samples to Grade</h3>
+            <h3>
+              {ungradedCount} New Sample{ungradedCount !== 1 ? "s" : ""}{" "}
+              to Grade
+            </h3>
             <p>New samples are ready for human evaluation</p>
           </div>
           <BfDsButton
@@ -176,17 +201,13 @@ export function GradingSamplesList({
             return (
               <div
                 key={sample.id}
-                className={`sample-list-item ${
-                  isJustCompleted ? "sample-list-item--starred" : ""
-                }`}
+                className="sample-list-item"
                 onClick={() => onViewSample(sample)}
               >
                 {isJustCompleted && (
-                  <BfDsIcon
-                    name="star"
-                    size="small"
-                    className="star-indicator"
-                  />
+                  <BfDsBadge variant="success">
+                    new
+                  </BfDsBadge>
                 )}
                 <div className="sample-info">
                   <div className="sample-timestamp">
