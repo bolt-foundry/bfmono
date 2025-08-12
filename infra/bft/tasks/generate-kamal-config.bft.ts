@@ -38,21 +38,32 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     // First replace template variables
     let processedTemplate = templateContent;
 
-    // Get server IP from environment or secrets
-    const serverIp = getConfigurationVariable("BOLTFOUNDRY_COM_SERVER_IP") ||
-      (await getSecretValue("BOLTFOUNDRY_COM_SERVER_IP"));
+    // Determine which service we're configuring based on the template path
+    const isPromptGrade = templatePath.includes("promptgrade");
+
+    // Get server IP from environment or secrets based on the service
+    const serverIpKey = isPromptGrade
+      ? "PROMPTGRADE_AI_SERVER_IP"
+      : "BOLTFOUNDRY_COM_SERVER_IP";
+    const serverIp = getConfigurationVariable(serverIpKey) ||
+      (await getSecretValue(serverIpKey));
 
     if (serverIp) {
       processedTemplate = processedTemplate.replace(
         /\${floating_ip}/g,
         serverIp,
       );
+    } else {
+      logger.warn(`Server IP not found for key: ${serverIpKey}`);
     }
 
     // Replace other template variables with defaults
     processedTemplate = processedTemplate
       .replace(/\${github_username}/g, "bolt-foundry")
-      .replace(/\${domain}/g, "boltfoundry.com");
+      .replace(
+        /\${domain}/g,
+        isPromptGrade ? "promptgrade.ai" : "boltfoundry.com",
+      );
 
     // Parse template as YAML to preserve structure
     // Define a proper type for the Kamal config
@@ -95,9 +106,11 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       "HETZNER_S3_SECRET_KEY", // Deprecated - use AWS_SECRET_ACCESS_KEY
       "CLOUDFLARE_API_TOKEN", // Infrastructure management only
       "CLOUDFLARE_ZONE_ID", // Infrastructure management only
+      "CLOUDFLARE_ZONE_ID_PROMPTGRADE", // Infrastructure management only
       "HETZNER_PROJECT_ID", // Infrastructure management only
       "S3_ENDPOINT", // Infrastructure configuration
       "BOLTFOUNDRY_COM_SERVER_IP", // Handled separately as server config
+      "PROMPTGRADE_AI_SERVER_IP", // Handled separately as server config
     ];
 
     const runtimeSecrets = availableSecrets.filter(
