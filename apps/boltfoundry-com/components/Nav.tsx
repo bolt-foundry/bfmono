@@ -83,6 +83,13 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
         </BfDsButton> */
         }
         <BfDsButton
+          variant={page === "settings" ? "primary" : "outline"}
+          overlay={page !== "settings"}
+          link="/settings"
+        >
+          Settings
+        </BfDsButton>
+        <BfDsButton
           variant={page === "login" ? "secondary" : "outline-secondary"}
           link="/login"
         >
