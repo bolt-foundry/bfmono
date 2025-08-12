@@ -68,10 +68,12 @@ export function DeckItem({ deck, onClick }: DeckItemProps) {
 
   const rightContent = (
     <div className="deck-bar-right">
-      <BfDsPill
+      {
+        /* <BfDsPill
         variant={getAgreementVariant(deck.agreementRate)}
         text={`${deck.agreementRate}% agreement`}
-      />
+      /> */
+      }
       <BfDsButton
         variant="ghost"
         size="small"
