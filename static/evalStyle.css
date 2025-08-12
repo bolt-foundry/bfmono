@@ -395,6 +395,7 @@
 
 .deck-bar-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   font-size: 13px;
   color: var(--bfds-text-secondary);
@@ -2305,6 +2306,64 @@
 
 .score-value.neutral {
   color: var(--bfds-warning);
+}
+
+/* Loading States */
+.grading-loading {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.grading-loading-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.grading-loading-content p {
+  margin: 0;
+  color: var(--bfds-text-secondary);
+  font-size: 0.875rem;
+}
+
+.grading-error-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.grading-error-content p {
+  margin: 0;
+  color: var(--bfds-text-secondary);
+  font-size: 0.875rem;
+}
+
+.grading-empty-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.grading-empty-content p {
+  margin: 0;
+  color: var(--bfds-text-secondary);
+  font-size: 0.875rem;
 }
 
 /* Grading Sample View */
