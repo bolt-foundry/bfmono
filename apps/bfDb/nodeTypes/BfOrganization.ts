@@ -1,4 +1,5 @@
 import { BfNode, type InferProps } from "@bfmono/apps/bfDb/classes/BfNode.ts";
+import { BfApiKey } from "@bfmono/apps/bfDb/nodeTypes/BfApiKey.ts";
 import { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
 
 export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
@@ -6,6 +7,18 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
     node
       .string("name")
       .string("domain")
+      .connection("apiKeys", () => BfApiKey, {
+        resolve: async (org, args, ctx) => {
+          const actualOrg = await BfOrganization.find(
+            ctx.getCurrentViewer(),
+            org.id,
+          );
+          if (!actualOrg) {
+            throw new Error(`Organization not found: ${org.id}`);
+          }
+          return await actualOrg.connectionForApiKeys(args);
+        },
+      })
       .connection("decks", () => BfDeck, {
         resolve: async (org, args, ctx) => {
           // The 'org' here is a plain object from toGraphql(), not a BfOrganization instance
@@ -26,6 +39,7 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
     node
       .string("name")
       .string("domain")
+      .many("apiKeys", () => BfApiKey)
       .many("decks", () => BfDeck)
   );
 
@@ -34,6 +48,7 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
    */
   protected override async afterCreate(): Promise<void> {
     await this.addDemoDeck();
+    await this.createDefaultApiKey();
   }
 
   /**
@@ -60,5 +75,18 @@ export class BfOrganization extends BfNode<InferProps<typeof BfOrganization>> {
           "# Test Deck\n\nThis is a test deck for development and testing.",
       });
     }
+  }
+
+  /**
+   * Create a default API key for this organization
+   */
+  async createDefaultApiKey(): Promise<void> {
+    const key = BfApiKey.generateKeyForOrganization(this.id);
+    await this.createTargetNode(BfApiKey, {
+      key,
+      description: "Default API key",
+      organizationId: this.id,
+      lastUsedAt: "",
+    });
   }
 }

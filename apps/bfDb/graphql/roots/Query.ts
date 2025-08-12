@@ -3,7 +3,10 @@ import { PublishedDocument } from "@bfmono/apps/bfDb/nodeTypes/PublishedDocument
 import { BlogPost } from "@bfmono/apps/bfDb/nodeTypes/BlogPost.ts";
 import { GithubRepoStats } from "@bfmono/apps/bfDb/nodeTypes/GithubRepoStats.ts";
 import { CurrentViewer } from "@bfmono/apps/bfDb/classes/CurrentViewer.ts";
+import { BfApiKey } from "@bfmono/apps/bfDb/nodeTypes/BfApiKey.ts";
 import { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
+import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
+import type { BfGid } from "@bfmono/lib/types.ts";
 
 export class Query extends GraphQLObjectBase {
   static override gqlSpec = this.defineGqlNode((field) =>
@@ -68,6 +71,22 @@ export class Query extends GraphQLObjectBase {
           );
 
           return decks[0] || null;
+        },
+      })
+      .connection("organizationApiKeys", () => BfApiKey, {
+        args: (a) => a.string("organizationId"),
+        resolve: async (_root, args, ctx) => {
+          const cv = ctx.getCurrentViewer();
+          const orgId = (args.organizationId as BfGid) || cv.orgBfOid;
+
+          // Fetch the organization
+          const org = await BfOrganization.find(cv, orgId);
+          if (!org) {
+            return BfApiKey.connection([], args);
+          }
+
+          // Return connection using the organization's apiKeys relationship
+          return await org.connectionForApiKeys(args);
         },
       })
       .nonNull.object("currentViewer", () => CurrentViewer, {

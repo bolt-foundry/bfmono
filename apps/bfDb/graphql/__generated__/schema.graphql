@@ -1,4 +1,13 @@
 ### @generated 
+type BfApiKey implements BfNode {
+  description: String
+  id: ID!
+  key: String
+  lastUsedAt: String
+  organization: BfOrganization
+  organizationId: String
+}
+
 type BfDeck implements BfNode {
   content: String
   description: String
@@ -52,10 +61,21 @@ interface BfNode {
 }
 
 type BfOrganization implements BfNode {
+  apiKeys(after: String, before: String, first: Int, last: Int): BfOrganizationApiKeysConnection
   decks(after: String, before: String, first: Int, last: Int): BfOrganizationDecksConnection
   domain: String
   id: ID!
   name: String
+}
+
+type BfOrganizationApiKeysConnection {
+  edges: [BfOrganizationApiKeysConnectionEdge]
+  pageInfo: PageInfo!
+}
+
+type BfOrganizationApiKeysConnectionEdge {
+  cursor: String!
+  node: BfApiKey
 }
 
 type BfOrganizationDecksConnection {
@@ -170,6 +190,7 @@ type Query {
   githubRepoStats: GithubRepoStats
   id: ID
   ok: Boolean
+  organizationApiKeys(after: String, before: String, first: Int, last: Int): QueryOrganizationApiKeysConnection
 }
 
 type QueryBlogPostsConnection {
@@ -180,6 +201,16 @@ type QueryBlogPostsConnection {
 type QueryBlogPostsConnectionEdge {
   cursor: String!
   node: BlogPost
+}
+
+type QueryOrganizationApiKeysConnection {
+  edges: [QueryOrganizationApiKeysConnectionEdge]
+  pageInfo: PageInfo!
+}
+
+type QueryOrganizationApiKeysConnectionEdge {
+  cursor: String!
+  node: BfApiKey
 }
 
 type Waitlist {
