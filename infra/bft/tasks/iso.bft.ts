@@ -47,27 +47,8 @@ export async function isoCommand(options: Array<string>): Promise<number> {
     logger.info("✅ All Isograph compilations completed successfully");
 
     // Generate routes after successful compilation
-    logger.info("Generating built routes...");
-    try {
-      const routesBuildPath =
-        new URL(import.meta.resolve("@bfmono/infra/appBuild/routesBuild.ts"))
-          .pathname;
-      const repoRoot = new URL(import.meta.resolve("@bfmono/")).pathname;
-      const routesBuildResult = await runShellCommand(
-        ["deno", "run", "-A", routesBuildPath],
-        repoRoot,
-      );
-
-      if (routesBuildResult === 0) {
-        logger.info("✅ Routes build completed successfully");
-      } else {
-        logger.error("❌ Routes build failed");
-        overallResult = routesBuildResult;
-      }
-    } catch (error) {
-      logger.error("Error running routes build:", error);
-      overallResult = 1;
-    }
+    // Routes build removed - appBuild deleted
+    logger.info("Skipping routes build (appBuild removed)");
   } else {
     logger.error("❌ One or more Isograph compilations failed");
   }

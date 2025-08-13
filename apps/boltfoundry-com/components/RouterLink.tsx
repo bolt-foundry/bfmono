@@ -1,4 +1,4 @@
-import { useRouter } from "@bfmono/apps/boltFoundry/contexts/RouterContext.tsx";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
 type LinkProps = {
   to: string;

@@ -7,10 +7,9 @@ import {
 } from "@bfmono/packages/get-configuration-var/get-configuration-var.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { DeploymentEnvs } from "@bfmono/infra/constants/deploymentEnvs.ts";
-import {
-  PRIVATE_CONFIG_KEYS,
-  PUBLIC_CONFIG_KEYS,
-} from "@bfmono/apps/boltFoundry/__generated__/configKeys.ts";
+// Config keys import removed - deprecated functionality
+const PRIVATE_CONFIG_KEYS: Array<string> = [];
+const PUBLIC_CONFIG_KEYS: Array<string> = [];
 
 const logger = getLogger(import.meta);
 
@@ -440,13 +439,7 @@ export async function build(args: Array<string>): Promise<number> {
   logger.info("Generating barrel files");
   await sh("./apps/bfDb/bin/genBarrel.ts");
 
-  if (debug) logMemoryUsage("before routes build");
-  const routesBuildResult = await sh("./infra/appBuild/routesBuild.ts");
-  if (debug) logMemoryUsage("after routes build");
-
-  if (routesBuildResult !== 0) {
-    return routesBuildResult;
-  }
+  // Routes build removed - appBuild deleted
 
   // Content build removed for v0.1 - using runtime markdown rendering instead
 
@@ -475,12 +468,11 @@ export async function build(args: Array<string>): Promise<number> {
   }
 
   if (debug) logMemoryUsage("before final compilation");
-  const denoCompile = runShellCommand(denoCompilationCommand);
-  const jsCompile = runShellCommand(["./infra/appBuild/appBuild.ts"]);
-  const [denoResult, jsResult] = await Promise.all([denoCompile, jsCompile]);
+  const denoResult = await runShellCommand(denoCompilationCommand);
+  // JS compile removed - appBuild deleted
   if (debug) logMemoryUsage("after final compilation");
 
-  if ((denoResult || jsResult) && waitForFail) {
+  if (denoResult && waitForFail) {
     return new Promise((_, reject) => {
       setTimeout(() => reject(new Error("Build failed")), 10000);
     });
@@ -495,7 +487,7 @@ export async function build(args: Array<string>): Promise<number> {
       stopContinuousMemoryLogging();
     }
   }
-  return denoResult || jsResult;
+  return denoResult;
 }
 
 register(

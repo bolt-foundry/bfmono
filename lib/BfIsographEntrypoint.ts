@@ -1,5 +1,5 @@
 import type { IsographEntrypoint, NormalizationAst } from "@isograph/react";
-import type { RouteEntrypoint } from "@bfmono/apps/boltFoundry/__generated__/builtRoutes.ts";
+// import type { RouteEntrypoint } from "@bfmono/apps/boltFoundry/__generated__/builtRoutes.ts"; // boltFoundry deleted
 
 /**
  * A simplified version of IsographEntrypoint that only requires one type parameter
@@ -7,7 +7,8 @@ import type { RouteEntrypoint } from "@bfmono/apps/boltFoundry/__generated__/bui
  *
  * @type T - The generic type for the entrypoint data structure
  */
-export type BfIsographEntrypoint<T = RouteEntrypoint> = IsographEntrypoint<
+// deno-lint-ignore no-explicit-any
+export type BfIsographEntrypoint<T = any> = IsographEntrypoint<
   // deno-lint-ignore no-explicit-any
   any,
   T,
