@@ -13,8 +13,6 @@
     "@b-fuze/deno-dom": "jsr:@b-fuze/deno-dom@^0.1.49",
     "@deno/cache-dir": "jsr:@deno/cache-dir@^0.22.3",
     "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
-    "@iso": "./apps/boltFoundry/__generated__/__isograph/iso.ts",
-    "@iso/": "./apps/boltFoundry/__generated__/__isograph/",
     "@iso-bfc": "./apps/boltfoundry-com/__generated__/__isograph/iso.ts",
     "@iso-bfc/": "./apps/boltfoundry-com/__generated__/__isograph/",
     "@isograph/babel-plugin": "npm:@isograph/babel-plugin@^0.3.1",
