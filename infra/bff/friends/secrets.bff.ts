@@ -7,10 +7,9 @@ import {
   getSecret,
   warmSecrets,
 } from "@bolt-foundry/get-configuration-var";
-import {
-  PRIVATE_CONFIG_KEYS,
-  PUBLIC_CONFIG_KEYS,
-} from "@bfmono/apps/boltFoundry/__generated__/configKeys.ts";
+// Config keys import removed - deprecated functionality
+const PRIVATE_CONFIG_KEYS: Array<string> = [];
+const PUBLIC_CONFIG_KEYS: Array<string> = [];
 import { dirname } from "@std/path";
 import { exists } from "@std/fs";
 

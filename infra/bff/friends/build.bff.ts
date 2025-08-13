@@ -7,10 +7,9 @@ import {
 } from "@bfmono/packages/get-configuration-var/get-configuration-var.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { DeploymentEnvs } from "@bfmono/infra/constants/deploymentEnvs.ts";
-import {
-  PRIVATE_CONFIG_KEYS,
-  PUBLIC_CONFIG_KEYS,
-} from "@bfmono/apps/boltFoundry/__generated__/configKeys.ts";
+// Config keys import removed - deprecated functionality
+const PRIVATE_CONFIG_KEYS: Array<string> = [];
+const PUBLIC_CONFIG_KEYS: Array<string> = [];
 
 const logger = getLogger(import.meta);
 

@@ -14,10 +14,7 @@
  * -----------------------------------------------------------------------------
  */
 
-import {
-  PRIVATE_CONFIG_KEYS,
-  PUBLIC_CONFIG_KEYS,
-} from "@bfmono/apps/boltFoundry/__generated__/configKeys.ts";
+// Config keys import removed - deprecated functionality
 
 /* ─── environment helpers ─────────────────────────────────────────────────── */
 const isDeno = typeof Deno !== "undefined" && !!Deno?.version?.deno;
@@ -90,4 +87,5 @@ export function writeEnv(): void {
 export const writeEnvFile = writeEnv;
 
 /* ─── exported for injection script ──────────────────────────────────────────── */
-export const KNOWN_KEYS = [...PUBLIC_CONFIG_KEYS, ...PRIVATE_CONFIG_KEYS];
+// KNOWN_KEYS removed - config key generation is deprecated
+export const KNOWN_KEYS: Array<string> = [];
