@@ -24,7 +24,11 @@ interface GraderEvaluationProps {
 }
 
 export function GraderEvaluation(
-  { evaluation, onHumanRatingChange, currentRating }: GraderEvaluationProps,
+  {
+    evaluation,
+    onHumanRatingChange,
+    currentRating,
+  }: GraderEvaluationProps,
 ) {
   const getScoreColor = (score: number): "success" | "error" | "warning" => {
     if (score >= 2) return "success";
@@ -62,6 +66,7 @@ export function GraderEvaluation(
         <GraderHumanRating
           graderId={evaluation.graderId}
           graderName={evaluation.graderName}
+          aiGraderScore={evaluation.score as -3 | -2 | -1 | 1 | 2 | 3}
           initialRating={currentRating?.rating || null}
           initialComment={currentRating?.comment || ""}
           onRatingChange={onHumanRatingChange}

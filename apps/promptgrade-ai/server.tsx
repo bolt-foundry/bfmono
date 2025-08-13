@@ -63,7 +63,7 @@ async function loadAssetPaths(
 
 async function handler(
   request: Request,
-  isDev: boolean,
+  _isDev: boolean,
   assetPaths: { cssPath?: string; jsPath: string },
 ): Promise<Response> {
   const url = new URL(request.url);
@@ -81,7 +81,7 @@ async function handler(
         : path.endsWith(".js")
         ? "application/javascript"
         : "application/octet-stream";
-      
+
       return new Response(file, {
         headers: {
           "content-type": contentType,
@@ -123,11 +123,11 @@ if (import.meta.main) {
 
   const port = parseInt(flags.port);
   const isDev = getConfigurationVariable("BF_ENV") === "development";
-  
+
   // Load asset paths once at startup
   const assetPaths = await loadAssetPaths(isDev);
 
   logger.info(`Starting server on port ${port} (isDev: ${isDev})`);
-  
+
   Deno.serve({ port }, (request) => handler(request, isDev, assetPaths));
 }

@@ -245,20 +245,6 @@
             '';
           };
 
-          # Claude CLI script
-          claude-cli = pkgs.writeShellScriptBin "claude" ''
-            # Check for --upgrade or --update flags
-            if [[ "$1" == "--upgrade" ]] || [[ "$1" == "--update" ]]; then
-                echo "Upgrading Claude Code..."
-                deno install --allow-scripts=npm:@anthropic-ai/claude-code npm:@anthropic-ai/claude-code
-                echo "Claude Code has been upgraded successfully!"
-                exit 0
-            fi
-
-            # Run Claude Code normally
-            deno run -A npm:@anthropic-ai/claude-code "$@"
-          '';
-
           # Profile script setup using runCommand to create proper structure
           codebot-profile = pkgs.runCommand "codebot-profile-setup" {} ''
             mkdir -p $out/etc/profile.d
@@ -287,7 +273,7 @@
           # Container environment package (for nix profile install compatibility)
           codebot-env = pkgs.buildEnv {
             name = "codebot-environment";
-            paths = (mkBaseDeps { inherit pkgs system; }) ++ everythingExtra ++ [ claude-cli ];
+            paths = (mkBaseDeps { inherit pkgs system; }) ++ everythingExtra;
           };
         };
       }) //
@@ -307,16 +293,7 @@
             environment.systemPackages = let
               pkgs = nixpkgs.legacyPackages.aarch64-linux;
             in (mkBaseDeps { inherit pkgs; system = "aarch64-linux"; }) ++ 
-               (mkEverythingExtra { inherit pkgs; system = "aarch64-linux"; }) ++ 
-               [ (pkgs.writeShellScriptBin "claude" ''
-                   if [[ "$1" == "--upgrade" ]] || [[ "$1" == "--update" ]]; then
-                       echo "Upgrading Claude Code..."
-                       deno install --allow-scripts=npm:@anthropic-ai/claude-code npm:@anthropic-ai/claude-code
-                       echo "Claude Code has been upgraded successfully!"
-                       exit 0
-                   fi
-                   deno run -A npm:@anthropic-ai/claude-code "$@"
-                 '') ];
+               (mkEverythingExtra { inherit pkgs; system = "aarch64-linux"; });
             
             # Create /etc/profile.d script for Claude setup
             environment.etc."profile.d/codebot-init.sh" = {

@@ -442,12 +442,19 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
           } catch {
             // Binary doesn't exist, need to compile it
             logger.info(`🔨 Compiling ${server.name} binary...`);
-            if (server.name === "aibff-gui") {
+
+            // Check if this is a compilable app (has a bft compile command)
+            const compilableApps = [
+              "aibff-gui",
+              "boltfoundry-com",
+              "promptgrade-ai",
+            ];
+            if (compilableApps.includes(server.name)) {
               const compileResult = await runShellCommand(
                 [
                   "bft",
                   "compile",
-                  "aibff-gui",
+                  server.name,
                 ],
                 Deno.cwd(),
                 {},
@@ -458,6 +465,10 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
                 throw new Error(`Failed to compile ${server.name} binary`);
               }
               logger.info(`✅ ${server.name} binary compiled`);
+            } else {
+              throw new Error(
+                `No compile command available for ${server.name}`,
+              );
             }
           }
         }
