@@ -1,5 +1,5 @@
 import type { IsographEntrypoint, NormalizationAst } from "@isograph/react";
-import type { RouteEntrypoint } from "@bfmono/apps/boltFoundry/__generated__/builtRoutes.ts";
+import type { RouteEntrypoint } from "@bfmono/apps/boltfoundry-com/__generated__/builtRoutes.ts";
 
 /**
  * A simplified version of IsographEntrypoint that only requires one type parameter
