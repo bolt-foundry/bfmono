@@ -18,6 +18,7 @@ interface BaseImportMetaEnv {
 // Client-safe variables (from .env.config.example)
 interface ClientEnvVars {
   readonly GOOGLE_OAUTH_CLIENT_ID?: string;
+  readonly GOOGLE_OAUTH_CLIENT_SECRET?: string;
 }
 
 // Server-only variables (from .env.secrets.example)
@@ -35,9 +36,13 @@ interface ServerEnvVars {
   readonly S3_ENDPOINT?: string;
   readonly CLOUDFLARE_API_TOKEN?: string;
   readonly CLOUDFLARE_ZONE_ID?: string;
+  readonly CLOUDFLARE_ZONE_ID_PROMPTGRADE?: string;
   readonly HYPERDX_API_KEY?: string;
   readonly SSH_PUBLIC_KEY?: string;
   readonly SSH_PRIVATE_KEY?: string;
+  readonly GITHUB_PERSONAL_ACCESS_TOKEN?: string;
+  readonly TERRAFORM_BACKEND_ENDPOINT?: string;
+  readonly GITHUB_TOKEN?: string;
 }
 
 // Environment-aware typing
