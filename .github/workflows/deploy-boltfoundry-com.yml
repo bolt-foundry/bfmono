@@ -79,6 +79,19 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
+          # Now source the secrets file and setup SSH outside of Nix shell
+          # This ensures the SSH key persists for subsequent steps
+          source .env.secrets
+
+          # Setup SSH directory and key
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Note: ssh-keyscan will be done after we have the server IP
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -141,6 +154,10 @@ jobs:
             echo \"server_ip=\$FLOATING_IP\" >> \$GITHUB_OUTPUT
           "
           
+          # Add server to known_hosts outside of Nix shell to ensure it persists
+          # Use the server IP from the output
+          ssh-keyscan -H ${{ steps.terraform_output.outputs.server_ip }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
           # Add server to known_hosts outside of Nix shell to ensure it persists
           # Use the server IP from the output
           ssh-keyscan -H ${{ steps.terraform_output.outputs.server_ip }} >> ~/.ssh/known_hosts 2>/dev/null || true
