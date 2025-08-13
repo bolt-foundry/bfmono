@@ -116,8 +116,8 @@ WORKDIR /internalbf/bfmono
 # Install as root but make available system-wide
 RUN nix profile install .#codebot-env --accept-flake-config
 
-# Install Claude CLI globally (as root, before user switch)
-RUN npm install -g @anthropic-ai/claude-code
+# Note: Claude Code is now installed at runtime in the shared directory
+# to allow updates without rebuilding the container
 
 # Verify Chrome/Chromium installation
 RUN (google-chrome --version || chromium --version) || echo "WARNING: Chrome/Chromium may not be properly configured"
@@ -149,6 +149,34 @@ fi\n\
 # Add host.codebot.local entry for accessing host machine\n\
 if ! grep -q "host.codebot.local" /etc/hosts 2>/dev/null; then\n\
     echo "192.168.64.1     host.codebot.local" | sudo -n tee -a /etc/hosts > /dev/null 2>&1\n\
+fi\n\
+\n\
+# Install or update Claude Code in shared directory\n\
+CLAUDE_CODE_DIR="/internalbf/bfmono/shared/node_modules"\n\
+if [ -d "/internalbf/bfmono/shared" ]; then\n\
+    # Create node_modules in shared if it doesn't exist\n\
+    mkdir -p "$CLAUDE_CODE_DIR"\n\
+    \n\
+    # Check if claude-code is installed and get version\n\
+    CURRENT_VERSION="none"\n\
+    if [ -f "$CLAUDE_CODE_DIR/.bin/claude" ]; then\n\
+        CURRENT_VERSION=$("$CLAUDE_CODE_DIR/.bin/claude" --version 2>/dev/null | grep -oE '[0-9]+\\.[0-9]+\\.[0-9]+' || echo "none")\n\
+    fi\n\
+    \n\
+    # Get latest version from npm\n\
+    LATEST_VERSION=$(npm view @anthropic-ai/claude-code version 2>/dev/null || echo "none")\n\
+    \n\
+    # Install or update if needed\n\
+    if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ] && [ "$LATEST_VERSION" != "none" ]; then\n\
+        echo "📦 Updating Claude Code: $CURRENT_VERSION → $LATEST_VERSION"\n\
+        cd /internalbf/bfmono/shared && npm install --prefix . @anthropic-ai/claude-code@latest\n\
+        echo "✅ Claude Code updated to $LATEST_VERSION"\n\
+    else\n\
+        echo "✅ Claude Code is up to date (v$CURRENT_VERSION)"\n\
+    fi\n\
+    \n\
+    # Add claude to PATH\n\
+    export PATH="$CLAUDE_CODE_DIR/.bin:$PATH"\n\
 fi\n\
 \n\
 # Start container bridge in background if not running a specific command\n\
@@ -299,8 +327,8 @@ if [ -f "/internalbf/bfmono/.env.secrets" ]; then
   set +a
 fi
 
-# Add Nix and BF_ROOT to PATH
-export PATH="/internalbf/bin:/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
+# Add Nix, BF_ROOT, and Claude Code to PATH
+export PATH="/internalbf/bfmono/shared/node_modules/.bin:/internalbf/bin:/internalbf/bfmono/infra/bin:/nix/var/nix/profiles/default/bin:\$PATH"
 
 # Set Puppeteer executable path for e2e tests (use Chrome/Chromium based on what's available)
 if [ -x "/usr/bin/google-chrome-stable" ]; then
