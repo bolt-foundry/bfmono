@@ -59,17 +59,25 @@ jobs:
 
       - name: Setup SSH
         run: |
+          # First sync secrets from 1Password to get SSH_PRIVATE_KEY
           nix develop .#production --accept-flake-config --command bash -euc "
-            # Source secrets to get SSH_PRIVATE_KEY from 1Password
-            source .env.secrets
-
-            # Setup SSH directory and key
-            mkdir -p ~/.ssh
-            echo \"\$SSH_PRIVATE_KEY\" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-
-            # Note: ssh-keyscan will be done after we have the server IP
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            # Sync all secrets from 1Password
+            bft sitevar sync --force --secret-only
           "
+          
+          # Now source the secrets file and setup SSH outside of Nix shell
+          # This ensures the SSH key persists for subsequent steps
+          source .env.secrets
+          
+          # Setup SSH directory and key
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Note: ssh-keyscan will be done after we have the server IP
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -131,10 +139,11 @@ jobs:
 
             # Output the IP for GitHub Actions to use in next steps
             echo \"server_ip=\$FLOATING_IP\" >> \$GITHUB_OUTPUT
-
-            # Add server to known_hosts now that we have the IP
-            ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts
           "
+          
+          # Add server to known_hosts outside of Nix shell to ensure it persists
+          # Use the server IP from the output
+          ssh-keyscan -H ${{ steps.terraform_output.outputs.server_ip }} >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Install Kamal
         run: sudo gem install kamal --version 2.7.0 --no-document
