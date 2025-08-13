@@ -75,6 +75,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Sync secrets and generate Kamal config from Terraform state
+        id: terraform_output
         run: |
           # First sync secrets from 1Password
           nix develop .#production --accept-flake-config --command bash -euc "
@@ -128,6 +129,9 @@ jobs:
             # Store the IP for the deployment step
             echo \"BOLTFOUNDRY_COM_SERVER_IP=\$FLOATING_IP\" >> .env.secrets
 
+            # Output the IP for GitHub Actions to use in next steps
+            echo \"server_ip=\$FLOATING_IP\" >> \$GITHUB_OUTPUT
+
             # Add server to known_hosts now that we have the IP
             ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts
           "
@@ -143,6 +147,9 @@ jobs:
 
             # Sync all secrets from 1Password
             bft sitevar sync --force --secret-only
+
+            # Restore the server IP that was retrieved from Terraform
+            echo \"BOLTFOUNDRY_COM_SERVER_IP=${{ steps.terraform_output.outputs.server_ip }}\" >> .env.secrets
 
             # Generate Kamal config dynamically based on available secrets
             bft generate-kamal-config infra/terraform/hetzner/deploy.yml.tpl config/deploy.yml production
@@ -161,6 +168,7 @@ jobs:
         env:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          BOLTFOUNDRY_COM_SERVER_IP: ${{ steps.terraform_output.outputs.server_ip }}
         working-directory: ./
 
       - name: Validate deployment health
