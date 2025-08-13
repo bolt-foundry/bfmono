@@ -3,7 +3,7 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import * as OriginalReact from "react";
 import * as ReactDOMServer from "react-dom/server";
 import { BaseComponent } from "@bfmono/infra/jupyter/BaseComponent.tsx";
-import { build } from "@bfmono/infra/appBuild/appBuild.ts";
+// import { build } from "@bfmono/infra/appBuild/appBuild.ts"; // appBuild removed
 
 const logger = getLogger(import.meta);
 
@@ -48,15 +48,8 @@ function createElement(type, props, ...children) {
           hydrateModuleTextPrependedWithOtherModule,
         );
 
-        const output = await build({
-          entryPoints: [tempFile],
-          bundle: true,
-          write: false,
-          format: "esm",
-        });
-
-        const outputFiles = output.outputFiles ?? [];
-        const { text: sourceModuleText } = outputFiles[0];
+        // Build removed - appBuild deleted, jupyter deprecated
+        const sourceModuleText = "// Build functionality removed";
 
         const baseElement = OriginalReact.createElement(
           BaseComponent,
