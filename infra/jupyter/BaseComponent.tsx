@@ -1,4 +1,7 @@
-import { colors, colorsDark, fonts } from "@bfmono/apps/cfDs/const.tsx";
+// import { colors, colorsDark, fonts } from "@bfmono/apps/cfDs/const.tsx"; // cfDs deleted
+const colors = {};
+const colorsDark = {};
+const fonts = {};
 
 const varsString = Object.entries({ ...colors, ...fonts }).reduce(
   (acc, [key, value]) => {

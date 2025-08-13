@@ -1,6 +1,7 @@
 #! /usr/bin/env -S bff
 
-import type { Handler } from "@bfmono/apps/web/web.tsx";
+// import type { Handler } from "@bfmono/apps/web/web.tsx"; // web deleted
+type Handler = (req: Request) => Response | Promise<Response>;
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { BfError } from "@bfmono/lib/BfError.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
@@ -8,7 +9,7 @@ const logger = getLogger(import.meta);
 
 export function addTools(routes: Map<string, Handler>) {
   logger.debug("Adding tools");
-  routes.set("/tools/jupyter-notebook-open", (req) => {
+  routes.set("/tools/jupyter-notebook-open", (req: Request) => {
     const searchParams = new URLSearchParams(new URL(req.url).search);
     const filePath = searchParams.get("filePath");
     return new Response(null, {
@@ -20,7 +21,7 @@ export function addTools(routes: Map<string, Handler>) {
       },
     });
   });
-  routes.set("/tools/jupyter-console-open", (req) => {
+  routes.set("/tools/jupyter-console-open", (req: Request) => {
     const searchParams = new URLSearchParams(new URL(req.url).search);
     const filePath = searchParams.get("filePath");
     return new Response(null, {
@@ -33,7 +34,7 @@ export function addTools(routes: Map<string, Handler>) {
     });
   });
 
-  routes.set("/tools", async (req) => {
+  routes.set("/tools", async (req: Request) => {
     const searchParams = new URLSearchParams(new URL(req.url).search);
     const tool = searchParams.get("tool");
     if (tool === "graphiql") {
