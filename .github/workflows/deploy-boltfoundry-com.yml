@@ -132,6 +132,9 @@ jobs:
             # Output the IP for GitHub Actions to use in next steps
             echo \"server_ip=\$FLOATING_IP\" >> \$GITHUB_OUTPUT
 
+            # Output the IP for GitHub Actions to use in next steps
+            echo \"server_ip=\$FLOATING_IP\" >> \$GITHUB_OUTPUT
+
             # Add server to known_hosts now that we have the IP
             ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts
           "
@@ -148,6 +151,9 @@ jobs:
             # Sync all secrets from 1Password
             bft sitevar sync --force --secret-only
             
+            # Restore the server IP that was retrieved from Terraform
+            echo \"BOLTFOUNDRY_COM_SERVER_IP=${{ steps.terraform_output.outputs.server_ip }}\" >> .env.secrets
+
             # Restore the server IP that was retrieved from Terraform
             echo \"BOLTFOUNDRY_COM_SERVER_IP=${{ steps.terraform_output.outputs.server_ip }}\" >> .env.secrets
 
