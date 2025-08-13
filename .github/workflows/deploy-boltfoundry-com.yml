@@ -70,10 +70,19 @@ jobs:
           # This ensures the SSH key persists for subsequent steps
           source .env.secrets
 
+          # Start SSH agent and add the key
+          eval "$(ssh-agent -s)"
+          
           # Setup SSH directory and key
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          
+          # Add the key to the SSH agent
+          ssh-add ~/.ssh/id_rsa
+          
+          # Export SSH_AUTH_SOCK for subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
 
           # Note: ssh-keyscan will be done after we have the server IP
         env:
