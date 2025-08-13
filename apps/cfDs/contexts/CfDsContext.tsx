@@ -4,7 +4,7 @@ import {
   CfDsModal,
   type ModalHandles,
 } from "@bfmono/apps/cfDs/components/CfDsModal.tsx";
-import { useLocalStorage } from "@bfmono/apps/boltFoundry/hooks/useLocalStorage.ts";
+import { useLocalStorage } from "@bfmono/packages/react-hooks/mod.ts";
 import {
   CfDsToast,
   TRANSITION_DURATION,

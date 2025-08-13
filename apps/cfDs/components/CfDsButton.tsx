@@ -5,7 +5,7 @@ import {
   type CfDsIconType,
   type IconSizeType,
 } from "@bfmono/apps/cfDs/components/CfDsIcon.tsx";
-import { RouterLink } from "@bfmono/apps/boltFoundry/components/Router/RouterLink.tsx";
+// RouterLink removed - using simple <a> tags instead
 import {
   CfDsTooltip,
   type CfDsTooltipJustification,
@@ -797,9 +797,9 @@ export function CfDsButton({
   let wrappedButton = buttonElement;
   if (link) {
     wrappedButton = (
-      <RouterLink to={link} style={{ display: "block" }} target={hrefTarget}>
+      <a href={link} style={{ display: "block" }} target={hrefTarget}>
         {buttonElement}
-      </RouterLink>
+      </a>
     );
   } else if (href) {
     wrappedButton = (
