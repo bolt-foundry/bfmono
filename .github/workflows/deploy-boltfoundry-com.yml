@@ -70,10 +70,19 @@ jobs:
           # This ensures the SSH key persists for subsequent steps
           source .env.secrets
 
+          # Start SSH agent and add the key
+          eval "$(ssh-agent -s)"
+
           # Setup SSH directory and key
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+
+          # Add the key to the SSH agent
+          ssh-add ~/.ssh/id_rsa
+
+          # Export SSH_AUTH_SOCK for subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
 
           # Note: ssh-keyscan will be done after we have the server IP
         env:
@@ -171,6 +180,24 @@ jobs:
           mkdir -p .kamal
           echo "GITHUB_TOKEN=${KAMAL_REGISTRY_PASSWORD}" > .kamal/secrets
           chmod 600 .kamal/secrets
+
+          # Set up SSH for this step since GitHub Actions doesn't persist SSH agent between steps
+          # We need to ensure the SSH key is available for Kamal
+          if [ -f ~/.ssh/id_rsa ]; then
+            echo "SSH key already exists at ~/.ssh/id_rsa"
+          else
+            echo "Setting up SSH key for Kamal deployment"
+            source .env.secrets
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+          fi
+
+          # Ensure StrictHostKeyChecking is disabled for the deployment
+          echo "Host ${{ steps.terraform_output.outputs.server_ip }}" >> ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
           # Deploy with Kamal 2.x (will use .env for secret environment variables)
           kamal deploy
