@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-// BfLogo removed - cfDs deleted
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useHud } from "@bfmono/apps/bfDs/index.ts";
+import { BfLogo } from "@bfmono/apps/bfDs/logo/BfLogo.tsx";
 
 type Props = {
   page?: string;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
-  const [_hoverLogo, setHoverLogo] = useState(false);
+  const [hoverLogo, setHoverLogo] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const { isVisible: hudOpen, toggleHud } = useHud();
 
@@ -116,9 +116,13 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
             onMouseEnter={() => setHoverLogo(true)}
             onMouseLeave={() => setHoverLogo(false)}
           >
-            <span style={{ fontSize: 18, fontWeight: "bold" }}>
-              Bolt Foundry
-            </span>
+            <BfLogo
+              boltColor={hoverLogo ? "var(--bfds-primary)" : "var(--bfds-text)"}
+              foundryColor={hoverLogo
+                ? "var(--bfds-primary)"
+                : "var(--bfds-text)"}
+              height={24}
+            />
           </a>
           {organization === "boltfoundry" && (
             <BfDsButton
