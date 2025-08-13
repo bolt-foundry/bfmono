@@ -1,4 +1,4 @@
-import { RouterLink } from "@bfmono/apps/boltFoundry/components/Router/RouterLink.tsx";
+// RouterLink removed - using simple <a> tags instead
 import { CfDsIcon } from "@bfmono/apps/cfDs/components/CfDsIcon.tsx";
 
 type Crumb = {
@@ -17,18 +17,18 @@ export function CfDsBreadcrumbs({ crumbs, homeLink }: BreadcrumbsProps) {
       <ul className="breadcrumbs">
         {homeLink && (
           <li className="breadcrumb-item">
-            <RouterLink to={homeLink}>
+            <a href={homeLink}>
               {<CfDsIcon name="home" size={16} />}
-            </RouterLink>
+            </a>
           </li>
         )}
         {crumbs.map((crumb, index) => {
           return (
             <li className="breadcrumb-item" key={index}>
-              <RouterLink to={crumb.link}>
+              <a href={crumb.link}>
                 {crumb.back && <CfDsIcon name="arrowLeft" />}
                 {crumb.name}
-              </RouterLink>
+              </a>
             </li>
           );
         })}

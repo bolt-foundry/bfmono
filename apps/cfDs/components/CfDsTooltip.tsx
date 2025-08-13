@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { CfDsIcon } from "@bfmono/apps/cfDs/components/CfDsIcon.tsx";
-import { useCopyToClipboard } from "@bfmono/apps/boltFoundry/hooks/useCopyToClipboard.ts";
+import { useCopyToClipboard } from "@bfmono/packages/react-hooks/mod.ts";
 import {
   type CfDsTooltipJustification,
   type CfDsTooltipPosition,

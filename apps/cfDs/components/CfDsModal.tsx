@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { fonts } from "@bfmono/apps/cfDs/const.tsx";
 import { CfDsButton } from "@bfmono/apps/cfDs/components/CfDsButton.tsx";
 import { classnames } from "@bfmono/lib/classnames.ts";
-import { useClickOutside } from "@bfmono/apps/boltFoundry/hooks/useClickOutside.ts";
+import { useClickOutside } from "@bfmono/packages/react-hooks/mod.ts";
 import { useCfDs } from "@bfmono/apps/cfDs/hooks/useCfDs.tsx";
 
 const { useEffect, useRef, useState, forwardRef, useImperativeHandle } = React;
