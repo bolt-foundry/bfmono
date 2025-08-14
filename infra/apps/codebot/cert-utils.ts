@@ -22,7 +22,7 @@ prompt = no
 CN = *.codebot.local
 
 [v3_req]
-keyUsage = keyEncipherment, dataEncipherment
+keyUsage = digitalSignature, keyEncipherment, dataEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
@@ -156,6 +156,56 @@ export async function trustCertificate(certPath: string): Promise<void> {
   logger.info(
     "You may need to restart your browser for the certificate to be recognized",
   );
+}
+
+export async function removeOldCodebotCertificates(): Promise<void> {
+  logger.info(
+    "Removing old codebot.local certificates from system keychain...",
+  );
+
+  if (Deno.build.os === "darwin") {
+    try {
+      // Find all codebot.local certificates and get their SHA-1 hashes
+      const command = new Deno.Command("security", {
+        args: ["find-certificate", "-a", "-c", "codebot.local", "-Z"],
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const output = await command.output();
+
+      if (output.success) {
+        const stdout = new TextDecoder().decode(output.stdout);
+        const sha1Matches = stdout.match(/SHA-1 hash: ([A-F0-9]{40})/g);
+
+        if (sha1Matches) {
+          for (const match of sha1Matches) {
+            const hash = match.replace("SHA-1 hash: ", "");
+            logger.info(`Removing certificate with SHA-1: ${hash}`);
+
+            const deleteCommand = new Deno.Command("sudo", {
+              args: ["security", "delete-certificate", "-Z", hash],
+              stdout: "piped",
+              stderr: "piped",
+            });
+
+            const deleteOutput = await deleteCommand.output();
+            if (!deleteOutput.success) {
+              const stderr = new TextDecoder().decode(deleteOutput.stderr);
+              logger.warn(`Failed to remove certificate ${hash}: ${stderr}`);
+            }
+          }
+          logger.info("Old certificates removed from system keychain");
+        } else {
+          logger.info("No existing codebot.local certificates found");
+        }
+      }
+    } catch (error) {
+      logger.warn(`Failed to remove old certificates: ${error}`);
+    }
+  } else {
+    logger.info("Certificate cleanup only supported on macOS");
+  }
 }
 
 export async function ensureWildcardCertificate(

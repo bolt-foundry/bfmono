@@ -29,6 +29,11 @@ export const Eval = iso(`
       personBfGid
       orgBfOid
       asCurrentViewerLoggedIn {
+        person {
+          id
+          name
+          email
+        }
         organization {
           id
           name

@@ -17,5 +17,6 @@ export const EntrypointRlhf = iso(`
 
   const Body = data.currentViewer?.RlhfHome;
   const title = "RLHF - Bolt Foundry";
+
   return { Body, title };
 });
