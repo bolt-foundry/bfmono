@@ -3,7 +3,7 @@ import { GradingSamplesList } from "./GradingSamplesList.tsx";
 import { GradingInbox } from "./GradingInbox.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
-import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
+import { useGradingSamplesWithGraphQL } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamplesWithGraphQL.ts";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
 interface GradingContainerProps {
@@ -19,7 +19,8 @@ export function GradingContainer({
   deckName,
   onClose,
 }: GradingContainerProps) {
-  const { samples, saveGrade, saving } = useGradingSamples(deckId);
+  const { samples, saveGrade, saving, submitSampleResponseElement } =
+    useGradingSamplesWithGraphQL(deckId);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [viewingSample, setViewingSample] = useState<GradingSample | null>(
     null,
@@ -61,61 +62,70 @@ export function GradingContainer({
 
   if (viewMode === "grading") {
     return (
-      <GradingInbox
-        deckId={deckId}
-        deckName={deckName}
-        onClose={onClose}
-        onComplete={handleGradingComplete}
-        samples={samples}
-        saveGrade={saveGrade}
-        saving={saving}
-      />
+      <>
+        <GradingInbox
+          deckId={deckId}
+          deckName={deckName}
+          onClose={onClose}
+          onComplete={handleGradingComplete}
+          samples={samples}
+          saveGrade={saveGrade}
+          saving={saving}
+        />
+        {submitSampleResponseElement}
+      </>
     );
   }
 
   if (viewMode === "viewing" && viewingSample) {
     return (
-      <div className="grading-sample-view">
-        <div className="grading-header">
-          <div className="grading-header-left">
+      <>
+        <div className="grading-sample-view">
+          <div className="grading-header">
+            <div className="grading-header-left">
+              <BfDsButton
+                variant="ghost"
+                size="small"
+                icon="arrowLeft"
+                onClick={handleBackToList}
+              >
+                Back to List
+              </BfDsButton>
+              <h2>Sample Details</h2>
+            </div>
             <BfDsButton
               variant="ghost"
               size="small"
-              icon="arrowLeft"
-              onClick={handleBackToList}
-            >
-              Back to List
-            </BfDsButton>
-            <h2>Sample Details</h2>
+              icon="cross"
+              onClick={onClose}
+              aria-label="Close"
+            />
           </div>
-          <BfDsButton
-            variant="ghost"
-            size="small"
-            icon="cross"
-            onClick={onClose}
-            aria-label="Close"
-          />
+          <div className="grading-body">
+            <SampleDisplay
+              sample={viewingSample}
+              onHumanRatingChange={() => {}}
+              currentRatings={{}}
+            />
+          </div>
         </div>
-        <div className="grading-body">
-          <SampleDisplay
-            sample={viewingSample}
-            onHumanRatingChange={() => {}}
-            currentRatings={{}}
-          />
-        </div>
-      </div>
+        {submitSampleResponseElement}
+      </>
     );
   }
 
   return (
-    <GradingSamplesList
-      deckId={deckId}
-      deckName={deckName}
-      onStartGrading={handleStartGrading}
-      onViewSample={handleViewSample}
-      justCompletedIds={justCompletedIds}
-      completionSummary={completionSummary}
-      availableSamples={samples || []}
-    />
+    <>
+      <GradingSamplesList
+        deckId={deckId}
+        deckName={deckName}
+        onStartGrading={handleStartGrading}
+        onViewSample={handleViewSample}
+        justCompletedIds={justCompletedIds}
+        completionSummary={completionSummary}
+        availableSamples={samples || []}
+      />
+      {submitSampleResponseElement}
+    </>
   );
 }

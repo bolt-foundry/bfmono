@@ -43,17 +43,7 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
         returns: "BfDeck",
         resolve: async (_src, args, ctx) => {
           const cv = ctx.getCurrentViewer();
-          let org;
-          try {
-            org = await BfOrganization.findX(cv, cv.orgBfOid);
-          } catch {
-            // Create organization if it doesn't exist (for tests)
-            org = await BfOrganization.__DANGEROUS__createUnattached(cv, {
-              name: "Test Organization",
-              domain: "testorg.com",
-            });
-            await org.save();
-          }
+          const org = await BfOrganization.findX(cv, cv.orgBfOid);
           const deck = await org.createTargetNode(BfDeck, {
             name: args.name,
             content: args.content,

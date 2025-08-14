@@ -19,6 +19,9 @@ interface EvalContextType {
   gradingDeckId: string | null;
   gradingDeckName: string | null;
 
+  // Current viewer data
+  currentViewer: any;
+
   setLeftSidebarOpen: (open: boolean) => void;
   setActiveMainContent: (content: MainView) => void;
   openRightSidebar: (content: string) => void;
@@ -37,7 +40,9 @@ const isMobile = () => {
   return globalThis.innerWidth <= 768;
 };
 
-export function EvalProvider({ children }: { children: ReactNode }) {
+export function EvalProvider(
+  { children, currentViewer }: { children: ReactNode; currentViewer?: any },
+) {
   const [leftSidebarOpen, setLeftSidebarOpenState] = useState(() =>
     !isMobile()
   );
@@ -124,6 +129,7 @@ export function EvalProvider({ children }: { children: ReactNode }) {
         chatBackTarget,
         gradingDeckId,
         gradingDeckName,
+        currentViewer,
         setLeftSidebarOpen,
         setActiveMainContent,
         openRightSidebar,
