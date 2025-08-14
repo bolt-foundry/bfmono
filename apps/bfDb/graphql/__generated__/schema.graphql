@@ -111,6 +111,7 @@ type CurrentViewerLoggedIn implements CurrentViewer {
   id: ID
   orgBfOid: String
   organization: BfOrganization
+  person: BfPerson
   personBfGid: String
 }
 
