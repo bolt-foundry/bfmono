@@ -10,6 +10,24 @@ export const Home = iso(`
     githubRepoStats {
       stars
     }
+    currentViewer {
+      __typename
+      id
+      personBfGid
+      orgBfOid
+      asCurrentViewerLoggedIn {
+        organization {
+          id
+          name
+          domain
+        }
+        person {
+          id
+          name
+          email
+        }
+      }
+    }
   }
 `)(function Home({ data }) {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -30,7 +48,7 @@ export const Home = iso(`
   return (
     <div className="landing-page">
       {/* Navigation Header */}
-      <Nav page="home" />
+      <Nav currentViewer={data.currentViewer} page="home" />
 
       {/* Hero Section */}
       <main className="hero-section flexColumn" ref={heroRef}>

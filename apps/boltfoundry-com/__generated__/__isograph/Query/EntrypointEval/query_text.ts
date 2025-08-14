@@ -3,6 +3,7 @@ export default 'query EntrypointEval  {\
   currentViewer {\
     __typename,\
     id,\
+    __typename,\
     orgBfOid,\
     personBfGid,\
     ... on CurrentViewerLoggedIn {\
@@ -21,6 +22,11 @@ export default 'query EntrypointEval  {\
           },\
         },\
         domain,\
+        name,\
+      },\
+      person {\
+        id,\
+        email,\
         name,\
       },\
     },\
