@@ -4,7 +4,11 @@ import { getLogger } from "@bolt-foundry/logger";
 import type { TaskDefinition } from "../bft.ts";
 import { parseArgs } from "@std/cli/parse-args";
 import type { Args } from "@std/cli/parse-args";
-import { ensureWildcardCertificate } from "@bfmono/infra/apps/codebot/cert-utils.ts";
+import {
+  ensureWildcardCertificate,
+  removeOldCodebotCertificates,
+  trustCertificate,
+} from "@bfmono/infra/apps/codebot/cert-utils.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 
 const logger = getLogger(import.meta);
@@ -13,6 +17,7 @@ interface CertsOptions extends Args {
   generate?: boolean;
   status?: boolean;
   regenerate?: boolean;
+  clean?: boolean;
 }
 
 async function generateCertificates(): Promise<void> {
@@ -84,24 +89,61 @@ async function regenerateCertificates(): Promise<void> {
     // File didn't exist
   }
 
+  // Remove old certificates from system keychain
+  await removeOldCodebotCertificates();
+
   // Generate new ones
   await generateCertificates();
+
+  // Trust the newly generated certificate
+  const newCertPath = `${sharedCertDir}/codebot-wildcard.pem`;
+  await trustCertificate(newCertPath);
+}
+
+async function cleanCertificates(): Promise<void> {
+  logger.info("🧹 Cleaning all codebot certificates...");
+
+  const bfRoot = getConfigurationVariable("BF_ROOT") ||
+    getConfigurationVariable("HOME") + "/internalbf/bfmono";
+  const sharedCertDir = `${bfRoot}/shared/certs`;
+  const cleanCertPath = `${sharedCertDir}/codebot-wildcard.pem`;
+  const cleanKeyPath = `${sharedCertDir}/codebot-wildcard-key.pem`;
+
+  // Remove from system keychain first
+  await removeOldCodebotCertificates();
+
+  // Remove certificate files
+  try {
+    await Deno.remove(cleanCertPath);
+    logger.info("🗑️  Removed certificate file");
+  } catch {
+    logger.info("Certificate file not found (already clean)");
+  }
+
+  try {
+    await Deno.remove(cleanKeyPath);
+    logger.info("🗑️  Removed private key file");
+  } catch {
+    logger.info("Private key file not found (already clean)");
+  }
+
+  logger.info("✅ Certificate cleanup completed");
 }
 
 async function certs(rawArgs: Array<string>): Promise<number> {
   const args = parseArgs(rawArgs, {
-    boolean: ["generate", "status", "regenerate"],
+    boolean: ["generate", "status", "regenerate", "clean"],
   }) as CertsOptions;
 
   // Default to status if no action specified
-  const actionCount = [args.generate, args.status, args.regenerate]
+  const actionCount = [args.generate, args.status, args.regenerate, args.clean]
     .filter(Boolean).length;
 
   if (actionCount === 0) {
     args.status = true;
   } else if (actionCount > 1) {
     logger.error(
-      "Please specify only one action: --generate, --status, or --regenerate",
+      "Please specify only one action: --generate, --status, --regenerate, or --clean",
     );
     return 1;
   }
@@ -111,6 +153,8 @@ async function certs(rawArgs: Array<string>): Promise<number> {
       await generateCertificates();
     } else if (args.regenerate) {
       await regenerateCertificates();
+    } else if (args.clean) {
+      await cleanCertificates();
     } else if (args.status) {
       await checkCertificateStatus();
     }
