@@ -73,6 +73,7 @@ export async function createContext(
     request,
     responseHeaders,
   );
+
   logger.debug("Current viewer created");
 
   const ctx: BfGraphqlContext = {
