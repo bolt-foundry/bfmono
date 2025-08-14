@@ -193,7 +193,33 @@ jobs:
 
           # Create .kamal directory and secrets file for Kamal 2.x
           mkdir -p .kamal
+          
+          # Start with the GitHub token for registry authentication
           echo "GITHUB_TOKEN=${KAMAL_REGISTRY_PASSWORD}" > .kamal/secrets
+          
+          # Copy all runtime secrets from .env.secrets to .kamal/secrets
+          # This ensures Kamal has access to all secrets referenced in the config
+          if [ -f .env.secrets ]; then
+            # Source the secrets and add them to .kamal/secrets
+            # Skip infrastructure-only secrets that aren't needed at runtime
+            source .env.secrets
+            for var in $(grep "^[A-Z_]*=" .env.secrets | cut -d= -f1); do
+              # Skip infrastructure and deployment secrets
+              case "$var" in
+                SSH_PRIVATE_KEY|SSH_PUBLIC_KEY|HETZNER_API_TOKEN|CLOUDFLARE_*|TERRAFORM_*|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|GITHUB_PERSONAL_ACCESS_TOKEN|HETZNER_PROJECT_ID|S3_ENDPOINT|*_SERVER_IP)
+                  # Skip these - not needed at runtime
+                  ;;
+                *)
+                  # Add runtime secret to .kamal/secrets
+                  eval "value=\$$var"
+                  if [ ! -z "$value" ]; then
+                    echo "$var=$value" >> .kamal/secrets
+                  fi
+                  ;;
+              esac
+            done
+          fi
+          
           chmod 600 .kamal/secrets
 
           # Set up SSH for this step since GitHub Actions doesn't persist SSH agent between steps
