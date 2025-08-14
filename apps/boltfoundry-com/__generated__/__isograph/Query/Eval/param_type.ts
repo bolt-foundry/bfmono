@@ -9,6 +9,11 @@ export type Query__Eval__param = {
 A client pointer for the CurrentViewerLoggedIn type.
       */
       readonly asCurrentViewerLoggedIn: ({
+        readonly person: ({
+          readonly id: string,
+          readonly name: (string | null),
+          readonly email: (string | null),
+        } | null),
         readonly organization: ({
           readonly id: string,
           readonly name: (string | null),

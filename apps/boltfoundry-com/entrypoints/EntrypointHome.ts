@@ -11,5 +11,6 @@ export const EntrypointHome = iso(`
   const Body = data.Home;
   logger.debug("dataer", data);
   const title = "Bolt Foundry: Unit Tests for LLMs.";
+
   return { Body, title };
 });

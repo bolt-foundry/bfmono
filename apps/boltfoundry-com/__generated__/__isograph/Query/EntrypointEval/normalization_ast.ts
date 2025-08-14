@@ -25,6 +25,11 @@ const normalizationAst: NormalizationAst = {
         },
         {
           kind: "Scalar",
+          fieldName: "__typename",
+          arguments: null,
+        },
+        {
+          kind: "Scalar",
           fieldName: "orgBfOid",
           arguments: null,
         },
@@ -110,6 +115,29 @@ const normalizationAst: NormalizationAst = {
                 {
                   kind: "Scalar",
                   fieldName: "domain",
+                  arguments: null,
+                },
+                {
+                  kind: "Scalar",
+                  fieldName: "name",
+                  arguments: null,
+                },
+              ],
+            },
+            {
+              kind: "Linked",
+              fieldName: "person",
+              arguments: null,
+              concreteType: "BfPerson",
+              selections: [
+                {
+                  kind: "Scalar",
+                  fieldName: "id",
+                  arguments: null,
+                },
+                {
+                  kind: "Scalar",
+                  fieldName: "email",
                   arguments: null,
                 },
                 {

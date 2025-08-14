@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useHud } from "@bfmono/apps/bfDs/index.ts";
@@ -8,15 +8,80 @@ type Props = {
   page?: string;
   onSidebarToggle?: () => void;
   sidebarOpen?: boolean;
+  currentViewer?: any;
 };
 
-export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
+// Custom hook for fetching currentViewer (fallback for non-Isograph pages)
+function useCurrentViewer() {
+  const [currentViewer, setCurrentViewer] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCurrentViewer = async () => {
+      try {
+        const response = await fetch("/graphql", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: `
+              query {
+                currentViewer {
+                  __typename
+                  id
+                  personBfGid
+                  orgBfOid
+                  ... on CurrentViewerLoggedIn {
+                    person {
+                      id
+                      name
+                      email
+                    }
+                    organization {
+                      id
+                      name
+                      domain
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+        const result = await response.json();
+        setCurrentViewer(result.data?.currentViewer);
+      } catch (error) {
+        console.error("Failed to fetch currentViewer:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCurrentViewer();
+  }, []);
+
+  return { currentViewer, loading };
+}
+
+export function Nav(
+  { page, onSidebarToggle, sidebarOpen, currentViewer: propCurrentViewer }:
+    Props,
+) {
   const [hoverLogo, setHoverLogo] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const { isVisible: hudOpen, toggleHud } = useHud();
 
-  // Temporary organization variable - replace with actual user org check
-  const organization = "boltfoundry";
+  // Use fallback hook only if no currentViewer prop is provided
+  const { currentViewer: hookCurrentViewer, loading } = propCurrentViewer
+    ? { currentViewer: null, loading: false }
+    : useCurrentViewer();
+  const currentViewer = propCurrentViewer || hookCurrentViewer;
+
+  let organization = "boltfoundry"; // fallback
+  if (currentViewer?.asCurrentViewerLoggedIn?.organization) {
+    organization = currentViewer.asCurrentViewerLoggedIn.organization.domain;
+  } else if (currentViewer?.organization) {
+    organization = currentViewer.organization.domain;
+  }
 
   const NavButtons = () => {
     return (
@@ -82,12 +147,29 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
           UI Demo
         </BfDsButton> */
         }
-        <BfDsButton
-          variant={page === "login" ? "secondary" : "outline-secondary"}
-          link="/login"
-        >
-          Login
-        </BfDsButton>
+        {(currentViewer?.asCurrentViewerLoggedIn ||
+            (currentViewer?.__typename === "CurrentViewerLoggedIn"))
+          ? (
+            <BfDsButton
+              variant="outline-secondary"
+              icon="user"
+              link="/logout"
+            >
+              {currentViewer.asCurrentViewerLoggedIn?.person?.name ||
+                currentViewer.person?.name ||
+                currentViewer.asCurrentViewerLoggedIn?.organization?.name ||
+                currentViewer.organization?.name ||
+                "User"}
+            </BfDsButton>
+          )
+          : (
+            <BfDsButton
+              variant={page === "login" ? "secondary" : "outline-secondary"}
+              link="/login"
+            >
+              Login
+            </BfDsButton>
+          )}
       </>
     );
   };
