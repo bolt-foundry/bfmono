@@ -557,8 +557,9 @@ OPTIONS:
   await ensureHostBridge();
 
   // Ensure wildcard certificate for HTTPS support
-  const homeDir = getConfigurationVariable("HOME");
-  const sharedCertDir = `${homeDir}/internalbf/bfmono/shared/certs`;
+  const bfRoot = getConfigurationVariable("BF_ROOT") ||
+    getConfigurationVariable("HOME") + "/internalbf/bfmono";
+  const sharedCertDir = `${bfRoot}/shared/certs`;
   await ensureWildcardCertificate(sharedCertDir);
 
   // Check for Claude credentials
