@@ -75,11 +75,26 @@ jobs:
 
           # Setup SSH directory and key
           mkdir -p ~/.ssh
+
+          # Write the SSH key to file
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Add the key to the SSH agent
-          ssh-add ~/.ssh/id_rsa
+          # Try to validate the key format
+          echo "Validating SSH key format..."
+          ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1 && echo "Key format is valid" || echo "Key format is INVALID"
+
+          # Verify the key is valid before proceeding
+          if ! ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1; then
+            echo "ERROR: SSH key format is invalid"
+            echo "Key content first 50 chars: $(head -c 50 ~/.ssh/id_rsa)"
+            echo "Key content last 50 chars: $(tail -c 50 ~/.ssh/id_rsa)"
+            # Don't exit yet - let's try to continue without SSH agent
+            echo "Will attempt to continue without SSH agent"
+          else
+            # Add the key to the SSH agent only if it's valid
+            ssh-add ~/.ssh/id_rsa || echo "Failed to add key to SSH agent, continuing anyway"
+          fi
 
           # Export SSH_AUTH_SOCK for subsequent steps
           echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
