@@ -6,6 +6,8 @@ import { DeckItem } from "./DeckItem.tsx";
 import { DeckCreateModal, type DeckFormData } from "./DeckCreateModal.tsx";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
+import CreateDeckMutation from "@iso-bfc/Mutation/CreateDeck/entrypoint.ts";
+import { useMutation } from "@bfmono/apps/boltfoundry-com/hooks/isographPrototypes/useMutation.tsx";
 
 const logger = getLogger(import.meta);
 
@@ -58,13 +60,23 @@ const mockDecks = [
 
 interface DeckListProps {
   onDeckSelect?: (deckId: string) => void;
+  decks?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    graderCount: number;
+    lastModified: string;
+    status: "active" | "inactive";
+    agreementRate: number;
+    totalTests: number;
+  }>;
 }
 
-export function DeckList({ onDeckSelect }: DeckListProps) {
+export function DeckList({ onDeckSelect, decks = mockDecks }: DeckListProps) {
   const { startDeckCreation, startGrading } = useEvalContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [decks] = useState(mockDecks);
+  const createDeckMutation = useMutation(CreateDeckMutation);
 
   const filteredDecks = decks.filter((deck) =>
     deck.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,8 +85,31 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
 
   const handleCreateDeck = (deckData: DeckFormData) => {
     logger.info("Creating deck:", deckData);
-    // TODO: Implement deck creation with GraphQL mutation
-    setShowCreateModal(false);
+
+    // TODO: In the future, integrate with the chat-based deck creation flow
+    // The startDeckCreation() function in EvalContext provides a chat interface
+    // for deck creation that should be connected to this modal workflow
+
+    // Generate a slug from the deck name
+    const slug = deckData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    createDeckMutation.commit({
+      name: deckData.name,
+      description: deckData.description,
+      content: deckData.systemPrompt, // Map systemPrompt to content
+      slug: slug,
+    }, {
+      onComplete: ({ createDeck }) => {
+        logger.info("Deck created successfully:", createDeck);
+        setShowCreateModal(false);
+        // TODO: Refresh the deck list or add the new deck to the list
+      },
+      onError: () => {
+        logger.error("Failed to create deck");
+        // TODO: Show error message to user
+      },
+    });
   };
 
   const handleDeckClick = (deckId: string) => {
@@ -95,7 +130,7 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
           description="Create your first evaluation deck to start grading AI responses"
           action={{
             label: "Create Deck",
-            onClick: startDeckCreation,
+            onClick: () => setShowCreateModal(true),
           }}
           secondaryAction={{
             label: "Learn More",
@@ -125,7 +160,7 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
         <BfDsButton
           variant="primary"
           icon="plus"
-          onClick={startDeckCreation}
+          onClick={() => setShowCreateModal(true)}
         >
           Create Deck
         </BfDsButton>
@@ -158,6 +193,9 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
           onSubmit={handleCreateDeck}
         />
       )}
+
+      {/* Render mutation response element for Isograph */}
+      {createDeckMutation.responseElement}
     </>
   );
 }

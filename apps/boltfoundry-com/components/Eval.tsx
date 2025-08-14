@@ -55,7 +55,7 @@ export const Eval = iso(`
   }, []);
 
   return (
-    <EvalProvider>
+    <EvalProvider currentViewer={data.currentViewer}>
       <EvalContent />
     </EvalProvider>
   );

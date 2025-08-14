@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { DeckList } from "./DeckList.tsx";
+import { DecksListWithData } from "./DecksListWithData.tsx";
 import { DeckConfigModal } from "./DeckConfigModal.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
 export function DecksView() {
-  const { openRightSidebar } = useEvalContext();
+  const { openRightSidebar, currentViewer } = useEvalContext();
   const [selectedDeck, _setSelectedDeck] = useState<
     { id: string; name: string } | null
   >(null);
@@ -46,7 +47,14 @@ export function DecksView() {
         </p>
       </div>
 
-      <DeckList onDeckSelect={handleDeckSelect} />
+      {currentViewer
+        ? (
+          <DecksListWithData
+            currentViewer={currentViewer}
+            onDeckSelect={handleDeckSelect}
+          />
+        )
+        : <DeckList onDeckSelect={handleDeckSelect} />}
 
       {showConfigModal && selectedDeck && (
         <DeckConfigModal

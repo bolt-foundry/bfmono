@@ -8,20 +8,26 @@ export type RouteEntrypoint = {
   headers?: Record<string, string>;
 };
 
+iso(`entrypoint Mutation.CreateDeck`)
 iso(`entrypoint Mutation.JoinWaitlist`)
+iso(`entrypoint Mutation.SubmitSample`)
 iso(`entrypoint Query.EntrypointEval`)
 iso(`entrypoint Query.EntrypointHome`)
 iso(`entrypoint Query.EntrypointLogin`)
 iso(`entrypoint Query.EntrypointRlhf`)
 
+import createDeck from "@iso-bfc/Mutation/CreateDeck/entrypoint.ts"
 import entrypointEval from "@iso-bfc/Query/EntrypointEval/entrypoint.ts"
 import entrypointHome from "@iso-bfc/Query/EntrypointHome/entrypoint.ts"
 import entrypointLogin from "@iso-bfc/Query/EntrypointLogin/entrypoint.ts"
 import entrypointRlhf from "@iso-bfc/Query/EntrypointRlhf/entrypoint.ts"
 import joinWaitlist from "@iso-bfc/Mutation/JoinWaitlist/entrypoint.ts"
+import submitSample from "@iso-bfc/Mutation/SubmitSample/entrypoint.ts"
 
+export {createDeck};
 export {entrypointEval};
 export {entrypointHome};
 export {entrypointLogin};
 export {entrypointRlhf};
 export {joinWaitlist};
+export {submitSample};
