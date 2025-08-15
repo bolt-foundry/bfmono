@@ -140,7 +140,7 @@ export function ResolutionModal(
           </div>
 
           <div className="scores-review">
-            <h4>Current Grader Scores</h4>
+            <h4>Current grader scores</h4>
             <div className="scores-table">
               <div className="scores-header">
                 <span>Category</span>
@@ -186,21 +186,21 @@ export function ResolutionModal(
       content: (
         <div className="resolution-content">
           <div className="resolution-method">
-            <h4>Resolution Method</h4>
+            <h4>Resolution method</h4>
             <BfDsRadio
               name="resolutionMethod"
               options={[
                 {
                   value: "consensus",
-                  label: "Use Consensus",
+                  label: "Use consensus",
                 },
                 {
                   value: "expert",
-                  label: "Expert Review",
+                  label: "Expert review",
                 },
                 {
                   value: "dismiss",
-                  label: "Dismiss Disagreement",
+                  label: "Dismiss disagreement",
                 },
               ]}
               value={resolutionType}
@@ -211,7 +211,7 @@ export function ResolutionModal(
 
           {resolutionType === "consensus" && (
             <div className="consensus-options">
-              <h4>Consensus Method</h4>
+              <h4>Consensus method</h4>
               <BfDsRadio
                 name="consensusMethod"
                 options={[
@@ -255,7 +255,7 @@ export function ResolutionModal(
 
           {resolutionType === "expert" && (
             <div className="expert-scoring">
-              <h4>Expert Scores</h4>
+              <h4>Expert scores</h4>
               <p>Provide authoritative scores for each category (1-100):</p>
 
               <div className="expert-scores-form">
@@ -282,7 +282,7 @@ export function ResolutionModal(
           )}
 
           <div className="resolution-notes">
-            <h4>Resolution Notes</h4>
+            <h4>Resolution notes</h4>
             <BfDsTextArea
               placeholder="Add notes about this resolution decision..."
               value={notes}
@@ -300,7 +300,7 @@ export function ResolutionModal(
       isOpen
       size="large"
       onClose={onClose}
-      title={`Resolve Disagreement - Sample #${disagreement.sampleId}`}
+      title={`Resolve disagreement - Sample #${disagreement.sampleId}`}
       footer={
         <div className="resolution-modal-footer">
           <BfDsButton variant="outline" onClick={onClose}>
@@ -311,7 +311,7 @@ export function ResolutionModal(
             onClick={handleSubmit}
             disabled={!isValid()}
           >
-            {resolutionType === "dismiss" ? "Dismiss" : "Apply Resolution"}
+            {resolutionType === "dismiss" ? "Dismiss" : "Apply resolution"}
           </BfDsButton>
         </div>
       }

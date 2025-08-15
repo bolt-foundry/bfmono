@@ -174,7 +174,7 @@ export function GradingSamplesList({
   return (
     <div className="grading-samples-list">
       <div className="grading-header">
-        <h2>{deckName} - Grading Overview</h2>
+        <h2>{deckName} - Grading overview</h2>
       </div>
 
       {/* Completion summary callout */}
@@ -182,7 +182,7 @@ export function GradingSamplesList({
         <div className="grading-summary-callout success">
           <BfDsIcon name="checkCircle" size="medium" />
           <div className="callout-content">
-            <h3>Grading Session Complete!</h3>
+            <h3>Grading session complete!</h3>
             <p>
               You graded {completionSummary.totalGraded}{" "}
               samples with an average human score of{" "}
@@ -203,7 +203,7 @@ export function GradingSamplesList({
           <BfDsIcon name="bell" size="medium" />
           <div className="callout-content">
             <h3>
-              {ungradedCount} New Sample{ungradedCount !== 1 ? "s" : ""}{" "}
+              {ungradedCount} new sample{ungradedCount !== 1 ? "s" : ""}{" "}
               to Grade
             </h3>
             <p>New samples are ready for human evaluation</p>
@@ -211,15 +211,15 @@ export function GradingSamplesList({
           <BfDsButton
             variant="primary"
             onClick={onStartGrading}
-            icon="play"
+            icon="grade"
           >
-            Start Grading
+            Start grading
           </BfDsButton>
         </div>
       )}
 
       <div className="samples-list-section">
-        <h3>Graded Samples History</h3>
+        <h3>Graded samples history</h3>
         <div className="samples-list">
           {gradedSamples.map((sample) => {
             const isJustCompleted = justCompletedIds.includes(sample.id);

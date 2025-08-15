@@ -76,7 +76,7 @@ export function DeckCreateModal({ onClose, onSubmit }: DeckCreateModalProps) {
         onClick={handleSubmit}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Creating..." : "Create Deck"}
+        {isSubmitting ? "Creating..." : "Create deck"}
       </BfDsButton>
     </>
   );
@@ -85,13 +85,13 @@ export function DeckCreateModal({ onClose, onSubmit }: DeckCreateModalProps) {
     <BfDsModal
       isOpen
       onClose={onClose}
-      title="Create New Deck"
+      title="Create new deck"
       size="medium"
       footer={modalFooter}
     >
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="deck-name">Deck Name</label>
+          <label htmlFor="deck-name">Deck name</label>
           <BfDsInput
             id="deck-name"
             placeholder="e.g., Customer Support Quality"
@@ -117,7 +117,7 @@ export function DeckCreateModal({ onClose, onSubmit }: DeckCreateModalProps) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="system-prompt">System Prompt</label>
+          <label htmlFor="system-prompt">System prompt</label>
           <BfDsCallout variant="info">
             This prompt sets the context for all graders in this deck
           </BfDsCallout>

@@ -124,7 +124,7 @@ export function GradingInbox({
             variant="primary"
             onClick={onClose}
           >
-            Return to Decks
+            Return to decks
           </BfDsButton>
         </div>
       </div>
@@ -320,7 +320,7 @@ export function GradingInbox({
     return (
       <div className="grading-inbox grading-complete">
         <div className="grading-header">
-          <h2>Grading Complete</h2>
+          <h2>Grading complete</h2>
           <BfDsButton
             variant="ghost"
             size="small"
@@ -337,7 +337,7 @@ export function GradingInbox({
             variant="primary"
             onClick={onClose}
           >
-            Return to Decks
+            Return to decks
           </BfDsButton>
         </div>
       </div>
