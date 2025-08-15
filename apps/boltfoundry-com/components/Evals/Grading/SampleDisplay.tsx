@@ -58,7 +58,7 @@ export function SampleDisplay(
 
       {sample.graderEvaluations && sample.graderEvaluations.length > 0 && (
         <div className="grader-evaluations-section">
-          <h3>AI Grader Evaluations</h3>
+          <h3>AI grader evaluations</h3>
           <div className="grader-evaluations">
             {sample.graderEvaluations.map((evaluation, index) => (
               <GraderEvaluation
@@ -78,7 +78,7 @@ export function SampleDisplay(
 
       <div className="sample-response-section">
         <div className="response-header">
-          <h3>Assistant Response</h3>
+          <h3>Assistant response</h3>
           {isJsonResponse && (
             <BfDsButton
               variant="outline"
@@ -86,7 +86,7 @@ export function SampleDisplay(
               icon={showRawJson ? "table" : "code2"}
               onClick={() => setShowRawJson(!showRawJson)}
             >
-              {showRawJson ? "Table View" : "JSON View"}
+              {showRawJson ? "Table view" : "JSON view"}
             </BfDsButton>
           )}
         </div>

@@ -84,9 +84,9 @@ export function GradingContainer({
               icon="arrowLeft"
               onClick={handleBackToList}
             >
-              Back to List
+              Back to list
             </BfDsButton>
-            <h2>Sample Details</h2>
+            <h2>Sample details</h2>
           </div>
           <BfDsButton
             variant="ghost"

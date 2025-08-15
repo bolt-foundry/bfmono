@@ -24,7 +24,13 @@ export type BfDsIconName = BaseIconNames | AliasNames;
 /**
  * Icon size options - predefined names or custom pixel values.
  */
-export type BfDsIconSize = "small" | "medium" | "large" | "xlarge" | number;
+export type BfDsIconSize =
+  | "xsmall"
+  | "small"
+  | "medium"
+  | "large"
+  | "xlarge"
+  | number;
 
 /**
  * Props for the BfDsIcon component.
@@ -68,6 +74,7 @@ export type BfDsIconProps = {
  * @example
  * Predefined sizes:
  * ```tsx
+ * <BfDsIcon name="star" size="xsmall" />   // 12px
  * <BfDsIcon name="star" size="small" />    // 16px
  * <BfDsIcon name="star" size="medium" />   // 24px (default)
  * <BfDsIcon name="star" size="large" />    // 32px
@@ -204,6 +211,7 @@ export type BfDsIconProps = {
  * - **Malformed colors**: Fall back to `currentColor`
  *
  * ## Size Guidelines
+ * - Use `xsmall` (12px) for badges, tags, and very compact spaces
  * - Use `small` (16px) for inline text and compact interfaces
  * - Use `medium` (24px) for standard UI elements and buttons
  * - Use `large` (32px) for prominent actions and headers
@@ -225,6 +233,11 @@ export type BfDsIconProps = {
  * ## Styling Classes
  * - `.bfds-icon`: Base icon styles
  * - `.bfds-icon--{size}`: Size-specific styles (for predefined sizes)
+ * - `.bfds-icon--xsmall`: 12px icons for badges and compact spaces
+ * - `.bfds-icon--small`: 16px icons for inline text
+ * - `.bfds-icon--medium`: 24px icons (default size)
+ * - `.bfds-icon--large`: 32px icons for headers
+ * - `.bfds-icon--xlarge`: 48px icons for hero sections
  *
  * ## Performance
  * - Icons are lightweight SVG components with minimal overhead
@@ -263,6 +276,7 @@ export function BfDsIcon({
   const isNumericSize = typeof size === "number";
   const classes = [
     "bfds-icon",
+    `bfds-icon_${name}`,
     !isNumericSize && `bfds-icon--${size}`,
     className,
   ].filter(Boolean).join(" ");

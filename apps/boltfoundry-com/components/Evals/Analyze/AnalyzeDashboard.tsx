@@ -118,7 +118,7 @@ export function AnalyzeDashboard({ deckId: _deckId }: AnalyzeDashboardProps) {
   return (
     <div className="analyze-dashboard">
       <div className="view-header">
-        <h2>Analysis Dashboard</h2>
+        <h2>Analysis dashboard</h2>
         <p className="view-description">
           Review grader disagreements and resolve scoring conflicts to improve
           evaluation quality
@@ -168,7 +168,7 @@ export function AnalyzeDashboard({ deckId: _deckId }: AnalyzeDashboardProps) {
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: "all", label: "All Status" },
+              { value: "all", label: "All status" },
               { value: "pending", label: "Pending" },
               { value: "resolved", label: "Resolved" },
               { value: "dismissed", label: "Dismissed" },
@@ -178,10 +178,10 @@ export function AnalyzeDashboard({ deckId: _deckId }: AnalyzeDashboardProps) {
             value={priorityFilter}
             onChange={setPriorityFilter}
             options={[
-              { value: "all", label: "All Priority" },
-              { value: "high", label: "High Priority" },
-              { value: "medium", label: "Medium Priority" },
-              { value: "low", label: "Low Priority" },
+              { value: "all", label: "All priority" },
+              { value: "high", label: "High priority" },
+              { value: "medium", label: "Medium priority" },
+              { value: "low", label: "Low priority" },
             ]}
           />
         </div>
@@ -220,7 +220,7 @@ export function AnalyzeDashboard({ deckId: _deckId }: AnalyzeDashboardProps) {
               action={searchQuery || statusFilter !== "all" ||
                   priorityFilter !== "all"
                 ? {
-                  label: "Clear Filters",
+                  label: "Clear filters",
                   onClick: () => {
                     setSearchQuery("");
                     setStatusFilter("all");
