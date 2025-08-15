@@ -266,7 +266,38 @@ export abstract class CurrentViewer extends GraphQLObjectBase {
  *  Concrete subclasses
  * ------------------------------------------------------------------------ */
 export class CurrentViewerLoggedIn extends CurrentViewer {
-  static override gqlSpec = this.defineGqlNode((gql) => gql);
+  static override gqlSpec = this.defineGqlNode((gql) =>
+    gql
+      .object("person", () => BfPerson, {
+        resolve: async (cv) => {
+          let person = await BfPerson.find(cv, cv.personBfGid);
+
+          // If person doesn't exist and this is a dev environment, create a dev person
+          if (!person && cv.personBfGid.startsWith("dev-person:")) {
+            logger.debug("Creating dev person for", cv.personBfGid);
+            const email = cv.personBfGid.includes("justin")
+              ? "justin@boltfoundry.com"
+              : "dev@boltfoundry.com";
+            const name = cv.personBfGid.includes("justin")
+              ? "Justin Carter"
+              : "Dev User";
+
+            person = await BfPerson.__DANGEROUS__createUnattached(
+              cv,
+              { email, name },
+              {
+                bfOid: cv.personBfGid,
+                bfCid: "DEV_AUTH" as BfGid,
+                bfGid: cv.personBfGid,
+              },
+            );
+            logger.info("🔧 Returning hardcoded person data for testing");
+          }
+
+          return person?.toGraphql();
+        },
+      })
+  );
 }
 export class CurrentViewerLoggedOut extends CurrentViewer {
   static override gqlSpec = this.defineGqlNode((gql) =>

@@ -43,6 +43,37 @@ const readerAst: ReaderAst<Query__Eval__param> = [
         selections: [
           {
             kind: "Linked",
+            fieldName: "person",
+            alias: null,
+            arguments: null,
+            condition: null,
+            isUpdatable: false,
+            selections: [
+              {
+                kind: "Scalar",
+                fieldName: "id",
+                alias: null,
+                arguments: null,
+                isUpdatable: false,
+              },
+              {
+                kind: "Scalar",
+                fieldName: "name",
+                alias: null,
+                arguments: null,
+                isUpdatable: false,
+              },
+              {
+                kind: "Scalar",
+                fieldName: "email",
+                alias: null,
+                arguments: null,
+                isUpdatable: false,
+              },
+            ],
+          },
+          {
+            kind: "Linked",
             fieldName: "organization",
             alias: null,
             arguments: null,
