@@ -37,8 +37,8 @@ export function GraderEvaluation(
   };
 
   const getScoreIcon = (score: number): string => {
-    if (score >= 2) return "thumbUpSolid";
-    if (score <= -2) return "thumbDownSolid";
+    if (score > 0) return score >= 2 ? "thumbUpSolid" : "thumbUp";
+    if (score < 0) return score <= -2 ? "thumbDownSolid" : "thumbDown";
     return "minus";
   };
 
@@ -53,9 +53,10 @@ export function GraderEvaluation(
           <BfDsBadge
             variant={getScoreColor(evaluation.score)}
             size="small"
+            icon={getScoreIcon(evaluation.score)}
           >
-            <BfDsIcon name={getScoreIcon(evaluation.score)} size="small" />
-            <span>{evaluation.score > 0 ? "+" : ""}{evaluation.score}</span>
+            {evaluation.score > 0 ? "+" : ""}
+            {evaluation.score}
           </BfDsBadge>
         </div>
       </div>

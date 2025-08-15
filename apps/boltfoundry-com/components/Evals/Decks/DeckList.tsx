@@ -94,11 +94,11 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
           title="No decks yet"
           description="Create your first evaluation deck to start grading AI responses"
           action={{
-            label: "Create Deck",
+            label: "Create deck",
             onClick: startDeckCreation,
           }}
           secondaryAction={{
-            label: "Learn More",
+            label: "Learn more",
             onClick: () => logger.info("Learn more"),
           }}
         />
@@ -127,7 +127,7 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
           icon="plus"
           onClick={startDeckCreation}
         >
-          Create Deck
+          Create deck
         </BfDsButton>
       </div>
 

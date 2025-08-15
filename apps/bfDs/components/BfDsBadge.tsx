@@ -210,7 +210,7 @@ export function BfDsBadge({
   };
 
   const iconSize = size === "small"
-    ? "small"
+    ? "xsmall"
     : size === "large"
     ? "medium"
     : "small";
@@ -261,7 +261,7 @@ export function BfDsBadge({
         >
           <BfDsIcon
             name="cross"
-            size={iconSize}
+            size="xsmall"
           />
         </button>
       )}
