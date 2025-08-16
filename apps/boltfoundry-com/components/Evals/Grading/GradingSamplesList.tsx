@@ -4,6 +4,7 @@ import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -125,6 +126,7 @@ export function GradingSamplesList({
   completionSummary,
   availableSamples = [],
 }: GradingSamplesListProps) {
+  const { navigate, layoutMode } = useRouter();
   const [loading, setLoading] = useState(true);
   const [gradedSamples, setGradedSamples] = useState<Array<GradingSample>>([]);
   const [ungradedCount, setUngradedCount] = useState(0);
@@ -234,7 +236,16 @@ export function GradingSamplesList({
               <div
                 key={sample.id}
                 className="sample-list-item"
-                onClick={() => onViewSample(sample)}
+                onClick={() => {
+                  // Navigate to sample view based on layout mode
+                  if (layoutMode === "fullscreen") {
+                    navigate(`/pg/grade/sample/${sample.id}`);
+                  } else {
+                    navigate(`/pg/grade/decks/${deckId}/sample/${sample.id}`);
+                  }
+                  // Keep the original callback for backward compatibility
+                  onViewSample(sample);
+                }}
               >
                 {isJustCompleted && (
                   <BfDsBadge variant="success">

@@ -2,24 +2,33 @@ import { assertEquals } from "@std/assert";
 import { getLayoutMode, toggleLayoutMode } from "../contexts/RouterContext.tsx";
 
 Deno.test("Layout Mode Detection", async (t) => {
-  await t.step("should detect normal mode for /eval routes", () => {
-    assertEquals(getLayoutMode("/eval"), "normal");
-    assertEquals(getLayoutMode("/eval/decks"), "normal");
-    assertEquals(getLayoutMode("/eval/decks/sports-grader"), "normal");
+  await t.step("should detect normal mode for /pg routes", () => {
+    assertEquals(getLayoutMode("/pg"), "normal");
+    assertEquals(getLayoutMode("/pg/grade/decks"), "normal");
     assertEquals(
-      getLayoutMode("/eval/decks/test-deck/sample/sample-001"),
+      getLayoutMode("/pg/grade/decks/sports-grader/samples"),
       "normal",
     );
-    assertEquals(getLayoutMode("/eval/decks/my-deck/grading"), "normal");
+    assertEquals(
+      getLayoutMode("/pg/grade/decks/test-deck/sample/sample-001"),
+      "normal",
+    );
+    assertEquals(
+      getLayoutMode("/pg/grade/decks/my-deck/samples/grading"),
+      "normal",
+    );
   });
 
-  await t.step("should detect fullscreen mode for /deck routes", () => {
-    assertEquals(getLayoutMode("/deck/sports-grader"), "fullscreen");
+  await t.step("should detect fullscreen mode for singular routes", () => {
+    assertEquals(getLayoutMode("/pg/grade/deck/sports-grader"), "fullscreen");
     assertEquals(
-      getLayoutMode("/deck/test-deck/sample/sample-001"),
+      getLayoutMode("/pg/grade/sample/sample-001"),
       "fullscreen",
     );
-    assertEquals(getLayoutMode("/deck/my-deck/grading"), "fullscreen");
+    assertEquals(
+      getLayoutMode("/pg/grade/deck/my-deck/samples/grading"),
+      "fullscreen",
+    );
   });
 
   await t.step("should detect normal mode for other routes", () => {
@@ -31,103 +40,114 @@ Deno.test("Layout Mode Detection", async (t) => {
   });
 });
 
-Deno.test("Layout Mode Toggling", async (t) => {
-  await t.step("should toggle from normal to fullscreen", () => {
+Deno.test("Layout Mode Toggling - V2 Behavior", async (t) => {
+  await t.step("should toggle deck samples to deck overview", () => {
     assertEquals(
-      toggleLayoutMode("/eval/decks/sports-grader"),
-      "/deck/sports-grader",
+      toggleLayoutMode("/pg/grade/decks/sports-grader/samples"),
+      "/pg/grade/deck/sports-grader",
     );
     assertEquals(
-      toggleLayoutMode("/eval/decks/test-deck/sample/sample-001"),
-      "/deck/test-deck/sample/sample-001",
-    );
-    assertEquals(
-      toggleLayoutMode("/eval/decks/my-deck/grading"),
-      "/deck/my-deck/grading",
+      toggleLayoutMode("/pg/grade/decks/my-deck/samples"),
+      "/pg/grade/deck/my-deck",
     );
   });
 
-  await t.step("should toggle from fullscreen to normal", () => {
+  await t.step("should toggle deck overview to deck samples", () => {
     assertEquals(
-      toggleLayoutMode("/deck/sports-grader"),
-      "/eval/decks/sports-grader",
+      toggleLayoutMode("/pg/grade/deck/sports-grader"),
+      "/pg/grade/decks/sports-grader/samples",
     );
     assertEquals(
-      toggleLayoutMode("/deck/test-deck/sample/sample-001"),
-      "/eval/decks/test-deck/sample/sample-001",
+      toggleLayoutMode("/pg/grade/deck/my-deck"),
+      "/pg/grade/decks/my-deck/samples",
+    );
+  });
+
+  await t.step("should toggle sample view to sample-only view", () => {
+    assertEquals(
+      toggleLayoutMode("/pg/grade/decks/test-deck/sample/sample-001"),
+      "/pg/grade/sample/sample-001",
     );
     assertEquals(
-      toggleLayoutMode("/deck/my-deck/grading"),
-      "/eval/decks/my-deck/grading",
+      toggleLayoutMode("/pg/grade/decks/sports-deck/sample/abc123"),
+      "/pg/grade/sample/abc123",
+    );
+  });
+
+  await t.step("should toggle grading views", () => {
+    assertEquals(
+      toggleLayoutMode("/pg/grade/decks/my-deck/samples/grading"),
+      "/pg/grade/deck/my-deck/samples/grading",
+    );
+    assertEquals(
+      toggleLayoutMode("/pg/grade/deck/test-deck/samples/grading"),
+      "/pg/grade/decks/test-deck/samples/grading",
     );
   });
 
   await t.step("should preserve query parameters", () => {
     assertEquals(
-      toggleLayoutMode("/eval/decks/test-deck?tab=results&mode=debug"),
-      "/deck/test-deck?tab=results&mode=debug",
+      toggleLayoutMode(
+        "/pg/grade/decks/test-deck/samples?tab=results&mode=debug",
+      ),
+      "/pg/grade/deck/test-deck?tab=results&mode=debug",
     );
     assertEquals(
-      toggleLayoutMode("/deck/my-deck?view=compact"),
-      "/eval/decks/my-deck?view=compact",
+      toggleLayoutMode("/pg/grade/deck/my-deck?view=compact"),
+      "/pg/grade/decks/my-deck/samples?view=compact",
     );
   });
 
   await t.step("should handle non-toggleable routes", () => {
     // Routes that don't have a toggle equivalent should remain unchanged
-    assertEquals(toggleLayoutMode("/eval"), "/eval");
-    assertEquals(toggleLayoutMode("/eval/decks"), "/eval/decks");
+    assertEquals(toggleLayoutMode("/pg"), "/pg");
+    assertEquals(toggleLayoutMode("/pg/grade/decks"), "/pg/grade/decks");
     assertEquals(toggleLayoutMode("/login"), "/login");
     assertEquals(toggleLayoutMode("/ui"), "/ui");
-  });
-
-  await t.step("should handle complex deck IDs", () => {
+    // Sample-only routes can't toggle back without deck context
     assertEquals(
-      toggleLayoutMode("/eval/decks/sports-grader-v2-final"),
-      "/deck/sports-grader-v2-final",
-    );
-    assertEquals(
-      toggleLayoutMode("/deck/complex-deck-name-123"),
-      "/eval/decks/complex-deck-name-123",
+      toggleLayoutMode("/pg/grade/sample/sample-001"),
+      "/pg/grade/sample/sample-001",
     );
   });
 });
 
-Deno.test("Layout Mode Round-trip Conversion", async (t) => {
-  await t.step("should maintain consistency in round-trip conversions", () => {
-    const originalPaths = [
-      "/eval/decks/sports-grader",
-      "/eval/decks/test-deck/sample/sample-001",
-      "/eval/decks/my-deck/grading",
-      "/deck/sports-grader",
-      "/deck/test-deck/sample/sample-001",
-      "/deck/my-deck/grading",
-    ];
+Deno.test("Layout Mode Round-trip Behavior", async (t) => {
+  await t.step("should handle round-trip for deck samples/overview", () => {
+    const originalPath = "/pg/grade/decks/sports-grader/samples";
+    const toggled = toggleLayoutMode(originalPath);
+    const toggledBack = toggleLayoutMode(toggled);
 
-    for (const originalPath of originalPaths) {
-      const toggled = toggleLayoutMode(originalPath);
-      const toggledBack = toggleLayoutMode(toggled);
+    assertEquals(toggled, "/pg/grade/deck/sports-grader");
+    assertEquals(toggledBack, originalPath);
+  });
 
-      // For paths that can be toggled, toggling twice should return to original
-      if (
-        originalPath.startsWith("/eval/decks/") ||
-        originalPath.startsWith("/deck/")
-      ) {
-        assertEquals(
-          toggledBack,
-          originalPath,
-          `Round-trip failed for ${originalPath}`,
-        );
-      }
-    }
+  await t.step("should handle round-trip for grading views", () => {
+    const originalPath = "/pg/grade/decks/my-deck/samples/grading";
+    const toggled = toggleLayoutMode(originalPath);
+    const toggledBack = toggleLayoutMode(toggled);
+
+    assertEquals(toggled, "/pg/grade/deck/my-deck/samples/grading");
+    assertEquals(toggledBack, originalPath);
   });
 
   await t.step("should preserve query parameters in round-trip", () => {
-    const pathWithQuery = "/eval/decks/test-deck?tab=results&mode=debug";
+    const pathWithQuery =
+      "/pg/grade/decks/test-deck/samples?tab=results&mode=debug";
     const toggled = toggleLayoutMode(pathWithQuery);
     const toggledBack = toggleLayoutMode(toggled);
 
-    assertEquals(toggled, "/deck/test-deck?tab=results&mode=debug");
+    assertEquals(toggled, "/pg/grade/deck/test-deck?tab=results&mode=debug");
     assertEquals(toggledBack, pathWithQuery);
+  });
+
+  await t.step("should handle one-way toggles (sample views)", () => {
+    // Sample views lose deck context when toggled to fullscreen
+    const originalPath = "/pg/grade/decks/test-deck/sample/sample-001";
+    const toggled = toggleLayoutMode(originalPath);
+
+    assertEquals(toggled, "/pg/grade/sample/sample-001");
+    // Cannot toggle back to original without deck context
+    assertEquals(toggleLayoutMode(toggled), toggled);
   });
 });

@@ -5,6 +5,7 @@ import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
 import { DeckItem } from "./DeckItem.tsx";
 import { DeckCreateModal, type DeckFormData } from "./DeckCreateModal.tsx";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -61,7 +62,8 @@ interface DeckListProps {
 }
 
 export function DeckList({ onDeckSelect }: DeckListProps) {
-  const { startDeckCreation, startGrading } = useEvalContext();
+  const { startDeckCreation } = useEvalContext();
+  const { navigate, layoutMode } = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [decks] = useState(mockDecks);
@@ -78,11 +80,13 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
   };
 
   const handleDeckClick = (deckId: string) => {
-    const deck = decks.find((d) => d.id === deckId);
-    if (deck) {
-      // Samples will be fetched by GradingInbox using GraphQL
-      startGrading(deckId, deck.name);
-    }
+    // Navigate to the appropriate deck route based on layout mode
+    const targetPath = layoutMode === "fullscreen"
+      ? `/pg/grade/deck/${deckId}`
+      : `/pg/grade/decks/${deckId}/samples`;
+
+    logger.info("Navigating to deck", { deckId, layoutMode, targetPath });
+    navigate(targetPath);
     onDeckSelect?.(deckId);
   };
 

@@ -3,9 +3,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { appRoutes, isographAppRoutes } from "../routes.ts";
+import { getLogger } from "@bfmono/packages/logger/logger.ts";
+
+const logger = getLogger(import.meta);
 
 type MatchedRoute = {
   match: boolean;
@@ -89,17 +93,50 @@ export function matchRouteWithParams(
 export type LayoutMode = "normal" | "fullscreen";
 
 export function getLayoutMode(pathname: string): LayoutMode {
-  return pathname.startsWith("/deck/") ? "fullscreen" : "normal";
+  // V2: Fullscreen mode uses singular forms: /pg/grade/deck/ or /pg/grade/sample/
+  return (pathname.includes("/grade/deck/") ||
+      pathname.includes("/grade/sample/"))
+    ? "fullscreen"
+    : "normal";
 }
 
 export function toggleLayoutMode(currentPath: string): string {
-  if (currentPath.startsWith("/eval/decks/")) {
-    // Convert /eval/decks/abc123/sample/xyz789 → /deck/abc123/sample/xyz789
-    return currentPath.replace("/eval/decks/", "/deck/");
-  } else if (currentPath.startsWith("/deck/")) {
-    // Convert /deck/abc123/sample/xyz789 → /eval/decks/abc123/sample/xyz789
-    return currentPath.replace("/deck/", "/eval/decks/");
+  // V2: Specific toggle patterns based on the PDF spec
+  const [pathWithoutQuery, query] = currentPath.split("?");
+  const queryString = query ? `?${query}` : "";
+
+  // Pattern: /pg/grade/decks/{deck.id}/samples ↔ /pg/grade/deck/{deck.id}
+  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/samples$/)) {
+    const deckId = pathWithoutQuery.split("/")[4];
+    return `/pg/grade/deck/${deckId}${queryString}`;
   }
+  if (pathWithoutQuery.match(/^\/pg\/grade\/deck\/[^/]+$/)) {
+    const deckId = pathWithoutQuery.split("/")[4];
+    return `/pg/grade/decks/${deckId}/samples${queryString}`;
+  }
+
+  // Pattern: /pg/grade/decks/{deck.id}/sample/{sample.id} ↔ /pg/grade/sample/{sample.id}
+  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/sample\/[^/]+$/)) {
+    const sampleId = pathWithoutQuery.split("/")[6];
+    return `/pg/grade/sample/${sampleId}${queryString}`;
+  }
+  if (pathWithoutQuery.match(/^\/pg\/grade\/sample\/[^/]+$/)) {
+    // For sample-only view, we can't easily toggle back without knowing the deck
+    // Return as-is for now - this might require additional context
+    return currentPath;
+  }
+
+  // Pattern: /pg/grade/decks/{deck.id}/samples/grading ↔ /pg/grade/deck/{deck.id}/samples/grading
+  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/samples\/grading$/)) {
+    const deckId = pathWithoutQuery.split("/")[4];
+    return `/pg/grade/deck/${deckId}/samples/grading${queryString}`;
+  }
+  if (pathWithoutQuery.match(/^\/pg\/grade\/deck\/[^/]+\/samples\/grading$/)) {
+    const deckId = pathWithoutQuery.split("/")[4];
+    return `/pg/grade/decks/${deckId}/samples/grading${queryString}`;
+  }
+
+  // No toggle available for this route
   return currentPath;
 }
 
@@ -132,16 +169,13 @@ export function RouterProvider({
   const [queryParams, setQueryParams] = useState<Record<string, string>>({});
 
   const navigate = useCallback((path: string) => {
+    logger.info("RouterContext navigate called", { to: path });
     setCurrentPath(path);
     if (typeof window !== "undefined") {
       globalThis.history.pushState({}, "", path);
+      logger.info("History updated", { url: globalThis.location.pathname });
     }
-  }, []);
-
-  const handleToggleLayoutMode = useCallback(() => {
-    const newPath = toggleLayoutMode(currentPath);
-    navigate(newPath);
-  }, [currentPath, navigate]);
+  }, []); // Remove currentPath dependency to prevent re-creation
 
   // NEW: Update route params when path changes
   useEffect(() => {
@@ -150,8 +184,17 @@ export function RouterProvider({
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(currentPath, routePattern);
       if (match.match) {
-        setRouteParams(match.params);
-        setQueryParams(match.queryParams);
+        // Only update if params actually changed to prevent infinite re-renders
+        setRouteParams((prevParams) => {
+          const paramsChanged =
+            JSON.stringify(prevParams) !== JSON.stringify(match.params);
+          return paramsChanged ? match.params : prevParams;
+        });
+        setQueryParams((prevQuery) => {
+          const queryChanged =
+            JSON.stringify(prevQuery) !== JSON.stringify(match.queryParams);
+          return queryChanged ? match.queryParams : prevQuery;
+        });
         break;
       }
     }
@@ -170,14 +213,32 @@ export function RouterProvider({
     }
   }, []);
 
-  const contextValue: RouterContextType = {
-    currentPath,
-    navigate,
-    routeParams,
-    queryParams,
-    layoutMode: getLayoutMode(currentPath),
-    toggleLayoutMode: handleToggleLayoutMode,
-  };
+  // Memoize computed values to prevent unnecessary re-renders
+  const layoutMode = useMemo(() => getLayoutMode(currentPath), [currentPath]);
+
+  const handleToggleLayoutMode = useCallback(() => {
+    const newPath = toggleLayoutMode(currentPath);
+    navigate(newPath);
+  }, [currentPath, navigate]);
+
+  const contextValue: RouterContextType = useMemo(
+    () => ({
+      currentPath,
+      navigate,
+      routeParams,
+      queryParams,
+      layoutMode,
+      toggleLayoutMode: handleToggleLayoutMode,
+    }),
+    [
+      currentPath,
+      navigate,
+      routeParams,
+      queryParams,
+      layoutMode,
+      handleToggleLayoutMode,
+    ],
+  );
 
   return (
     <RouterContext.Provider value={contextValue}>

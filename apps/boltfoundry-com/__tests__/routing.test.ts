@@ -3,7 +3,10 @@ import { matchRouteWithParams } from "../contexts/RouterContext.tsx";
 
 Deno.test("Route Parameter Extraction", async (t) => {
   await t.step("should extract single parameter", () => {
-    const result = matchRouteWithParams("/deck/abc123", "/deck/:deckId");
+    const result = matchRouteWithParams(
+      "/pg/grade/deck/abc123",
+      "/pg/grade/deck/:deckId",
+    );
     assertEquals(result, {
       match: true,
       params: { deckId: "abc123" },
@@ -13,8 +16,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should extract multiple parameters", () => {
     const result = matchRouteWithParams(
-      "/deck/abc123/sample/xyz789",
-      "/deck/:deckId/sample/:sampleId",
+      "/pg/grade/decks/abc123/sample/xyz789",
+      "/pg/grade/decks/:deckId/sample/:sampleId",
     );
     assertEquals(result, {
       match: true,
@@ -23,10 +26,10 @@ Deno.test("Route Parameter Extraction", async (t) => {
     });
   });
 
-  await t.step("should extract eval system parameters", () => {
+  await t.step("should extract V2 system parameters", () => {
     const result = matchRouteWithParams(
-      "/eval/decks/deck123/sample/sample456",
-      "/eval/decks/:deckId/sample/:sampleId",
+      "/pg/grade/decks/deck123/sample/sample456",
+      "/pg/grade/decks/:deckId/sample/:sampleId",
     );
     assertEquals(result, {
       match: true,
@@ -39,8 +42,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
     "should extract query parameters alongside route parameters",
     () => {
       const result = matchRouteWithParams(
-        "/deck/abc123?tab=grading&mode=review",
-        "/deck/:deckId",
+        "/pg/grade/deck/abc123?tab=grading&mode=review",
+        "/pg/grade/deck/:deckId",
       );
       assertEquals(result, {
         match: true,
@@ -52,8 +55,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should handle empty query parameters", () => {
     const result = matchRouteWithParams(
-      "/deck/abc123?",
-      "/deck/:deckId",
+      "/pg/grade/deck/abc123?",
+      "/pg/grade/deck/:deckId",
     );
     assertEquals(result, {
       match: true,
@@ -64,8 +67,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should not match when segment count differs", () => {
     const result = matchRouteWithParams(
-      "/deck/abc123/extra",
-      "/deck/:deckId",
+      "/pg/grade/deck/abc123/extra",
+      "/pg/grade/deck/:deckId",
     );
     assertEquals(result, {
       match: false,
@@ -76,8 +79,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should not match when static segments differ", () => {
     const result = matchRouteWithParams(
-      "/deck/abc123",
-      "/board/:deckId",
+      "/pg/grade/deck/abc123",
+      "/pg/grade/board/:deckId",
     );
     assertEquals(result, {
       match: false,
@@ -88,8 +91,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should handle empty parameters", () => {
     const result = matchRouteWithParams(
-      "/deck/",
-      "/deck/:deckId",
+      "/pg/grade/deck/",
+      "/pg/grade/deck/:deckId",
     );
     assertEquals(result, {
       match: true,
@@ -99,7 +102,7 @@ Deno.test("Route Parameter Extraction", async (t) => {
   });
 
   await t.step("should still handle exact matches", () => {
-    const result = matchRouteWithParams("/eval", "/eval");
+    const result = matchRouteWithParams("/pg", "/pg");
     assertEquals(result, {
       match: true,
       params: {},
@@ -125,8 +128,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
     });
   });
 
-  await t.step("should match /eval/decks", () => {
-    const result = matchRouteWithParams("/eval/decks", "/eval/decks");
+  await t.step("should match /pg/grade/decks", () => {
+    const result = matchRouteWithParams("/pg/grade/decks", "/pg/grade/decks");
     assertEquals(result, {
       match: true,
       params: {},
@@ -134,10 +137,10 @@ Deno.test("Route Parameter Extraction", async (t) => {
     });
   });
 
-  await t.step("should match deck overview route", () => {
+  await t.step("should match deck samples route", () => {
     const result = matchRouteWithParams(
-      "/eval/decks/sports-grader-v2",
-      "/eval/decks/:deckId",
+      "/pg/grade/decks/sports-grader-v2/samples",
+      "/pg/grade/decks/:deckId/samples",
     );
     assertEquals(result, {
       match: true,
@@ -148,8 +151,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should match grading route", () => {
     const result = matchRouteWithParams(
-      "/eval/decks/sports-grader-v2/grading",
-      "/eval/decks/:deckId/grading",
+      "/pg/grade/decks/sports-grader-v2/samples/grading",
+      "/pg/grade/decks/:deckId/samples/grading",
     );
     assertEquals(result, {
       match: true,
@@ -160,8 +163,8 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should match fullscreen deck route", () => {
     const result = matchRouteWithParams(
-      "/deck/sports-grader-v2",
-      "/deck/:deckId",
+      "/pg/grade/deck/sports-grader-v2",
+      "/pg/grade/deck/:deckId",
     );
     assertEquals(result, {
       match: true,
@@ -172,12 +175,12 @@ Deno.test("Route Parameter Extraction", async (t) => {
 
   await t.step("should match fullscreen sample route", () => {
     const result = matchRouteWithParams(
-      "/deck/sports-grader-v2/sample/sample-001",
-      "/deck/:deckId/sample/:sampleId",
+      "/pg/grade/sample/sample-001",
+      "/pg/grade/sample/:sampleId",
     );
     assertEquals(result, {
       match: true,
-      params: { deckId: "sports-grader-v2", sampleId: "sample-001" },
+      params: { sampleId: "sample-001" },
       queryParams: {},
     });
   });
