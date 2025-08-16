@@ -1,17 +1,11 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
-import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
-import { getLogger } from "@bfmono/packages/logger/logger.ts";
-
-const logger = getLogger(import.meta);
 
 interface GradingSamplesListProps {
-  deckId: string;
-  deckName: string;
   onStartGrading: () => void;
   onViewSample: (sample: GradingSample) => void;
   justCompletedIds?: Array<string>;
@@ -118,67 +112,35 @@ function getAgreementVariant(
 }
 
 export function GradingSamplesList({
-  deckId,
-  deckName,
   onStartGrading,
   onViewSample,
   justCompletedIds = [],
   completionSummary,
   availableSamples = [],
 }: GradingSamplesListProps) {
-  const { navigate, layoutMode } = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [gradedSamples, setGradedSamples] = useState<Array<GradingSample>>([]);
-  const [ungradedCount, setUngradedCount] = useState(0);
-
-  useEffect(() => {
-    // Simulate loading samples
-    logger.info("Loading samples list for deck", { deckId });
-    setLoading(true);
-
-    setTimeout(() => {
-      // Get graded samples from the available samples (those with humanGrade)
-      const actualGradedSamples = availableSamples.filter((sample) =>
-        sample.humanGrade
-      );
-
-      // Generate mock historical data (but fewer since we now have real data)
-      const historicalSamples = generateMockHistoricalSamples(7);
-
-      // Combine actual graded samples with historical ones, with actual ones first
-      const allGradedSamples = [...actualGradedSamples, ...historicalSamples];
-
-      setGradedSamples(allGradedSamples);
-
-      // Count ungraded samples from available samples
-      const actualUngradedCount = availableSamples.filter((sample) =>
-        !sample.humanGrade
-      ).length;
-      setUngradedCount(actualUngradedCount);
-
-      setLoading(false);
-    }, 500);
-  }, [deckId, availableSamples]);
-
-  if (loading) {
-    return (
-      <div className="grading-samples-list grading-loading">
-        <div className="grading-header">
-          <h2>Loading samples for {deckName}...</h2>
-        </div>
-        <div className="grading-loading-content">
-          <BfDsSpinner size={48} />
-        </div>
-      </div>
+  const { navigate } = useRouter();
+  // Process samples synchronously - no loading delay needed
+  const gradedSamples = useMemo(() => {
+    // Get graded samples from the available samples (those with humanGrade)
+    const actualGradedSamples = availableSamples.filter((sample) =>
+      sample.humanGrade
     );
-  }
+
+    // Generate mock historical data (but fewer since we now have real data)
+    const historicalSamples = generateMockHistoricalSamples(7);
+
+    // Combine actual graded samples with historical ones, with actual ones first
+    return [...actualGradedSamples, ...historicalSamples];
+  }, [availableSamples]);
+
+  const ungradedCount = useMemo(() => {
+    return availableSamples.filter((sample) => !sample.humanGrade).length;
+  }, [availableSamples]);
+
+  // No loading state needed - samples are processed synchronously
 
   return (
     <div className="grading-samples-list">
-      <div className="grading-header">
-        <h2>{deckName} - Grading overview</h2>
-      </div>
-
       {/* Completion summary callout */}
       {completionSummary && (
         <div className="grading-summary-callout success">
@@ -237,12 +199,8 @@ export function GradingSamplesList({
                 key={sample.id}
                 className="sample-list-item"
                 onClick={() => {
-                  // Navigate to sample view based on layout mode
-                  if (layoutMode === "fullscreen") {
-                    navigate(`/pg/grade/sample/${sample.id}`);
-                  } else {
-                    navigate(`/pg/grade/decks/${deckId}/sample/${sample.id}`);
-                  }
+                  // V3 routing: Navigate to sample view fullscreen
+                  navigate(`/pg/grade/sample/${sample.id}`);
                   // Keep the original callback for backward compatibility
                   onViewSample(sample);
                 }}

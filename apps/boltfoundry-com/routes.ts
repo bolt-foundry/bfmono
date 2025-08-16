@@ -32,17 +32,15 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/login", entrypointLogin],
   ["/rlhf", entrypointRlhf],
 
-  // V2 Eval System Routes - Hierarchical structure
-  ["/pg", entrypointEval], // Eval landing page
-  ["/pg/grade", entrypointEval], // Grade tool landing page
-  ["/pg/grade/decks", entrypointEval], // Grading overview/sample list/inbox
-  ["/pg/grade/decks/:deckId/samples", entrypointEval], // Sample list for deck
-  ["/pg/grade/decks/:deckId/graders", entrypointEval], // Graders for deck
-  ["/pg/grade/decks/:deckId/sample/:sampleId", entrypointEval], // Sample view
-  ["/pg/grade/decks/:deckId/samples/grading", entrypointEval], // Grading view
-
-  // V2 Fullscreen Routes - Singular forms for fullscreen mode
-  ["/pg/grade/deck/:deckId", entrypointEval], // Fullscreen deck view
-  ["/pg/grade/sample/:sampleId", entrypointEval], // Fullscreen sample view
-  ["/pg/grade/deck/:deckId/samples/grading", entrypointEval], // Fullscreen grading view
+  // V3 Simplified Eval System Routes
+  ["/pg", entrypointEval], // Redirects to /pg/grade/decks
+  ["/pg/grade", entrypointEval], // Redirects to /pg/grade/decks
+  ["/pg/grade/decks", entrypointEval], // Decks list (main content)
+  ["/pg/grade/decks/:deckId", entrypointEval], // Deck detail view (redirects to samples tab)
+  ["/pg/grade/decks/:deckId/:tab", entrypointEval], // Deck detail with tab (samples/graders/grading)
+  ["/pg/grade/decks/:deckId/grade", entrypointEval], // Grading interface for deck
+  ["/pg/grade/samples", entrypointEval], // All samples list
+  ["/pg/grade/samples/:sampleId", entrypointEval], // Sample detail view
+  ["/pg/analyze", entrypointEval], // Analyze view
+  ["/pg/chat", entrypointEval], // Chat view
 ]);
