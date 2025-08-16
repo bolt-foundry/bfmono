@@ -23,27 +23,37 @@ function shouldHandleWithReact(pathname: string): boolean {
 Deno.test("Server-Side Route Matching", async (t) => {
   await t.step("should handle exact routes", () => {
     assertEquals(shouldHandleWithReact("/"), true);
-    assertEquals(shouldHandleWithReact("/eval"), true);
+    assertEquals(shouldHandleWithReact("/pg"), true);
+    assertEquals(shouldHandleWithReact("/pg/grade"), true);
     assertEquals(shouldHandleWithReact("/login"), true);
   });
 
-  await t.step("should handle parameterized eval routes", () => {
-    assertEquals(shouldHandleWithReact("/eval/decks"), true);
-    assertEquals(shouldHandleWithReact("/eval/decks/my-deck"), true);
+  await t.step("should handle parameterized V2 routes", () => {
+    assertEquals(shouldHandleWithReact("/pg/grade/decks"), true);
     assertEquals(
-      shouldHandleWithReact("/eval/decks/sports-grader/sample/sample-001"),
+      shouldHandleWithReact("/pg/grade/decks/my-deck/samples"),
       true,
     );
-    assertEquals(shouldHandleWithReact("/eval/decks/test-deck/grading"), true);
+    assertEquals(
+      shouldHandleWithReact("/pg/grade/decks/sports-grader/sample/sample-001"),
+      true,
+    );
+    assertEquals(
+      shouldHandleWithReact("/pg/grade/decks/test-deck/samples/grading"),
+      true,
+    );
   });
 
   await t.step("should handle fullscreen routes", () => {
-    assertEquals(shouldHandleWithReact("/deck/my-deck"), true);
+    assertEquals(shouldHandleWithReact("/pg/grade/deck/my-deck"), true);
     assertEquals(
-      shouldHandleWithReact("/deck/sports-grader/sample/sample-001"),
+      shouldHandleWithReact("/pg/grade/sample/sample-001"),
       true,
     );
-    assertEquals(shouldHandleWithReact("/deck/test-deck/grading"), true);
+    assertEquals(
+      shouldHandleWithReact("/pg/grade/deck/test-deck/samples/grading"),
+      true,
+    );
   });
 
   await t.step("should handle wildcard routes", () => {
@@ -55,15 +65,18 @@ Deno.test("Server-Side Route Matching", async (t) => {
   await t.step("should reject unknown routes", () => {
     assertEquals(shouldHandleWithReact("/unknown"), false);
     assertEquals(shouldHandleWithReact("/api/something"), false);
-    assertEquals(shouldHandleWithReact("/eval/invalid/structure"), false);
-    assertEquals(shouldHandleWithReact("/deck"), false); // Missing required deckId
+    assertEquals(shouldHandleWithReact("/pg/invalid/structure"), false);
+    assertEquals(shouldHandleWithReact("/pg/grade/deck"), false); // Missing required deckId
   });
 
   await t.step("should handle routes with query parameters", () => {
     assertEquals(
-      shouldHandleWithReact("/eval/decks/test-deck?tab=results"),
+      shouldHandleWithReact("/pg/grade/decks/test-deck/samples?tab=results"),
       true,
     );
-    assertEquals(shouldHandleWithReact("/deck/my-deck?mode=fullscreen"), true);
+    assertEquals(
+      shouldHandleWithReact("/pg/grade/deck/my-deck?mode=fullscreen"),
+      true,
+    );
   });
 });

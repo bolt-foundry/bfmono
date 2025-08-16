@@ -25,11 +25,7 @@ export function MainContent() {
         rightSidebarMode === "grading" ? "eval-main-area--compressed" : ""
       }`}
     >
-      <div
-        className={`eval-main-content ${
-          activeMainContent === "Chat" ? "chat-active" : ""
-        }`}
-      >
+      <div className="eval-main-content">
         {renderMainContent()}
       </div>
     </div>

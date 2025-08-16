@@ -2,50 +2,64 @@ import { assertEquals } from "@std/assert";
 import { appRoutes, isographAppRoutes } from "../routes.ts";
 import { matchRouteWithParams } from "../contexts/RouterContext.tsx";
 
-Deno.test("Eval System Routes", async (t) => {
+Deno.test("V2 Eval System Routes", async (t) => {
   const allRoutes = [...appRoutes.keys(), ...isographAppRoutes.keys()];
 
-  await t.step("should match /eval/decks", () => {
+  await t.step("should match /pg/grade", () => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
-      const match = matchRouteWithParams("/eval/decks", routePattern);
+      const match = matchRouteWithParams("/pg/grade", routePattern);
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval/decks");
+        assertEquals(routePattern, "/pg/grade");
         assertEquals(match.params, {});
         break;
       }
     }
-    assertEquals(foundMatch, true, "Should find /eval/decks route");
+    assertEquals(foundMatch, true, "Should find /pg/grade route");
   });
 
-  await t.step("should match deck overview route", () => {
+  await t.step("should match /pg/grade/decks", () => {
+    let foundMatch = false;
+    for (const routePattern of allRoutes) {
+      const match = matchRouteWithParams("/pg/grade/decks", routePattern);
+      if (match.match) {
+        foundMatch = true;
+        assertEquals(routePattern, "/pg/grade/decks");
+        assertEquals(match.params, {});
+        break;
+      }
+    }
+    assertEquals(foundMatch, true, "Should find /pg/grade/decks route");
+  });
+
+  await t.step("should match deck samples route", () => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/eval/decks/sports-grader-v2",
+        "/pg/grade/decks/sports-grader-v2/samples",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval/decks/:deckId");
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/samples");
         assertEquals(match.params, { deckId: "sports-grader-v2" });
         break;
       }
     }
-    assertEquals(foundMatch, true, "Should find deck overview route");
+    assertEquals(foundMatch, true, "Should find deck samples route");
   });
 
   await t.step("should match sample view route", () => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/eval/decks/sports-grader/sample/sample-001",
+        "/pg/grade/decks/sports-grader/sample/sample-001",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval/decks/:deckId/sample/:sampleId");
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/sample/:sampleId");
         assertEquals(match.params, {
           deckId: "sports-grader",
           sampleId: "sample-001",
@@ -60,12 +74,12 @@ Deno.test("Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/eval/decks/my-deck/grading",
+        "/pg/grade/decks/my-deck/samples/grading",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval/decks/:deckId/grading");
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/samples/grading");
         assertEquals(match.params, { deckId: "my-deck" });
         break;
       }
@@ -76,10 +90,13 @@ Deno.test("Eval System Routes", async (t) => {
   await t.step("should match fullscreen deck route", () => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
-      const match = matchRouteWithParams("/deck/fullscreen-deck", routePattern);
+      const match = matchRouteWithParams(
+        "/pg/grade/deck/fullscreen-deck",
+        routePattern,
+      );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/deck/:deckId");
+        assertEquals(routePattern, "/pg/grade/deck/:deckId");
         assertEquals(match.params, { deckId: "fullscreen-deck" });
         break;
       }
@@ -91,14 +108,13 @@ Deno.test("Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/deck/test-deck/sample/test-sample",
+        "/pg/grade/sample/test-sample",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/deck/:deckId/sample/:sampleId");
+        assertEquals(routePattern, "/pg/grade/sample/:sampleId");
         assertEquals(match.params, {
-          deckId: "test-deck",
           sampleId: "test-sample",
         });
         break;
@@ -111,12 +127,12 @@ Deno.test("Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/deck/grading-deck/grading",
+        "/pg/grade/deck/grading-deck/samples/grading",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/deck/:deckId/grading");
+        assertEquals(routePattern, "/pg/grade/deck/:deckId/samples/grading");
         assertEquals(match.params, { deckId: "grading-deck" });
         break;
       }
@@ -124,16 +140,16 @@ Deno.test("Eval System Routes", async (t) => {
     assertEquals(foundMatch, true, "Should find fullscreen grading route");
   });
 
-  await t.step("should handle query parameters with eval routes", () => {
+  await t.step("should handle query parameters with V2 routes", () => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/eval/decks/test-deck?tab=results&mode=debug",
+        "/pg/grade/decks/test-deck/samples?tab=results&mode=debug",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval/decks/:deckId");
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/samples");
         assertEquals(match.params, { deckId: "test-deck" });
         assertEquals(match.queryParams, { tab: "results", mode: "debug" });
         break;
@@ -143,17 +159,17 @@ Deno.test("Eval System Routes", async (t) => {
   });
 
   await t.step("should prefer exact matches over parameterized matches", () => {
-    // Test that /eval matches exactly, not as a parameter in another route
+    // Test that /pg matches exactly, not as a parameter in another route
     let foundMatch = false;
     for (const routePattern of allRoutes) {
-      const match = matchRouteWithParams("/eval", routePattern);
+      const match = matchRouteWithParams("/pg", routePattern);
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/eval");
+        assertEquals(routePattern, "/pg");
         assertEquals(match.params, {});
         break;
       }
     }
-    assertEquals(foundMatch, true, "Should match exact /eval route");
+    assertEquals(foundMatch, true, "Should match exact /pg route");
   });
 });

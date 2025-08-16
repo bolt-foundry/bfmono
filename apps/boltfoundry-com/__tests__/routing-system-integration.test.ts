@@ -38,40 +38,52 @@ function simulateRouterContext(pathname: string) {
   };
 }
 
-Deno.test("Complete Routing System Integration", async (t) => {
-  await t.step("should handle eval landing page", () => {
-    const result = simulateRouterContext("/eval");
+Deno.test("Complete V2 Routing System Integration", async (t) => {
+  await t.step("should handle V2 landing page", () => {
+    const result = simulateRouterContext("/pg");
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, {});
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "normal");
-    assertEquals(result.togglePath, "/eval"); // No toggle for landing page
+    assertEquals(result.togglePath, "/pg"); // No toggle for landing page
+  });
+
+  await t.step("should handle grade tool landing page", () => {
+    const result = simulateRouterContext("/pg/grade");
+
+    assertEquals(result.foundMatch, true);
+    assertEquals(result.routeParams, {});
+    assertEquals(result.queryParams, {});
+    assertEquals(result.layoutMode, "normal");
+    assertEquals(result.togglePath, "/pg/grade"); // No toggle for grade tool landing
   });
 
   await t.step("should handle decks list", () => {
-    const result = simulateRouterContext("/eval/decks");
+    const result = simulateRouterContext("/pg/grade/decks");
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, {});
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "normal");
-    assertEquals(result.togglePath, "/eval/decks"); // No toggle for decks list
+    assertEquals(result.togglePath, "/pg/grade/decks"); // No toggle for decks list
   });
 
-  await t.step("should handle deck overview with parameters", () => {
-    const result = simulateRouterContext("/eval/decks/sports-grader-v2");
+  await t.step("should handle deck samples with parameters", () => {
+    const result = simulateRouterContext(
+      "/pg/grade/decks/sports-grader-v2/samples",
+    );
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, { deckId: "sports-grader-v2" });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "normal");
-    assertEquals(result.togglePath, "/deck/sports-grader-v2");
+    assertEquals(result.togglePath, "/pg/grade/deck/sports-grader-v2");
   });
 
   await t.step("should handle sample view with multiple parameters", () => {
     const result = simulateRouterContext(
-      "/eval/decks/sports-grader/sample/sample-001",
+      "/pg/grade/decks/sports-grader/sample/sample-001",
     );
 
     assertEquals(result.foundMatch, true);
@@ -81,55 +93,64 @@ Deno.test("Complete Routing System Integration", async (t) => {
     });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "normal");
-    assertEquals(result.togglePath, "/deck/sports-grader/sample/sample-001");
+    assertEquals(
+      result.togglePath,
+      "/pg/grade/sample/sample-001",
+    );
   });
 
   await t.step("should handle grading view", () => {
-    const result = simulateRouterContext("/eval/decks/my-deck/grading");
+    const result = simulateRouterContext(
+      "/pg/grade/decks/my-deck/samples/grading",
+    );
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, { deckId: "my-deck" });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "normal");
-    assertEquals(result.togglePath, "/deck/my-deck/grading");
+    assertEquals(result.togglePath, "/pg/grade/deck/my-deck/samples/grading");
   });
 
   await t.step("should handle fullscreen deck view", () => {
-    const result = simulateRouterContext("/deck/sports-grader-v2");
+    const result = simulateRouterContext("/pg/grade/deck/sports-grader-v2");
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, { deckId: "sports-grader-v2" });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "fullscreen");
-    assertEquals(result.togglePath, "/eval/decks/sports-grader-v2");
+    assertEquals(result.togglePath, "/pg/grade/decks/sports-grader-v2/samples");
   });
 
   await t.step("should handle fullscreen sample view", () => {
-    const result = simulateRouterContext("/deck/test-deck/sample/test-sample");
+    const result = simulateRouterContext("/pg/grade/sample/test-sample");
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, {
-      deckId: "test-deck",
       sampleId: "test-sample",
     });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "fullscreen");
-    assertEquals(result.togglePath, "/eval/decks/test-deck/sample/test-sample");
+    assertEquals(result.togglePath, "/pg/grade/sample/test-sample"); // No toggle for direct sample view
   });
 
   await t.step("should handle fullscreen grading view", () => {
-    const result = simulateRouterContext("/deck/grading-deck/grading");
+    const result = simulateRouterContext(
+      "/pg/grade/deck/grading-deck/samples/grading",
+    );
 
     assertEquals(result.foundMatch, true);
     assertEquals(result.routeParams, { deckId: "grading-deck" });
     assertEquals(result.queryParams, {});
     assertEquals(result.layoutMode, "fullscreen");
-    assertEquals(result.togglePath, "/eval/decks/grading-deck/grading");
+    assertEquals(
+      result.togglePath,
+      "/pg/grade/decks/grading-deck/samples/grading",
+    );
   });
 
   await t.step("should handle query parameters correctly", () => {
     const result = simulateRouterContext(
-      "/eval/decks/test-deck?tab=results&mode=debug&page=2",
+      "/pg/grade/decks/test-deck/samples?tab=results&mode=debug&page=2",
     );
 
     assertEquals(result.foundMatch, true);
@@ -142,13 +163,13 @@ Deno.test("Complete Routing System Integration", async (t) => {
     assertEquals(result.layoutMode, "normal");
     assertEquals(
       result.togglePath,
-      "/deck/test-deck?tab=results&mode=debug&page=2",
+      "/pg/grade/deck/test-deck?tab=results&mode=debug&page=2",
     );
   });
 
   await t.step("should handle fullscreen with query parameters", () => {
     const result = simulateRouterContext(
-      "/deck/my-deck?view=compact&filter=active",
+      "/pg/grade/deck/my-deck?view=compact&filter=active",
     );
 
     assertEquals(result.foundMatch, true);
@@ -160,7 +181,7 @@ Deno.test("Complete Routing System Integration", async (t) => {
     assertEquals(result.layoutMode, "fullscreen");
     assertEquals(
       result.togglePath,
-      "/eval/decks/my-deck?view=compact&filter=active",
+      "/pg/grade/decks/my-deck/samples?view=compact&filter=active",
     );
   });
 
@@ -204,7 +225,7 @@ Deno.test("Complete Routing System Integration", async (t) => {
 Deno.test("Layout Mode Workflow Integration", async (t) => {
   await t.step("should handle complete layout toggle workflow", () => {
     // Start in normal mode
-    let result = simulateRouterContext("/eval/decks/sports-grader");
+    let result = simulateRouterContext("/pg/grade/decks/sports-grader/samples");
     assertEquals(result.layoutMode, "normal");
     assertEquals(result.routeParams, { deckId: "sports-grader" });
 
@@ -213,20 +234,20 @@ Deno.test("Layout Mode Workflow Integration", async (t) => {
     result = simulateRouterContext(fullscreenPath);
     assertEquals(result.layoutMode, "fullscreen");
     assertEquals(result.routeParams, { deckId: "sports-grader" });
-    assertEquals(result.currentPath, "/deck/sports-grader");
+    assertEquals(result.currentPath, "/pg/grade/deck/sports-grader");
 
     // Toggle back to normal
     const normalPath = result.togglePath;
     result = simulateRouterContext(normalPath);
     assertEquals(result.layoutMode, "normal");
     assertEquals(result.routeParams, { deckId: "sports-grader" });
-    assertEquals(result.currentPath, "/eval/decks/sports-grader");
+    assertEquals(result.currentPath, "/pg/grade/decks/sports-grader/samples");
   });
 
   await t.step("should preserve parameters during layout toggle", () => {
     // Complex route with multiple parameters and query params
     const originalPath =
-      "/eval/decks/complex-deck/sample/sample-123?tab=grading&mode=review";
+      "/pg/grade/decks/complex-deck/sample/sample-123?tab=grading&mode=review";
 
     let result = simulateRouterContext(originalPath);
     assertEquals(result.routeParams, {
@@ -243,7 +264,6 @@ Deno.test("Layout Mode Workflow Integration", async (t) => {
     const fullscreenPath = result.togglePath;
     result = simulateRouterContext(fullscreenPath);
     assertEquals(result.routeParams, {
-      deckId: "complex-deck",
       sampleId: "sample-123",
     });
     assertEquals(result.queryParams, {
@@ -253,7 +273,7 @@ Deno.test("Layout Mode Workflow Integration", async (t) => {
     assertEquals(result.layoutMode, "fullscreen");
     assertEquals(
       result.currentPath,
-      "/deck/complex-deck/sample/sample-123?tab=grading&mode=review",
+      "/pg/grade/sample/sample-123?tab=grading&mode=review",
     );
   });
 });
