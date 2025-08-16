@@ -1,50 +1,51 @@
-# BoltFoundry.com Routing System Enhancement - V2 Implementation ✅
+# BoltFoundry.com Routing System Enhancement - V3 Simplified Implementation ✅
 
 ## Project Overview
 
-This project focused on implementing the V2 routing system for the
-`apps/boltfoundry-com/` application based on the new hierarchical specification.
-The implementation has been **completed successfully** with all critical gaps
-addressed and comprehensive testing in place.
+This project evolved from the original V2 routing system to implement a **V3
+Simplified Routing System** for the `apps/boltfoundry-com/` application. The V3
+implementation removes unnecessary complexity while maintaining powerful routing
+capabilities.
 
 ## ✅ **IMPLEMENTATION STATUS: COMPLETE**
 
-All phases have been implemented and tested. The V2 routing system is now live
-and fully functional.
+All phases have been implemented and tested. The V3 simplified routing system is
+now live and fully functional.
 
-## V2 Routing System Implementation
+## V3 Simplified Routing System Implementation
 
 ### Current Architecture
 
 **Location**: `apps/boltfoundry-com/`
 
-**Architecture**: Dual routing system with hierarchical V2 routes
+**Architecture**: Simplified single-mode routing system
 
 - **Traditional React routes** (`appRoutes`): `/plinko`, `/ui`, `/ui/*`
-- **V2 Isograph routes** (`isographAppRoutes`): Based on hierarchical pattern
-  `/:app/:toolName/:collectionName/:collectionId/{:secondaryCollectionName/:secondaryCollectionId}?/:action`
+- **V3 Simplified Isograph routes** (`isographAppRoutes`): Clean,
+  straightforward routes without layout mode complexity
 
-### V2 Route Structure
+### V3 Route Structure
 
-All eval system routes follow the new hierarchical pattern with `/pg` prefix:
+All eval system routes follow a simplified pattern:
 
 #### Core Routes
 
-- `/pg` - Eval landing page
-- `/pg/grade/decks` - Grading overview/sample list/inbox
+- `/pg` - Redirects to `/pg/grade/decks`
+- `/pg/grade/decks` - Deck list (main content)
+- `/pg/analyze` - Analyze view
+- `/pg/chat` - Chat view
 
-#### Normal Mode Routes (with sidebar)
+#### Deck Detail Views (Tabbed Interface)
 
-- `/pg/grade/decks/:deckId/samples` - Sample list for deck
-- `/pg/grade/decks/:deckId/graders` - Graders for deck
-- `/pg/grade/decks/:deckId/sample/:sampleId` - Sample view
-- `/pg/grade/decks/:deckId/samples/grading` - Grading view
+- `/pg/grade/decks/:deckId` - Redirects to samples tab
+- `/pg/grade/decks/:deckId/samples` - Deck detail with samples tab
+- `/pg/grade/decks/:deckId/graders` - Deck detail with graders tab
+- `/pg/grade/decks/:deckId/grading` - Deck detail with grading tab (integrated
+  grading interface)
 
-#### Fullscreen Mode Routes (singular forms)
+#### Fullscreen Views
 
-- `/pg/grade/deck/:deckId` - Fullscreen deck view
-- `/pg/grade/sample/:sampleId` - Fullscreen sample view
-- `/pg/grade/deck/:deckId/samples/grading` - Fullscreen grading view
+- `/pg/grade/sample/:sampleId` - Sample view fullscreen
 
 **Key Components**:
 
@@ -54,50 +55,106 @@ All eval system routes follow the new hierarchical pattern with `/pg` prefix:
 - `server.tsx` - Server-side route handling and SSR
 - `components/RouterLink.tsx` - Navigation component
 
-**V2 Features Implemented**:
+**V3 Features Implemented**:
 
-- ✅ **Hierarchical parameter extraction** - Multiple route parameters
-  (`:deckId`, `:sampleId`)
-- ✅ **Layout mode detection** - Normal vs fullscreen based on route patterns
-- ✅ **Layout mode toggling** - Seamless switching between modes
-- ✅ **Query parameter preservation** - Maintained during navigation and toggles
-- ✅ **Server-side rendering** - Full SSR support for all V2 routes
+- ✅ **Route parameter extraction** - Clean parameter extraction (`:deckId`,
+  `:sampleId`)
+- ✅ **Simplified navigation** - Direct fullscreen views without layout mode
+  complexity
+- ✅ **Right sidebar reserved for ethereal content** - No more complex
+  sidebar/main content switching
+- ✅ **Query parameter preservation** - Maintained during navigation
+- ✅ **Server-side rendering** - Full SSR support for all V3 routes
 - ✅ **Single entrypoint pattern** - All eval routes handled by `entrypointEval`
-- ✅ **Comprehensive testing** - 57 test steps across 8 test suites
+- ✅ **Missing Grade button restored** - Ungraded samples now show Grade button
+- ✅ **Comprehensive testing** - Updated test suite for V3 routes
 
-## Layout Mode Behavior
+## V3 Simplified Navigation Behavior
 
-### Normal Mode (`/pg/grade/decks/*`)
+### Deck List (`/pg/grade/decks`)
 
-- ✅ **Left Sidebar**: Visible/docked navigation
-- ✅ **Main Content**: Visible (e.g., DecksView on `/pg/grade/decks`)
-- ✅ **Right Sidebar**: Shows context-specific content (deck/sample/grading)
-- 🔄 **Toggle Button**: Maximize icon → switches to fullscreen equivalent
+- ✅ **Main Content**: Shows deck list
+- ✅ **Right Sidebar**: Reserved for ethereal content only
+- ✅ **Navigation**: Clicking a deck navigates to
+  `/pg/grade/deck/:deckId/samples`
 
-### Fullscreen Mode (`/pg/grade/deck/*`, `/pg/grade/sample/*`)
+### Fullscreen Views
 
-- 🔒 **Left Sidebar**: Hidden (can overlay when toggled)
-- 🔒 **Main Content**: Hidden (appears with sidebar overlay)
-- ↔️ **Right Sidebar**: Full width, shows same content as normal mode
-- 🔄 **Toggle Button**: Minimize icon → switches to normal equivalent
-- 📱 **Sidebar Toggle**: Opens sidebar + main content as overlay
+All content views are fullscreen (no sidebar/main content complexity):
 
-### Toggle Patterns
+#### Samples List (`/pg/grade/deck/:deckId/samples`)
 
-The V2 system supports specific toggle patterns:
+- ✅ **Fullscreen**: Samples list takes full screen
+- ✅ **Grade Button**: Shows "Start grading" button for ungraded samples
+- ✅ **Navigation**:
+  - Grade button → `/pg/grade/deck/:deckId/grade`
+  - Sample click → `/pg/grade/sample/:sampleId`
 
-#### Round-trip Toggles
+#### Sample View (`/pg/grade/sample/:sampleId`)
 
-- `/pg/grade/decks/{deckId}/samples` ↔ `/pg/grade/deck/{deckId}`
-- `/pg/grade/decks/{deckId}/samples/grading` ↔
-  `/pg/grade/deck/{deckId}/samples/grading`
+- ✅ **Fullscreen**: Sample details take full screen
 
-#### One-way Toggles
+#### Grading Interface (`/pg/grade/deck/:deckId/grade`)
 
-- `/pg/grade/decks/{deckId}/sample/{sampleId}` → `/pg/grade/sample/{sampleId}`
-  (loses deck context)
+- ✅ **Fullscreen**: Grading interface takes full screen
 
-Query parameters are preserved during all toggle operations.
+### Navigation Flow
+
+```
+/pg (redirects to) → /pg/grade/decks
+                    ↓ (click deck)
+                   /pg/grade/decks/:deckId/samples (samples tab)
+                    ↓ (tab navigation)    ↓ (click sample)
+                   /pg/grade/decks/:deckId/grading  /pg/grade/sample/:sampleId
+                    (grading tab)
+                    ↓ (tab navigation)
+                   /pg/grade/decks/:deckId/graders
+                    (graders tab)
+```
+
+## 🆕 Recent Enhancements (August 2025)
+
+### ✅ Tabbed Deck Interface Implementation
+
+**Status**: Completed - Enhanced deck detail views with tab-based navigation
+
+**Key Features Implemented**:
+
+- ✅ **Three-tab deck interface**: Samples, Graders, and Grading tabs
+- ✅ **URL-driven tab navigation**: `/pg/grade/decks/:deckId/:tab` pattern
+- ✅ **Integrated grading experience**: Grading now operates as a tab instead of
+  separate page
+- ✅ **Breadcrumb navigation**: Added breadcrumb with back navigation to deck
+  list
+- ✅ **Enhanced empty states**:
+  - Samples tab: BfDsEmptyState with SDK documentation links
+  - Graders tab: BfDsEmptyState with "cpu" icon
+  - Grading tab: BfDsEmptyState with "grade" icon when no samples available
+- ✅ **Cleaned grading interface**: Removed redundant headers when used as tab
+- ✅ **Fixed loading states**: Eliminated flashing between loading and empty
+  states
+- ✅ **TypeScript improvements**: Proper typing for all interfaces
+
+**Technical Improvements**:
+
+- ✅ **DeckTab enum**: Added "grading" as third tab option alongside
+  samples/graders
+- ✅ **Context-based sample loading**: Improved `useDeckSamples` hook with
+  proper loading state management
+- ✅ **Mock data organization**: Shared deck data between components for
+  consistency
+- ✅ **CSS enhancements**: Updated grading header alignment and breadcrumb
+  styling
+- ✅ **Code quality**: Fixed all TypeScript errors and lint warnings
+
+**User Experience Improvements**:
+
+- ✅ **Seamless workflow**: Grading integrates naturally into deck management
+  workflow
+- ✅ **Better navigation**: Clear breadcrumb path and tab-based navigation
+- ✅ **Consistent design**: All empty states use design system components
+- ✅ **Proper documentation links**: Updated SDK links point to correct npm
+  package and GitHub
 
 ## ✅ Implementation Completed
 

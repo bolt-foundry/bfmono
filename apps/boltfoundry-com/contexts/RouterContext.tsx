@@ -1,5 +1,6 @@
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -21,7 +22,11 @@ export function matchRouteWithParams(
   pathRaw = "",
   pathTemplate?: string,
 ): MatchedRoute {
-  const [rawPath, search] = pathRaw.split("?");
+  const [rawPathWithSlash, search] = pathRaw.split("?");
+  // Normalize path by removing trailing slash (except for root "/")
+  const rawPath = rawPathWithSlash === "/"
+    ? "/"
+    : rawPathWithSlash.replace(/\/$/, "");
   const searchParams = new URLSearchParams(search || "");
   const queryParams = Object.fromEntries(searchParams.entries());
 
@@ -90,63 +95,13 @@ export function matchRouteWithParams(
   };
 }
 
-export type LayoutMode = "normal" | "fullscreen";
-
-export function getLayoutMode(pathname: string): LayoutMode {
-  // V2: Fullscreen mode uses singular forms: /pg/grade/deck/ or /pg/grade/sample/
-  return (pathname.includes("/grade/deck/") ||
-      pathname.includes("/grade/sample/"))
-    ? "fullscreen"
-    : "normal";
-}
-
-export function toggleLayoutMode(currentPath: string): string {
-  // V2: Specific toggle patterns based on the PDF spec
-  const [pathWithoutQuery, query] = currentPath.split("?");
-  const queryString = query ? `?${query}` : "";
-
-  // Pattern: /pg/grade/decks/{deck.id}/samples ↔ /pg/grade/deck/{deck.id}
-  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/samples$/)) {
-    const deckId = pathWithoutQuery.split("/")[4];
-    return `/pg/grade/deck/${deckId}${queryString}`;
-  }
-  if (pathWithoutQuery.match(/^\/pg\/grade\/deck\/[^/]+$/)) {
-    const deckId = pathWithoutQuery.split("/")[4];
-    return `/pg/grade/decks/${deckId}/samples${queryString}`;
-  }
-
-  // Pattern: /pg/grade/decks/{deck.id}/sample/{sample.id} ↔ /pg/grade/sample/{sample.id}
-  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/sample\/[^/]+$/)) {
-    const sampleId = pathWithoutQuery.split("/")[6];
-    return `/pg/grade/sample/${sampleId}${queryString}`;
-  }
-  if (pathWithoutQuery.match(/^\/pg\/grade\/sample\/[^/]+$/)) {
-    // For sample-only view, we can't easily toggle back without knowing the deck
-    // Return as-is for now - this might require additional context
-    return currentPath;
-  }
-
-  // Pattern: /pg/grade/decks/{deck.id}/samples/grading ↔ /pg/grade/deck/{deck.id}/samples/grading
-  if (pathWithoutQuery.match(/^\/pg\/grade\/decks\/[^/]+\/samples\/grading$/)) {
-    const deckId = pathWithoutQuery.split("/")[4];
-    return `/pg/grade/deck/${deckId}/samples/grading${queryString}`;
-  }
-  if (pathWithoutQuery.match(/^\/pg\/grade\/deck\/[^/]+\/samples\/grading$/)) {
-    const deckId = pathWithoutQuery.split("/")[4];
-    return `/pg/grade/decks/${deckId}/samples/grading${queryString}`;
-  }
-
-  // No toggle available for this route
-  return currentPath;
-}
+// V3: Simplified routing - no layout modes needed
 
 type RouterContextType = {
   currentPath: string;
   navigate: (path: string) => void;
   routeParams: Record<string, string>;
   queryParams: Record<string, string>;
-  layoutMode: LayoutMode;
-  toggleLayoutMode: () => void;
 };
 
 const RouterContext = createContext<RouterContextType | null>(null);
@@ -155,56 +110,67 @@ export function RouterProvider({
   children,
   initialPath,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   initialPath?: string;
 }) {
   const [currentPath, setCurrentPath] = useState(() => {
     if (typeof window === "undefined") {
       return initialPath || "/";
     }
-    return globalThis.location.pathname;
+    const pathname = globalThis.location.pathname;
+    // Normalize trailing slash in browser URL
+    const normalized = pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+    if (pathname !== normalized) {
+      // Update browser URL to remove trailing slash
+      globalThis.history.replaceState(
+        {},
+        "",
+        normalized + globalThis.location.search + globalThis.location.hash,
+      );
+    }
+    return normalized;
   });
 
-  const [routeParams, setRouteParams] = useState<Record<string, string>>({});
-  const [queryParams, setQueryParams] = useState<Record<string, string>>({});
-
-  const navigate = useCallback((path: string) => {
-    logger.info("RouterContext navigate called", { to: path });
-    setCurrentPath(path);
-    if (typeof window !== "undefined") {
-      globalThis.history.pushState({}, "", path);
-      logger.info("History updated", { url: globalThis.location.pathname });
-    }
-  }, []); // Remove currentPath dependency to prevent re-creation
-
-  // NEW: Update route params when path changes
-  useEffect(() => {
-    // Find matching route and extract parameters
+  // Extract route and query params synchronously to avoid undefined -> value flicker
+  const { routeParams, queryParams } = useMemo(() => {
     const allRoutes = [...appRoutes.keys(), ...isographAppRoutes.keys()];
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(currentPath, routePattern);
       if (match.match) {
-        // Only update if params actually changed to prevent infinite re-renders
-        setRouteParams((prevParams) => {
-          const paramsChanged =
-            JSON.stringify(prevParams) !== JSON.stringify(match.params);
-          return paramsChanged ? match.params : prevParams;
-        });
-        setQueryParams((prevQuery) => {
-          const queryChanged =
-            JSON.stringify(prevQuery) !== JSON.stringify(match.queryParams);
-          return queryChanged ? match.queryParams : prevQuery;
-        });
-        break;
+        return {
+          routeParams: match.params,
+          queryParams: match.queryParams,
+        };
       }
     }
+    return { routeParams: {}, queryParams: {} };
   }, [currentPath]);
+
+  const navigate = useCallback((path: string) => {
+    logger.debug("RouterContext navigate called", { to: path });
+    setCurrentPath(path);
+    if (typeof window !== "undefined") {
+      globalThis.history.pushState({}, "", path);
+      logger.debug("History updated", { url: globalThis.location.pathname });
+    }
+  }, []); // Remove currentPath dependency to prevent re-creation
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(globalThis.location.pathname);
-      const searchParams = new URLSearchParams(globalThis.location.search);
-      setQueryParams(Object.fromEntries(searchParams.entries()));
+      const pathname = globalThis.location.pathname;
+      // Normalize trailing slash in browser URL
+      const normalized = pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+      if (pathname !== normalized) {
+        // Update browser URL to remove trailing slash
+        globalThis.history.replaceState(
+          {},
+          "",
+          normalized + globalThis.location.search + globalThis.location.hash,
+        );
+        setCurrentPath(normalized);
+      } else {
+        setCurrentPath(pathname);
+      }
     };
 
     if (typeof window !== "undefined") {
@@ -213,31 +179,14 @@ export function RouterProvider({
     }
   }, []);
 
-  // Memoize computed values to prevent unnecessary re-renders
-  const layoutMode = useMemo(() => getLayoutMode(currentPath), [currentPath]);
-
-  const handleToggleLayoutMode = useCallback(() => {
-    const newPath = toggleLayoutMode(currentPath);
-    navigate(newPath);
-  }, [currentPath, navigate]);
-
   const contextValue: RouterContextType = useMemo(
     () => ({
       currentPath,
       navigate,
       routeParams,
       queryParams,
-      layoutMode,
-      toggleLayoutMode: handleToggleLayoutMode,
     }),
-    [
-      currentPath,
-      navigate,
-      routeParams,
-      queryParams,
-      layoutMode,
-      handleToggleLayoutMode,
-    ],
+    [currentPath, navigate, routeParams, queryParams],
   );
 
   return (

@@ -1,12 +1,7 @@
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useEffect, useRef } from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
-import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { GradingContainer } from "../Grading/GradingContainer.tsx";
-import { GradingSamplesList } from "../Grading/GradingSamplesList.tsx";
-
-// Stable empty array to prevent useEffect loops
-const EMPTY_SAMPLES: any[] = [];
 
 export function RightSidebar() {
   const {
@@ -19,7 +14,6 @@ export function RightSidebar() {
     gradingDeckName,
     exitGrading,
   } = useEvalContext();
-  const { routeParams } = useRouter();
   const hasAnimated = useRef(false);
 
   useEffect(() => {
@@ -133,30 +127,6 @@ export function RightSidebar() {
                 {rightSidebarContent === "Deck Creation" &&
                     chatMode === "createDeck"
                   ? renderDeckCreationContent()
-                  : rightSidebarContent === "Deck Samples" && routeParams.deckId
-                  ? (
-                    <GradingSamplesList
-                      deckId={routeParams.deckId}
-                      deckName={`Deck ${routeParams.deckId}`}
-                      onStartGrading={() => {
-                        // TODO: Navigate to grading route
-                        console.log(
-                          "Start grading for deck",
-                          routeParams.deckId,
-                        );
-                      }}
-                      onViewSample={(sample) => {
-                        // TODO: Navigate to sample view route
-                        console.log(
-                          "View sample",
-                          sample.id,
-                          "from deck",
-                          routeParams.deckId,
-                        );
-                      }}
-                      availableSamples={EMPTY_SAMPLES}
-                    />
-                  )
                   : <p>Content for: {rightSidebarContent}</p>}
               </div>
             </div>

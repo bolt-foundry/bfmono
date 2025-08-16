@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { DeckList } from "./DeckList.tsx";
 import { DeckConfigModal } from "./DeckConfigModal.tsx";
@@ -8,8 +7,7 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 const logger = getLogger(import.meta);
 
 export function DecksView() {
-  const { openRightSidebar } = useEvalContext();
-  const { navigate, layoutMode } = useRouter();
+  const { navigate } = useRouter();
   const [selectedDeck, _setSelectedDeck] = useState<
     { id: string; name: string } | null
   >(null);
@@ -28,20 +26,13 @@ export function DecksView() {
   };
 
   const handleDeckSelect = (deckId: string) => {
-    logger.info("Selected deck:", deckId);
-
-    // V2 routing: Update URL for proper routing
-    if (layoutMode === "fullscreen") {
-      navigate(`/pg/grade/deck/${deckId}`);
-    } else {
-      navigate(`/pg/grade/decks/${deckId}/samples`);
-      // Also open right sidebar to show samples list
-      openRightSidebar("Deck Samples");
-    }
+    logger.debug("Selected deck:", deckId);
+    // V3 routing: Navigate to deck detail page with samples tab
+    navigate(`/pg/grade/decks/${deckId}/samples`);
   };
 
   const handleDeckConfig = (updates: Record<string, unknown>) => {
-    logger.info("Updating deck config:", updates);
+    logger.debug("Updating deck config:", updates);
     // TODO: Update deck via GraphQL mutation
     setShowConfigModal(false);
   };

@@ -26,7 +26,7 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
   useEffect(() => {
     if (!deckId) return;
 
-    logger.info("Fetching samples for deck", { deckId });
+    logger.debug("Fetching samples for deck", { deckId });
     setLoading(true);
     setError(null);
 
@@ -34,13 +34,16 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
     // For now, we'll simulate the GraphQL response structure
     setTimeout(async () => {
       try {
-        let samples;
+        let samples: Array<GradingSample>;
 
         if (deckId === "fastpitch") {
           const { fastpitchGradingSamples } = await import(
             "@bfmono/apps/boltfoundry-com/mocks/fastpitchSamples.ts"
           );
           samples = fastpitchGradingSamples;
+        } else if (deckId === "1") {
+          // Customer Support Quality deck - empty for demo
+          samples = [];
         } else {
           const { mockGradingSamples } = await import(
             "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
@@ -56,7 +59,7 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
         setError("Failed to load samples");
         setLoading(false);
       }
-    }, 500); // Simulate network delay
+    }, 100); // Minimal delay for smooth UX
   }, [deckId]);
 
   const saveGrade = async (
@@ -65,7 +68,7 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
       { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
     >,
   ) => {
-    logger.info("Saving grade", { sampleId, grades });
+    logger.debug("Saving grade", { sampleId, grades });
     setSaving(true);
     setError(null);
 
@@ -92,7 +95,7 @@ export function useGradingSamples(deckId: string): UseGradingSamplesResult {
         });
       });
 
-      logger.info("Grade saved successfully", { sampleId });
+      logger.debug("Grade saved successfully", { sampleId });
     } catch (err) {
       logger.error("Failed to save grade", err);
       setError("Failed to save grade");

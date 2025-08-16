@@ -63,9 +63,9 @@ export const Eval = iso(`
       # Add sample fields as they become available
     }
   }
-`)(function Eval({ data }) {
-  const { sendMessage } = useHud();
-  const { currentPath, layoutMode, routeParams } = useRouter();
+`)(function Eval({ data: _data }) {
+  const { sendMessage: _sendMessage } = useHud();
+  const { currentPath, routeParams } = useRouter();
 
   // Extract route parameters from router context
   const deckId = routeParams.deckId;
@@ -80,7 +80,6 @@ export const Eval = iso(`
   useEffect(() => {
     const routeInfo = {
       currentPath,
-      layoutMode,
       routeParams,
       deckId,
       sampleId,
@@ -89,7 +88,7 @@ export const Eval = iso(`
       showSampleView,
       showGradingView,
     };
-    logger.info("V2 Eval Route Info:", routeInfo);
+    logger.debug("V2 Eval Route Info:", routeInfo);
   }, [currentPath, deckId, sampleId]); // Only trigger when path or key params change
 
   return (
