@@ -4038,3 +4038,20 @@ a.bfds-button:hover {
   color: var(--bfds-text-secondary);
   font-size: 0.75rem;
 }
+
+/* === Breadcrumb styles === */
+.deck-detail-breadcrumb {
+  padding: 12px 0;
+  gap: 8px;
+}
+
+.breadcrumb-separator {
+  color: var(--bfds-text-muted);
+  font-size: 14px;
+  user-select: none;
+}
+
+.breadcrumb-current {
+  font-weight: 500;
+  color: var(--bfds-text);
+}

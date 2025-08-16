@@ -124,8 +124,8 @@ export function RightSidebar() {
                 />
               </div>
               <div className="eval-sidebar-body">
-                {chatMode === "createDeck" &&
-                    rightSidebarContent === "Deck Creation"
+                {rightSidebarContent === "Deck Creation" &&
+                    chatMode === "createDeck"
                   ? renderDeckCreationContent()
                   : <p>Content for: {rightSidebarContent}</p>}
               </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsSpinner } from "@bfmono/apps/bfDs/components/BfDsSpinner.tsx";
+import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
@@ -106,28 +107,16 @@ export function GradingInbox({
 
   if (!samples || samples.length === 0) {
     return (
-      <div className="grading-inbox grading-empty">
-        <div className="grading-header">
-          <h2>No samples found</h2>
-          <BfDsButton
-            variant="ghost"
-            size="small"
-            icon="cross"
-            onClick={onClose}
-            aria-label="Close grading"
-          />
-        </div>
-        <div className="grading-empty-content">
-          <BfDsIcon name="inbox" size="large" />
-          <p>No grading samples available for "{deckName}"</p>
-          <BfDsButton
-            variant="primary"
-            onClick={onClose}
-          >
-            Return to decks
-          </BfDsButton>
-        </div>
-      </div>
+      <BfDsEmptyState
+        title="No samples to grade"
+        description={`No grading samples available for "${deckName}". Add samples through the SDK or check the Samples tab.`}
+        icon="grade"
+        action={{
+          label: "Go to Samples",
+          onClick: onClose,
+          variant: "primary",
+        }}
+      />
     );
   }
 
@@ -190,7 +179,7 @@ export function GradingInbox({
     rating: -3 | -2 | -1 | 1 | 2 | 3 | null,
     comment: string,
   ) => {
-    logger.info("Saving sample grades (auto-advance)", {
+    logger.debug("Saving sample grades (auto-advance)", {
       sampleId: currentSample.id,
       graderId,
       rating,
@@ -227,7 +216,7 @@ export function GradingInbox({
         setCurrentIndex((prev) => prev + 1);
       } else {
         // All samples graded - trigger completion callback
-        logger.info("All samples graded", {
+        logger.debug("All samples graded", {
           deckId,
           completedCount: completedCount + 1,
         });
@@ -253,7 +242,7 @@ export function GradingInbox({
       return;
     }
 
-    logger.info("Saving sample grades", {
+    logger.debug("Saving sample grades", {
       sampleId: currentSample.id,
       ratings: currentSampleRatings,
     });
@@ -289,7 +278,7 @@ export function GradingInbox({
         setCurrentIndex((prev) => prev + 1);
       } else {
         // All samples graded - trigger completion callback
-        logger.info("All samples graded", {
+        logger.debug("All samples graded", {
           deckId,
           completedCount: completedCount + 1,
         });
@@ -348,7 +337,6 @@ export function GradingInbox({
     <div className="grading-inbox">
       <div className="grading-header">
         <div className="grading-header-info">
-          <h2>Grading: {deckName}</h2>
           <div className="grading-progress">
             <span className="progress-text">
               Sample {currentIndex + 1} of {totalSamples}
@@ -400,13 +388,6 @@ export function GradingInbox({
                 </>
               )}
           </BfDsButton>
-          <BfDsButton
-            variant="ghost"
-            size="small"
-            icon="cross"
-            onClick={onClose}
-            aria-label="Close grading"
-          />
         </div>
       </div>
 

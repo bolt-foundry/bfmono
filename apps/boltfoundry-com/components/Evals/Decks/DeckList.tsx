@@ -6,62 +6,16 @@ import { DeckItem } from "./DeckItem.tsx";
 import { DeckCreateModal, type DeckFormData } from "./DeckCreateModal.tsx";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
+import { mockDecks } from "@bfmono/apps/boltfoundry-com/mocks/deckData.ts";
 
 const logger = getLogger(import.meta);
-
-// Mock data for demonstration
-const mockDecks = [
-  {
-    id: "fastpitch",
-    name: "Fastpitch Story Selection",
-    description:
-      "Evaluates the quality of curated AI news story selections from the latest articles",
-    graderCount: 3,
-    lastModified: "2025-08-12",
-    status: "active" as const,
-    agreementRate: 88,
-    totalTests: 156,
-  },
-  {
-    id: "1",
-    name: "Customer Support Quality",
-    description:
-      "Evaluates helpfulness, accuracy, and tone of customer support responses",
-    graderCount: 5,
-    lastModified: "2025-07-24",
-    status: "active" as const,
-    agreementRate: 92,
-    totalTests: 1250,
-  },
-  {
-    id: "2",
-    name: "Code Generation Accuracy",
-    description:
-      "Tests correctness, efficiency, and best practices in generated code",
-    graderCount: 8,
-    lastModified: "2025-07-23",
-    status: "active" as const,
-    agreementRate: 87,
-    totalTests: 3420,
-  },
-  {
-    id: "3",
-    name: "Content Moderation",
-    description: "Ensures appropriate content filtering and safety guidelines",
-    graderCount: 3,
-    lastModified: "2025-07-22",
-    status: "inactive" as const,
-    agreementRate: 95,
-    totalTests: 892,
-  },
-];
 
 interface DeckListProps {
   onDeckSelect?: (deckId: string) => void;
 }
 
 export function DeckList({ onDeckSelect }: DeckListProps) {
-  const { startDeckCreation, startGrading } = useEvalContext();
+  const { startDeckCreation } = useEvalContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [decks] = useState(mockDecks);
@@ -72,17 +26,14 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
   );
 
   const handleCreateDeck = (deckData: DeckFormData) => {
-    logger.info("Creating deck:", deckData);
+    logger.debug("Creating deck:", deckData);
     // TODO: Implement deck creation with GraphQL mutation
     setShowCreateModal(false);
   };
 
   const handleDeckClick = (deckId: string) => {
-    const deck = decks.find((d) => d.id === deckId);
-    if (deck) {
-      // Samples will be fetched by GradingInbox using GraphQL
-      startGrading(deckId, deck.name);
-    }
+    // V3 routing: Let parent handle navigation to avoid duplicate calls
+    logger.debug("Deck clicked", { deckId });
     onDeckSelect?.(deckId);
   };
 
@@ -99,7 +50,7 @@ export function DeckList({ onDeckSelect }: DeckListProps) {
           }}
           secondaryAction={{
             label: "Learn more",
-            onClick: () => logger.info("Learn more"),
+            onClick: () => logger.debug("Learn more"),
           }}
         />
         {showCreateModal && (
