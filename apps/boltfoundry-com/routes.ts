@@ -31,5 +31,16 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/", entrypointHome],
   ["/login", entrypointLogin],
   ["/rlhf", entrypointRlhf],
-  ["/eval", entrypointEval],
+
+  // Eval System Routes - All handled by single entrypoint
+  ["/eval", entrypointEval], // Eval landing page
+  ["/eval/decks", entrypointEval], // Decks list view
+  ["/eval/decks/:deckId", entrypointEval], // Deck overview
+  ["/eval/decks/:deckId/sample/:sampleId", entrypointEval], // Sample view
+  ["/eval/decks/:deckId/grading", entrypointEval], // Grading view
+
+  // Fullscreen Routes - Same entrypoint, different layout mode
+  ["/deck/:deckId", entrypointEval], // Fullscreen deck view
+  ["/deck/:deckId/sample/:sampleId", entrypointEval], // Fullscreen sample view
+  ["/deck/:deckId/grading", entrypointEval], // Fullscreen grading view
 ]);
