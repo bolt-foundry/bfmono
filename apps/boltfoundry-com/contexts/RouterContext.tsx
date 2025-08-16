@@ -1,10 +1,16 @@
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
+import { appRoutes, isographAppRoutes } from "../routes.ts";
+import { getLogger } from "@bfmono/packages/logger/logger.ts";
+
+const logger = getLogger(import.meta);
 
 type MatchedRoute = {
   match: boolean;
@@ -16,7 +22,11 @@ export function matchRouteWithParams(
   pathRaw = "",
   pathTemplate?: string,
 ): MatchedRoute {
-  const [rawPath, search] = pathRaw.split("?");
+  const [rawPathWithSlash, search] = pathRaw.split("?");
+  // Normalize path by removing trailing slash (except for root "/")
+  const rawPath = rawPathWithSlash === "/"
+    ? "/"
+    : rawPathWithSlash.replace(/\/$/, "");
   const searchParams = new URLSearchParams(search || "");
   const queryParams = Object.fromEntries(searchParams.entries());
 
@@ -49,12 +59,43 @@ export function matchRouteWithParams(
     }
   }
 
+  // NEW: Handle parameterized routes like "/deck/:deckId" or "/eval/decks/:deckId/sample/:sampleId"
+  const templateParts = pathTemplate.split("/");
+  const pathParts = rawPath.split("/");
+
+  if (templateParts.length !== pathParts.length) {
+    return {
+      match: false,
+      params: {},
+      queryParams,
+    };
+  }
+
+  const params: Record<string, string> = {};
+  let matches = true;
+
+  for (let i = 0; i < templateParts.length; i++) {
+    const templatePart = templateParts[i];
+    const pathPart = pathParts[i];
+
+    if (templatePart.startsWith(":")) {
+      // Extract parameter
+      const paramName = templatePart.slice(1);
+      params[paramName] = pathPart;
+    } else if (templatePart !== pathPart) {
+      matches = false;
+      break;
+    }
+  }
+
   return {
-    match: false,
-    params: {},
+    match: matches,
+    params,
     queryParams,
   };
 }
+
+// V3: Simplified routing - no layout modes needed
 
 type RouterContextType = {
   currentPath: string;
@@ -69,31 +110,67 @@ export function RouterProvider({
   children,
   initialPath,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   initialPath?: string;
 }) {
   const [currentPath, setCurrentPath] = useState(() => {
     if (typeof window === "undefined") {
       return initialPath || "/";
     }
-    return globalThis.location.pathname;
+    const pathname = globalThis.location.pathname;
+    // Normalize trailing slash in browser URL
+    const normalized = pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+    if (pathname !== normalized) {
+      // Update browser URL to remove trailing slash
+      globalThis.history.replaceState(
+        {},
+        "",
+        normalized + globalThis.location.search + globalThis.location.hash,
+      );
+    }
+    return normalized;
   });
 
-  const [routeParams] = useState<Record<string, string>>({});
-  const [queryParams, setQueryParams] = useState<Record<string, string>>({});
+  // Extract route and query params synchronously to avoid undefined -> value flicker
+  const { routeParams, queryParams } = useMemo(() => {
+    const allRoutes = [...appRoutes.keys(), ...isographAppRoutes.keys()];
+    for (const routePattern of allRoutes) {
+      const match = matchRouteWithParams(currentPath, routePattern);
+      if (match.match) {
+        return {
+          routeParams: match.params,
+          queryParams: match.queryParams,
+        };
+      }
+    }
+    return { routeParams: {}, queryParams: {} };
+  }, [currentPath]);
 
   const navigate = useCallback((path: string) => {
+    logger.debug("RouterContext navigate called", { to: path });
     setCurrentPath(path);
     if (typeof window !== "undefined") {
       globalThis.history.pushState({}, "", path);
+      logger.debug("History updated", { url: globalThis.location.pathname });
     }
-  }, []);
+  }, []); // Remove currentPath dependency to prevent re-creation
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(globalThis.location.pathname);
-      const searchParams = new URLSearchParams(globalThis.location.search);
-      setQueryParams(Object.fromEntries(searchParams.entries()));
+      const pathname = globalThis.location.pathname;
+      // Normalize trailing slash in browser URL
+      const normalized = pathname === "/" ? "/" : pathname.replace(/\/$/, "");
+      if (pathname !== normalized) {
+        // Update browser URL to remove trailing slash
+        globalThis.history.replaceState(
+          {},
+          "",
+          normalized + globalThis.location.search + globalThis.location.hash,
+        );
+        setCurrentPath(normalized);
+      } else {
+        setCurrentPath(pathname);
+      }
     };
 
     if (typeof window !== "undefined") {
@@ -102,12 +179,15 @@ export function RouterProvider({
     }
   }, []);
 
-  const contextValue: RouterContextType = {
-    currentPath,
-    navigate,
-    routeParams,
-    queryParams,
-  };
+  const contextValue: RouterContextType = useMemo(
+    () => ({
+      currentPath,
+      navigate,
+      routeParams,
+      queryParams,
+    }),
+    [currentPath, navigate, routeParams, queryParams],
+  );
 
   return (
     <RouterContext.Provider value={contextValue}>
