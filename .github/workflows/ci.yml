@@ -14,12 +14,11 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ci
     permissions:
       contents: read
       id-token: write # OIDC for FlakeHub
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -93,13 +92,12 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: ci
     needs: setup
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -134,13 +132,12 @@ jobs:
   format:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: ci
     needs: setup
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -175,13 +172,12 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: ci
     needs: setup
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -216,13 +212,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ci
     needs: setup
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -257,13 +252,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ci
     needs: setup
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -311,13 +305,12 @@ jobs:
   docker-build-validation:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: ci
     needs: [build]
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -438,13 +431,12 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: ci
     needs: [build]
     permissions:
       contents: read
       id-token: write
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
