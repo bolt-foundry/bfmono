@@ -31,9 +31,6 @@ jobs:
   terraform-operation:
     runs-on: ubuntu-latest
     environment: infrastructure
-    defaults:
-      run:
-        working-directory: infra/terraform/hetzner
 
     steps:
       - name: Validate destroy operation
