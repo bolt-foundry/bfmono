@@ -54,7 +54,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "if pgrep -f \"bft dev boltfoundry-com\" > /dev/null 2>&1 || pgrep -f \"deno.*boltfoundry-com\" > /dev/null 2>&1 || (lsof -i :8000 > /dev/null 2>&1); then echo \"🟢 bft https://$(hostname).codebot.local\"; else echo \"⭕ bft https://$(hostname).codebot.local\"; fi"
+    "command": "hostname=$(hostname); if curl -s --connect-timeout 1 http://localhost:8000 > /dev/null 2>&1 || nc -z localhost 8000 2>/dev/null; then echo \"🟢 bft https://${hostname}.codebot.local\"; else echo \"⭕ bft https://${hostname}.codebot.local\"; fi"
   },
   "$schema": "https://json.schemastore.org/claude-code-settings.json"
 }
