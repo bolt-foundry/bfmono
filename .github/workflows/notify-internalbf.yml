@@ -16,9 +16,8 @@ jobs:
   notify-internalbf:
     name: Trigger internalbf submodule update
     runs-on: ubuntu-latest
-    environment: ci
     env:
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
