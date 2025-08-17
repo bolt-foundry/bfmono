@@ -16,7 +16,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
     permissions:
       contents: read
       packages: write
@@ -32,14 +31,14 @@ jobs:
           nix develop .#production --accept-flake-config --command bash -c "
             # Sync environment variables from vault accessible by service account
             # The OP_SERVICE_ACCOUNT_TOKEN determines which vault is used
-            if [ -n \"${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}\" ]; then
+            if [ -n \"${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}\" ]; then
               bft sitevar sync --force
             fi
             # Build the binary
             bft compile boltfoundry-com
           "
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -61,7 +60,7 @@ jobs:
         run: |
           # First sync secrets from 1Password to get SSH_PRIVATE_KEY
           nix develop .#production --accept-flake-config --command bash -euc "
-            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
             # Sync all secrets from 1Password
             # Note: We only sync secrets here for SSH setup
             # Full sync happens in the deployment step
@@ -103,7 +102,7 @@ jobs:
 
           # Note: ssh-keyscan will be done after we have the server IP
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -113,7 +112,7 @@ jobs:
         run: |
           # First sync secrets from 1Password
           nix develop .#production --accept-flake-config --command bash -euc "
-            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
 
             # Sync all secrets to .env.secrets
             bft sitevar sync --force
@@ -178,7 +177,7 @@ jobs:
         run: |
           # Sync production config and secrets from 1Password and generate Kamal config
           nix develop .#production --accept-flake-config --command bash -c "
-            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
 
             # Sync ALL variables (both config and secrets) from 1Password
             bft sitevar sync --force
@@ -255,7 +254,7 @@ jobs:
           kamal deploy --verbose
         env:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
           BOLTFOUNDRY_COM_SERVER_IP: ${{ steps.terraform_output.outputs.server_ip }}
         working-directory: ./
 
