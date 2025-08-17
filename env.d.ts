@@ -42,7 +42,6 @@ interface ServerEnvVars {
   readonly SSH_PRIVATE_KEY?: string;
   readonly GITHUB_PERSONAL_ACCESS_TOKEN?: string;
   readonly TERRAFORM_BACKEND_ENDPOINT?: string;
-  readonly GITHUB_TOKEN?: string;
 }
 
 // Environment-aware typing
