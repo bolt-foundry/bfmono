@@ -15,6 +15,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
   
   # Backend uses CI project for state storage in Helsinki
@@ -203,7 +207,14 @@ resource "cloudflare_record" "promptgrade" {
 
 # S3 bucket for asset storage
 resource "aws_s3_bucket" "assets" {
-  bucket = "bft-assets"
+  bucket = "bft-assets-${random_string.bucket_suffix.result}"
+}
+
+# Random suffix for bucket uniqueness
+resource "random_string" "bucket_suffix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 # Note: Hetzner Object Storage doesn't support AWS-style bucket policies and CORS

@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - plan
+          - apply
           - state-list
           - state-show
           - refresh
@@ -89,6 +90,9 @@ jobs:
             case '${{ inputs.operation }}' in
               plan)
                 terraform plan ${{ inputs.terraform_args }}
+                ;;
+              apply)
+                terraform apply -auto-approve ${{ inputs.terraform_args }}
                 ;;
               state-list)
                 terraform state list ${{ inputs.terraform_args }}
