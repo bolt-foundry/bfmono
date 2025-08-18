@@ -217,19 +217,35 @@ resource "cloudflare_r2_bucket" "assets" {
   location   = "ENAM"  # Eastern North America
 }
 
-# Custom domain for R2 bucket - automatic CDN setup!
-resource "cloudflare_r2_custom_domain" "bltcdn" {
-  zone_id    = var.cloudflare_zone_id_bltcdn
-  bucket     = cloudflare_r2_bucket.assets.name
-  domain     = "bltcdn.com"
+# R2 Custom Domain configuration
+# Note: The cloudflare_r2_custom_domain resource may not be available in all provider versions
+# As a workaround, you can:
+# 1. Set up the custom domain manually in Cloudflare Dashboard -> R2 -> Your bucket -> Settings -> Custom Domains
+# 2. Or use a CNAME record pointing to the R2 public URL (once public access is enabled)
+
+# For now, create a CNAME to the R2 public bucket URL
+# The bucket needs to have public access enabled in the dashboard
+resource "cloudflare_record" "bltcdn" {
+  zone_id = var.cloudflare_zone_id_bltcdn
+  name    = "@"
+  # R2 public URL format: <bucket-name>.<account-id>.r2.dev
+  value   = "${cloudflare_r2_bucket.assets.name}.${var.cloudflare_account_id}.r2.dev"
+  type    = "CNAME"
+  ttl     = 1
+  proxied = true  # Use Cloudflare CDN
 }
 
-# Note: R2 automatically handles:
-# - Public access (when accessing via custom domain)
-# - CDN integration
-# - SSL/TLS
-# - No Host header issues
-# - Zero egress fees!
+# IMPORTANT: Manual step required after Terraform apply:
+# 1. Go to Cloudflare Dashboard -> R2 -> bft-assets bucket
+# 2. Go to Settings tab
+# 3. Under "Public Access", click "Allow Access"
+# 4. Add custom domain: bltcdn.com
+#
+# Benefits of R2:
+# - Zero egress fees
+# - Automatic CDN integration
+# - No Host header issues (unlike S3)
+# - SSL/TLS included
 
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
