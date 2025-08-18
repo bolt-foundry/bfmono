@@ -1,0 +1,16 @@
+# Fastpitch Curator Context Samples
+
+[samples.tech-news-selection]
+score = 3
+
+[[samples.tech-news-selection.messages]]
+role = "user"
+content = """
+I need you to curate technology news for software engineers.
+"""
+
+[[samples.tech-news-selection.messages]]
+role = "assistant"
+content = """
+I'll help you curate the most impactful technology news for software engineers. Please provide me with the list of technology articles to analyze, and I'll select the 5 most relevant stories that would help engineers make better technical decisions and stay current with critical industry changes.
+"""
