@@ -64,6 +64,15 @@ export class BfClient {
     });
   }
 
+  /**
+   * Read a deck from file path - alias for readLocalDeck for consistency
+   * @param path Path to the .deck.md file
+   * @returns Promise<Deck> A Deck instance
+   */
+  readDeckFromPath(path: string): Promise<Deck> {
+    return this.readLocalDeck(path);
+  }
+
   private createWrappedFetch(): typeof fetch {
     const wrappedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
