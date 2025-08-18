@@ -3600,14 +3600,6 @@
           "npm:react@^19.1.0"
         ]
       },
-      "apps/promptgrade-ai": {
-        "dependencies": [
-          "npm:@types/react@19",
-          "npm:react-dom@^19.1.0",
-          "npm:react@*",
-          "npm:react@^19.1.0"
-        ]
-      },
       "packages/logger": {
         "dependencies": [
           "jsr:@bolt-foundry/get-configuration-var@0.0.0-dev.0",

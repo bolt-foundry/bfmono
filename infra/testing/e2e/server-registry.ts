@@ -62,21 +62,6 @@ export const E2E_SERVER_REGISTRY: Array<ServerRegistryEntry> = [
       },
     },
   },
-  {
-    testPatterns: [
-      "apps/promptgrade-ai/**/*.e2e.ts",
-      "**/promptgrade-ai*.e2e.ts",
-    ],
-    server: {
-      name: "promptgrade-ai",
-      serverPath: "./build/promptgrade-ai",
-      defaultPort: 9001,
-      envVar: "BF_E2E_PROMPTGRADE_AI_URL",
-      env: {
-        "BF_E2E_MODE": "true",
-      },
-    },
-  },
 ];
 
 /**
