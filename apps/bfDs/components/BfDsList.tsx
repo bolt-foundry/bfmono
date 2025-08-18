@@ -8,9 +8,11 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import { BfDsCheckbox } from "./BfDsCheckbox.tsx";
 
 /**
  * Props for the BfDsList component.
@@ -32,6 +34,16 @@ import {
  *     Section 2
  *   </BfDsListItem>
  * </BfDsList>
+ *
+ * // List with bulk selection
+ * <BfDsList
+ *   bulkSelect
+ *   initialSelectedValues={["item1"]}
+ *   onSelectionChange={(selected) => console.log(selected)}
+ * >
+ *   <BfDsListItem value="item1">Item 1</BfDsListItem>
+ *   <BfDsListItem value="item2">Item 2</BfDsListItem>
+ * </BfDsList>
  * ```
  */
 type BfDsListProps = {
@@ -43,13 +55,24 @@ type BfDsListProps = {
   accordion?: boolean;
   /** Optional header text to display above the list */
   header?: string;
+  /** Enable bulk selection with checkboxes */
+  bulkSelect?: boolean;
+  /** Callback when selection changes (only used with bulkSelect) */
+  onSelectionChange?: (selectedValues: Array<string>) => void;
+  /** Render function for bulk actions toolbar */
+  bulkActions?: (
+    selectedValues: Array<string>,
+    clearSelection: () => void,
+  ) => React.ReactNode;
+  /** Initial selected values for bulk selection */
+  initialSelectedValues?: Array<string>;
 };
 
 /**
  * Context type that provides list state and controls to child components.
  *
  * This context is used internally to coordinate behavior between the list container
- * and its child items, particularly for accordion expansion management.
+ * and its child items, particularly for accordion expansion management and bulk selection.
  *
  * @example
  * ```tsx
@@ -58,10 +81,11 @@ type BfDsListProps = {
  *   const listContext = useBfDsList();
  *   if (!listContext) return null;
  *
- *   const { accordion, expandedIndex } = listContext;
+ *   const { accordion, expandedIndex, bulkSelect, selectedValues } = listContext;
  *   return (
  *     <div>
  *       {accordion ? "Accordion mode" : "Independent mode"}
+ *       {bulkSelect && `${selectedValues.length} items selected`}
  *     </div>
  *   );
  * }
@@ -76,6 +100,22 @@ type BfDsListContextType = {
   setExpandedIndex: (index: number | null) => void;
   /** Function to get the index of a list item by its ref */
   getItemIndex: (ref: React.RefObject<HTMLElement | null>) => number | null;
+  /** Whether bulk selection is enabled */
+  bulkSelect: boolean;
+  /** Array of currently selected item values */
+  selectedValues: Array<string>;
+  /** Function to toggle selection of an item */
+  toggleSelection: (value: string) => void;
+  /** Function to select all items */
+  selectAll: () => void;
+  /** Function to clear all selections */
+  clearSelection: () => void;
+  /** All selectable item values in the list */
+  allSelectableValues: Array<string>;
+  /** Function to register a selectable value */
+  registerSelectableValue: (value: string) => void;
+  /** Function to unregister a selectable value */
+  unregisterSelectableValue: (value: string) => void;
 };
 
 /**
@@ -234,15 +274,29 @@ const BfDsListContext = createContext<BfDsListContextType | null>(null);
  * - `.bfds-list--accordion` - Accordion mode modifier
  * - `.bfds-list-header` - Optional header styling
  */
-export function BfDsList(
-  { children, className, accordion = false, header }: BfDsListProps,
-) {
+export function BfDsList({
+  children,
+  className,
+  accordion = false,
+  header,
+  bulkSelect = false,
+  onSelectionChange,
+  bulkActions,
+  initialSelectedValues = [],
+}: BfDsListProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [selectedValues, setSelectedValues] = useState<Array<string>>(
+    initialSelectedValues,
+  );
+  const [allSelectableValues, setAllSelectableValues] = useState<Array<string>>(
+    [],
+  );
   const listRef = useRef<HTMLUListElement>(null);
 
   const listClasses = [
     "bfds-list",
     accordion && "bfds-list--accordion",
+    bulkSelect && "bfds-list--bulk-select",
     className,
   ].filter(Boolean).join(" ");
 
@@ -257,19 +311,133 @@ export function BfDsList(
     [],
   );
 
-  const contextValue: BfDsListContextType = {
+  const toggleSelection = useCallback((value: string) => {
+    setSelectedValues((prev) => {
+      const newSelection = prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value];
+      onSelectionChange?.(newSelection);
+      return newSelection;
+    });
+  }, [onSelectionChange]);
+
+  const selectAll = useCallback(() => {
+    setSelectedValues([...allSelectableValues]);
+    onSelectionChange?.(allSelectableValues);
+  }, [allSelectableValues, onSelectionChange]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedValues([]);
+    onSelectionChange?.([]);
+  }, [onSelectionChange]);
+
+  const registerSelectableValueRef = useRef<
+    (value: string) => void | undefined
+  >(undefined);
+  const unregisterSelectableValueRef = useRef<
+    (value: string) => void | undefined
+  >(undefined);
+
+  registerSelectableValueRef.current = (value: string) => {
+    setAllSelectableValues((prev) => {
+      if (!prev.includes(value)) {
+        return [...prev, value];
+      }
+      return prev;
+    });
+  };
+
+  unregisterSelectableValueRef.current = (value: string) => {
+    setAllSelectableValues((prev) => prev.filter((v) => v !== value));
+    setSelectedValues((prev) => prev.filter((v) => v !== value));
+  };
+
+  const registerSelectableValue = useCallback((value: string) => {
+    registerSelectableValueRef.current?.(value);
+  }, []);
+
+  const unregisterSelectableValue = useCallback((value: string) => {
+    unregisterSelectableValueRef.current?.(value);
+  }, []);
+
+  const contextValue: BfDsListContextType = useMemo(() => ({
     accordion,
     expandedIndex,
     setExpandedIndex,
     getItemIndex,
-  };
+    bulkSelect,
+    selectedValues,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    allSelectableValues,
+    registerSelectableValue,
+    unregisterSelectableValue,
+  }), [
+    accordion,
+    expandedIndex,
+    setExpandedIndex,
+    getItemIndex,
+    bulkSelect,
+    selectedValues,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    allSelectableValues,
+    registerSelectableValue,
+    unregisterSelectableValue,
+  ]);
+
+  const isAllSelected = bulkSelect && allSelectableValues.length > 0 &&
+    selectedValues.length === allSelectableValues.length;
+  const isPartiallySelected = bulkSelect && selectedValues.length > 0 &&
+    selectedValues.length < allSelectableValues.length;
 
   return (
     <BfDsListContext.Provider value={contextValue}>
-      <ul ref={listRef} className={listClasses}>
-        {header && <h3 className="bfds-list-header">{header}</h3>}
-        {children}
-      </ul>
+      <div className="bfds-list-container">
+        <ul ref={listRef} className={listClasses}>
+          {(header || bulkSelect) && (
+            <div className="bfds-list-header-section">
+              {header && <h3 className="bfds-list-header">{header}</h3>}
+              {bulkSelect && allSelectableValues.length > 0 && (
+                <div className="bfds-list-controls-row flexRow gapMedium alignItemsCenter">
+                  <div className="bfds-list-select-controls">
+                    <BfDsCheckbox
+                      checked={isAllSelected}
+                      onChange={() => {
+                        if (isAllSelected || isPartiallySelected) {
+                          clearSelection();
+                        } else {
+                          selectAll();
+                        }
+                      }}
+                      label={isAllSelected
+                        ? "Deselect all"
+                        : isPartiallySelected
+                        ? `${selectedValues.length} selected`
+                        : "Select all"}
+                      className="bfds-list-select-all"
+                    />
+                  </div>
+                  {bulkActions && (
+                    <div
+                      className={`bfds-list-bulk-actions ${
+                        selectedValues.length === 0
+                          ? "bfds-list-bulk-actions--hidden"
+                          : ""
+                      }`}
+                    >
+                      {bulkActions(selectedValues, clearSelection)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          {children}
+        </ul>
+      </div>
     </BfDsListContext.Provider>
   );
 }
