@@ -108,13 +108,25 @@ async function processFile(filePath: string, verbose: boolean): Promise<void> {
     await uploadToS3(hash, fileName, fileData, verbose);
   }
 
+  // For R2, the CDN URL is the primary URL
   const cdnUrl = `https://bltcdn.com/assets/${hash}/${fileName}`;
   ui.output(cdnUrl);
+
+  // Also show S3 API URL if in verbose mode
+  if (verbose) {
+    const bucketName = S3_CONFIG.bucket;
+    const s3ApiUrl =
+      `https://${S3_CONFIG.host}/${bucketName}/assets/${hash}/${fileName}`;
+    ui.output(`  S3 API URL: ${s3ApiUrl}`);
+  }
 }
 
-// S3 configuration
+// S3 configuration (works with both R2 and Hetzner S3)
+// For R2: Set ASSET_STORAGE_HOST to "{account_id}.r2.cloudflarestorage.com"
+// For R2: Set ASSET_STORAGE_BUCKET to "bft-assets" (or your bucket name)
+// For R2: Keep using AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 const S3_CONFIG = {
-  region: getConfigurationVariable("ASSET_STORAGE_REGION") || "us-east-1",
+  region: getConfigurationVariable("ASSET_STORAGE_REGION") || "auto",
   host: getConfigurationVariable("ASSET_STORAGE_HOST") ||
     "hel1.your-objectstorage.com",
   bucket: getConfigurationVariable("ASSET_STORAGE_BUCKET") ||
