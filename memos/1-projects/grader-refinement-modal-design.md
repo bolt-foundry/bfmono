@@ -50,12 +50,41 @@ modal workflow.
 
 Display baseline accuracy as: "73% within ±1 point"
 
-### Step 2: Progress & Results
+### Step 2: Detailed Progress Tracking
 
-1. Modal switches to progress view with "See details on Graders tab" link
-2. Graders tab shows progress bars under each refining grader
-3. Progress completes → shows result summary clickable for details
-4. Click result → detailed modal showing what changed in the grader
+**Multi-Stage Refinement Pipeline:**
+
+1. **Analyze Samples** (20% weight) - Examining training samples and identifying
+   patterns
+2. **Adjust Grader** (30% weight) - Modifying grader parameters and bias
+   corrections
+3. **Test Grader** (50% weight) - Running grader through test suite (takes
+   longest)
+
+**Progress Display:**
+
+- Real-time progress bars with overall completion percentage
+- Current stage indicator with descriptive text
+- Stage-specific status messages ("Analyzing samples...", "Testing grader...")
+- Color-coded status (pending/refining/completed/failed)
+- "See detailed progress on the Graders tab" link
+
+### Step 3: Comprehensive Results
+
+**Summary View:**
+
+- Success/failure count with improvement statistics
+- Before/after accuracy comparison with percentage gains
+- Training samples vs test samples used in refinement
+
+**Detailed Changes Applied (Expandable):**
+
+- **Bias Correction**: Specific corrections made (e.g., "Reduced harsh grading
+  tendency")
+- **Parameters Adjusted**: List of technical parameters modified
+  (confidence_threshold, bias_correction_factor, etc.)
+- **Threshold Changes**: Before/after values for each adjusted parameter
+- Collapsible technical details for transparency
 
 ## Benefits
 
@@ -76,40 +105,40 @@ Display baseline accuracy as: "73% within ±1 point"
 
 ## Project Plan
 
-### Phase 1: Core Modal Infrastructure
+### Phase 1: Core Modal Infrastructure ✅
 
-- [ ] Connect existing "Refine" button on Samples tab to new modal workflow
-- [ ] Create refinement modal using BfDsModal component
-- [ ] Implement modal state management (open/close, step navigation)
-- [ ] Add sample selection data flow to modal
+- [x] Connect existing "Refine" button on Samples tab to new modal workflow
+- [x] Create refinement modal using BfDsModal component
+- [x] Implement modal state management (open/close, step navigation)
+- [x] Add sample selection data flow to modal
 
-### Phase 2: Grader Selection & Visualization
+### Phase 2: Grader Selection & Visualization ✅
 
-- [ ] Build deviation calculation logic (human grade vs grader predictions)
-- [ ] Create SVG bar chart component for deviation distribution
-- [ ] Implement grader card layout with checkboxes
-- [ ] Add baseline accuracy calculation ("X% within ±1 point")
-- [ ] Style grader selection interface
+- [x] Build deviation calculation logic (human grade vs grader predictions)
+- [x] Create React div-based bar chart component for deviation distribution
+- [x] Implement grader card layout with checkboxes and CSS classes
+- [x] Add baseline accuracy calculation ("X% within ±1 point")
+- [x] Style grader selection interface with design system variables
 
-### Phase 3: Refinement Process Integration (with Mock Functions)
+### Phase 3: Refinement Process Integration (with Mock Functions) ✅
 
-- [ ] Create mock refinement API that returns expected progress/results
-      structure
-- [ ] Implement progress tracking state management using mock data
-- [ ] Add progress view in modal with "See details on Graders tab" link
-- [ ] Update Graders tab to show progress bars during mock refinement
+- [x] Create mock refinement API with multi-stage pipeline simulation
+- [x] Implement progress tracking state management with stage-specific logic
+- [x] Add detailed progress view with stage descriptions and weighted progress
+- [x] Mock realistic refinement timing (analyze → adjust → test → complete)
 
-### Phase 4: Results & Feedback (with Mock Functions)
+### Phase 4: Results & Feedback (with Mock Functions) ✅
 
-- [ ] Create mock completion detection that triggers after timeout
-- [ ] Add results summary display using mock improvement data
-- [ ] Create detailed results modal showing mock "what changed" data
-- [ ] Add error handling and user feedback for mock failed refinements
+- [x] Create mock completion detection with realistic success/failure rates
+- [x] Add comprehensive results summary with before/after accuracy
+- [x] Create detailed "changes applied" display with technical parameters
+- [x] Add error handling and expandable technical details
+- [x] Implement realistic parameter adjustments and bias corrections
 
 ### Phase 5: Polish & Testing
 
-- [ ] Add loading states and transitions
-- [ ] Implement responsive design for modal
+- [x] Add loading states and transitions with smooth progress animations
+- [x] Implement responsive design with CSS classes in evalStyle.css
 - [ ] Write unit tests for deviation calculation logic
 - [ ] Write integration tests for full refinement workflow
 - [ ] User testing and feedback incorporation
