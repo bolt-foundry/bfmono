@@ -121,10 +121,13 @@ async function processFile(filePath: string, verbose: boolean): Promise<void> {
   }
 }
 
-// S3 configuration (works with both R2 and Hetzner S3)
-// For R2: Set ASSET_STORAGE_HOST to "{account_id}.r2.cloudflarestorage.com"
-// For R2: Set ASSET_STORAGE_BUCKET to "bft-assets" (or your bucket name)
-// For R2: Keep using AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+// S3 configuration (works with both R2 and other S3-compatible storage)
+// For Cloudflare R2:
+//   - ASSET_STORAGE_HOST: "{account_id}.r2.cloudflarestorage.com"
+//   - ASSET_STORAGE_BUCKET: "bft-assets"
+//   - ASSET_STORAGE_REGION: "auto"
+//   - AWS_ACCESS_KEY_ID: Your R2 access key
+//   - AWS_SECRET_ACCESS_KEY: Your R2 secret key
 const S3_CONFIG = {
   region: getConfigurationVariable("ASSET_STORAGE_REGION") || "auto",
   host: getConfigurationVariable("ASSET_STORAGE_HOST") ||
@@ -168,12 +171,15 @@ async function createAwsSignature(
   headers: Record<string, string>,
   payload: string | Uint8Array = "",
 ): Promise<string> {
-  const accessKey = getConfigurationVariable("S3_ACCESS_KEY");
-  const secretKey = getConfigurationVariable("S3_SECRET_KEY");
+  // Support both S3_* and AWS_* variable names for compatibility
+  const accessKey = getConfigurationVariable("S3_ACCESS_KEY") ||
+    getConfigurationVariable("AWS_ACCESS_KEY_ID");
+  const secretKey = getConfigurationVariable("S3_SECRET_KEY") ||
+    getConfigurationVariable("AWS_SECRET_ACCESS_KEY");
 
   if (!accessKey || !secretKey) {
     throw new Error(
-      "S3 credentials not found. Set S3_ACCESS_KEY and S3_SECRET_KEY environment variables.",
+      "S3 credentials not found. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (or S3_ACCESS_KEY and S3_SECRET_KEY) environment variables.",
     );
   }
 
