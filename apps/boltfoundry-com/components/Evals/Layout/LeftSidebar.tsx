@@ -2,15 +2,21 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
 import { useEffect, useRef } from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
 export function LeftSidebar() {
   const {
-    activeMainContent,
-    setActiveMainContent,
     leftSidebarOpen,
     rightSidebarOpen,
   } = useEvalContext();
+  const { currentPath, navigate } = useRouter();
   const hasAnimated = useRef(false);
+
+  // Determine which section is active based on current path
+  const isGradeActive = currentPath.startsWith("/pg/grade") ||
+    currentPath === "/pg";
+  const isAnalyzeActive = currentPath === "/pg/analyze";
+  const isChatActive = currentPath === "/pg/chat";
 
   useEffect(() => {
     // Mark that we've had at least one state change after initial render
@@ -42,20 +48,20 @@ export function LeftSidebar() {
         <div className="eval-sidebar-content">
           <BfDsList header="Navigation">
             <BfDsListItem
-              active={activeMainContent === "Decks"}
-              onClick={() => setActiveMainContent("Decks")}
+              active={isGradeActive}
+              onClick={() => navigate("/pg/grade/decks")}
             >
-              Decks
+              Grade
             </BfDsListItem>
             <BfDsListItem
-              active={activeMainContent === "Analyze"}
-              onClick={() => setActiveMainContent("Analyze")}
+              active={isAnalyzeActive}
+              onClick={() => navigate("/pg/analyze")}
             >
               Analyze
             </BfDsListItem>
             <BfDsListItem
-              active={activeMainContent === "Chat"}
-              onClick={() => setActiveMainContent("Chat")}
+              active={isChatActive}
+              onClick={() => navigate("/pg/chat")}
             >
               Chat
             </BfDsListItem>

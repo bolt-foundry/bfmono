@@ -3,7 +3,9 @@ import { GradingSamplesList } from "./GradingSamplesList.tsx";
 import { GradingInbox } from "./GradingInbox.tsx";
 import { SampleDisplay } from "./SampleDisplay.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
-import { useGradingSamples } from "@bfmono/apps/boltfoundry-com/hooks/useGradingSamples.ts";
+import { useDeckSamples } from "@bfmono/apps/boltfoundry-com/hooks/useDeckSamples.ts";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
+import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
 interface GradingContainerProps {
@@ -19,22 +21,16 @@ export function GradingContainer({
   deckName,
   onClose,
 }: GradingContainerProps) {
-  const { samples, saveGrade, saving } = useGradingSamples(deckId);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const { samples, saveGrade, saving } = useDeckSamples(deckId);
+  const { navigate } = useRouter();
+  const { markSamplesCompleted } = useEvalContext();
+  const [viewMode, setViewMode] = useState<ViewMode>("grading");
   const [viewingSample, setViewingSample] = useState<GradingSample | null>(
     null,
   );
-  const [justCompletedIds, setJustCompletedIds] = useState<Array<string>>([]);
-  const [completionSummary, setCompletionSummary] = useState<
-    {
-      totalGraded: number;
-      averageScore: number;
-    } | undefined
-  >();
 
   const handleStartGrading = () => {
     setViewMode("grading");
-    setCompletionSummary(undefined); // Clear any previous completion summary
   };
 
   const handleViewSample = (sample: GradingSample) => {
@@ -46,12 +42,22 @@ export function GradingContainer({
     gradedSampleIds: Array<string>,
     avgScore: number,
   ) => {
-    setJustCompletedIds(gradedSampleIds);
-    setCompletionSummary({
-      totalGraded: gradedSampleIds.length,
-      averageScore: avgScore,
-    });
-    setViewMode("list");
+    // Mock GraphQL mutation - create graded samples data
+    const gradedSamples = gradedSampleIds.map((sampleId) => ({
+      sampleId,
+      grades: [{
+        graderId: "current-user",
+        score: (avgScore > 0
+          ? Math.min(3, Math.ceil(avgScore))
+          : Math.max(-3, Math.floor(avgScore))) as -3 | -2 | -1 | 1 | 2 | 3,
+        reason: "Graded during session",
+      }],
+    }));
+
+    markSamplesCompleted(deckId, gradedSamples, avgScore);
+
+    // Navigate back to deck detail samples tab (state managed by context)
+    navigate(`/pg/grade/decks/${deckId}/samples`);
   };
 
   const handleBackToList = () => {
@@ -84,9 +90,9 @@ export function GradingContainer({
               icon="arrowLeft"
               onClick={handleBackToList}
             >
-              Back to List
+              Back to list
             </BfDsButton>
-            <h2>Sample Details</h2>
+            <h2>Sample details</h2>
           </div>
           <BfDsButton
             variant="ghost"
@@ -109,12 +115,8 @@ export function GradingContainer({
 
   return (
     <GradingSamplesList
-      deckId={deckId}
-      deckName={deckName}
       onStartGrading={handleStartGrading}
       onViewSample={handleViewSample}
-      justCompletedIds={justCompletedIds}
-      completionSummary={completionSummary}
       availableSamples={samples || []}
     />
   );

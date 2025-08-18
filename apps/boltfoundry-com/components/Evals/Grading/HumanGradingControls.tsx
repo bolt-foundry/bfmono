@@ -96,7 +96,7 @@ export function HumanGradingControls({
               onClick={handleSubmit}
               disabled={selectedScore === null}
             >
-              {isLastSample ? "Complete Grading" : "Save & Next"}
+              {isLastSample ? "Complete grading" : "Save & next"}
             </BfDsButton>
           </div>
         </div>

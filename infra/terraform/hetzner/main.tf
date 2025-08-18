@@ -15,9 +15,9 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.2"  # Rulesets require 6.2+
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
     }
   }
   
@@ -58,17 +58,27 @@ variable "cloudflare_zone_id_promptgrade" {
   type        = string
 }
 
-variable "github_username" {
-  description = "GitHub username for container registry"
+variable "cloudflare_zone_id_bltcdn" {
+  description = "Cloudflare Zone ID for bltcdn.com"
   type        = string
 }
 
-variable "github_token" {
-  description = "GitHub Personal Access Token with repo permissions"
+variable "cloudflare_account_id" {
+  description = "Cloudflare Account ID"
+  type        = string
+}
+
+variable "r2_access_key" {
+  description = "R2 Access Key ID (can reuse AWS_ACCESS_KEY_ID)"
   type        = string
   sensitive   = true
 }
 
+variable "r2_secret_key" {
+  description = "R2 Secret Access Key (can reuse AWS_SECRET_ACCESS_KEY)"
+  type        = string
+  sensitive   = true
+}
 
 variable "ssh_public_key" {
   description = "SSH public key for server access"
@@ -87,29 +97,13 @@ variable "hyperdx_api_key" {
   sensitive   = true
 }
 
-variable "s3_access_key" {
-  description = "S3 access key for asset storage"
-  type        = string
-  sensitive   = true
-}
-
-variable "s3_secret_key" {
-  description = "S3 secret key for asset storage"
-  type        = string
-  sensitive   = true
-}
-
-
 variable "hetzner_project_id" {
   description = "Hetzner Cloud Project ID"
   type        = string
 }
 
-variable "s3_endpoint" {
-  description = "S3 endpoint for Hetzner Object Storage"
-  type        = string
-  default     = "https://hel1.your-objectstorage.com"
-}
+# Note: We still keep S3 credentials for Terraform state backend (Hetzner)
+# Those are passed via AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars
 
 provider "hcloud" {
   token = var.hcloud_token
@@ -121,22 +115,23 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# AWS provider for S3 (Hetzner Object Storage in Production project)
+# AWS provider for R2 (Cloudflare R2 Object Storage)
 # This is for application assets, NOT Terraform state
+# Note: We still need AWS provider for Terraform state backend (Hetzner)
 provider "aws" {
-  access_key = var.s3_access_key
-  secret_key = var.s3_secret_key
-  region     = "hel1"  # Helsinki region for object storage
+  alias      = "r2"
+  access_key = var.r2_access_key
+  secret_key = var.r2_secret_key
+  region     = "auto"
   
   endpoints {
-    s3 = var.s3_endpoint  # Helsinki endpoint for buckets
+    s3 = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com"
   }
   
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_region_validation      = true
   skip_requesting_account_id  = true
-  s3_use_path_style          = true
 }
 
 # SSH key for server access
@@ -215,25 +210,26 @@ resource "cloudflare_record" "promptgrade" {
   proxied = true  # Enable Cloudflare proxy for SSL termination and protection
 }
 
-# S3 bucket for asset storage
-resource "aws_s3_bucket" "assets" {
-  bucket = "bft-assets"
+# Cloudflare R2 bucket for asset storage
+resource "cloudflare_r2_bucket" "assets" {
+  account_id = var.cloudflare_account_id
+  name       = "bft-assets"  # Simple name, no random suffix needed
+  location   = "ENAM"  # Eastern North America
 }
 
-# Note: Hetzner Object Storage doesn't support AWS-style bucket policies and CORS
-# These can be configured via Hetzner's console if needed
+# Custom domain for R2 bucket - automatic CDN setup!
+resource "cloudflare_r2_custom_domain" "bltcdn" {
+  zone_id    = var.cloudflare_zone_id_bltcdn
+  bucket     = cloudflare_r2_bucket.assets.name
+  domain     = "bltcdn.com"
+}
 
-# Cloudflare DNS record for CDN domain
-# TEMPORARY: Commented out due to existing record conflict
-# TODO: Import existing record with: terraform import cloudflare_record.bltcdn <zone_id>/<record_id>
-# resource "cloudflare_record" "bltcdn" {
-#   zone_id = var.cloudflare_zone_id
-#   name    = "bltcdn"
-#   value   = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"  # Helsinki bucket endpoint
-#   type    = "CNAME"
-#   ttl     = 1  # Auto TTL
-#   proxied = true  # Enable Cloudflare CDN
-# }
+# Note: R2 automatically handles:
+# - Public access (when accessing via custom domain)
+# - CDN integration
+# - SSL/TLS
+# - No Host header issues
+# - Zero egress fees!
 
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
@@ -255,14 +251,17 @@ output "volume_id" {
   value = hcloud_volume.database.id
 }
 
-output "s3_bucket_name" {
-  value = aws_s3_bucket.assets.id
+output "r2_bucket_name" {
+  value = cloudflare_r2_bucket.assets.name
+  description = "R2 bucket name for asset storage"
 }
 
-output "s3_bucket_domain_name" {
-  value = aws_s3_bucket.assets.bucket_domain_name
+output "r2_bucket_endpoint" {
+  value = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com/${cloudflare_r2_bucket.assets.name}"
+  description = "R2 bucket S3 API endpoint"
 }
 
 output "bltcdn_domain" {
   value = "bltcdn.com"
+  description = "CDN domain for assets (automatically configured with R2)"
 }

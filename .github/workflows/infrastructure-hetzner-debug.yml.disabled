@@ -1,3 +1,0 @@
-# This workflow has been disabled due to security concerns with exposed credentials
-# Use the regular infrastructure-hetzner.yml workflow instead
-# To re-enable, rename this file back to infrastructure-hetzner-debug.yml
