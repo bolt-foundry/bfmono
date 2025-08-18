@@ -83,7 +83,7 @@ export async function fork(): Promise<number> {
       "gh",
       "repo",
       "fork",
-      "bolt-foundry/bolt-foundry",
+      "bolt-foundry/bfmono",
       "--clone=false",
     ]);
     if (forkResult !== 0) {
