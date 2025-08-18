@@ -53,10 +53,6 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
-variable "cloudflare_zone_id_promptgrade" {
-  description = "Cloudflare Zone ID for promptgrade.ai"
-  type        = string
-}
 
 variable "cloudflare_zone_id_bltcdn" {
   description = "Cloudflare Zone ID for bltcdn.com"
@@ -210,15 +206,6 @@ resource "cloudflare_record" "web" {
   proxied = true  # Enable Cloudflare proxy for SSL termination and protection
 }
 
-# Cloudflare DNS record for promptgrade.ai
-resource "cloudflare_record" "promptgrade" {
-  zone_id = var.cloudflare_zone_id_promptgrade
-  name    = "@"
-  value   = hcloud_floating_ip.web.ip_address
-  type    = "A"
-  ttl     = 1  # Auto TTL
-  proxied = true  # Enable Cloudflare proxy for SSL termination and protection
-}
 
 # Cloudflare R2 bucket for asset storage
 resource "cloudflare_r2_bucket" "assets" {
