@@ -59,9 +59,9 @@ export async function ciStatus(args: Array<string>): Promise<number> {
 
   logger.info(`Fetching check status for commit: ${targetCommit}`);
 
-  // Use hardcoded repo for now since we're in bolt-foundry/bolt-foundry
+  // Use hardcoded repo for now since we're in bolt-foundry/bfmono
   const owner = "bolt-foundry";
-  const repoName = "bolt-foundry";
+  const repoName = "bfmono";
 
   try {
     // Fetch both check runs and workflow runs for the commit
