@@ -74,7 +74,7 @@ export const Eval = iso(`
   // Determine what content to show based on route parameters
   const showDecksView = !deckId;
   const showSampleView = deckId && sampleId;
-  const showGradingView = deckId && currentPath.includes("/grading");
+  const showGradingView = deckId && currentPath.includes("/inbox");
   const showDeckOverview = deckId && !sampleId && !showGradingView;
 
   useEffect(() => {
