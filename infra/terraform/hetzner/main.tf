@@ -240,8 +240,19 @@ resource "aws_s3_bucket_acl" "assets" {
   depends_on = [aws_s3_bucket_public_access_block.assets]
 }
 
-# Note: Hetzner Object Storage doesn't support AWS-style bucket policies and CORS
-# These can be configured via Hetzner's console if needed
+# IMPORTANT: Hetzner Object Storage limitation
+# While the aws_s3_bucket_acl resource applies without error, Hetzner's S3-compatible API
+# doesn't actually implement public-read functionality through ACLs.
+# 
+# MANUAL STEP REQUIRED:
+# After running Terraform apply, you must manually set the bucket to public:
+# 1. Go to Hetzner Console → Your Project → Object Storage
+# 2. Click on the bucket (bft-assets-*)
+# 3. Change Visibility from "Private" to "Public"
+# 4. Save the changes
+#
+# This will make the bucket publicly readable for the CDN to work.
+# Note: Hetzner also doesn't support AWS-style bucket policies and CORS via S3 API
 
 # Cloudflare DNS record for CDN domain
 resource "cloudflare_record" "bltcdn" {
@@ -275,7 +286,7 @@ output "volume_id" {
 
 output "s3_bucket_name" {
   value = aws_s3_bucket.assets.id
-  description = "The actual S3 bucket name (with random suffix)"
+  description = "The actual S3 bucket name (with random suffix) - REQUIRES MANUAL PUBLIC VISIBILITY SETUP IN HETZNER CONSOLE"
 }
 
 output "s3_bucket_domain_name" {
