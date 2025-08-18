@@ -8,7 +8,6 @@ async function compile(args: Array<string>): Promise<number> {
   // Define available apps
   const availableApps = {
     "boltfoundry-com": "Bolt Foundry landing page",
-    "promptgrade-ai": "promptgrade.ai marketing site",
   };
 
   // Check for global help flag
@@ -24,7 +23,6 @@ Available apps:`);
     ui.output(`
 Examples:
   bft compile boltfoundry-com           # Compile boltfoundry-com to binary
-  bft compile promptgrade-ai            # Compile promptgrade-ai to binary
   bft compile boltfoundry-com --help    # Show app-specific help`);
     return 0;
   }
