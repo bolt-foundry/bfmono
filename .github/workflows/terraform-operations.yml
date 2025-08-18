@@ -72,12 +72,12 @@ jobs:
             export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
             export TF_VAR_cloudflare_zone_id_promptgrade=\$CLOUDFLARE_ZONE_ID_PROMPTGRADE
             export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+            export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+            export TF_VAR_r2_access_key=\$AWS_ACCESS_KEY_ID
+            export TF_VAR_r2_secret_key=\$AWS_SECRET_ACCESS_KEY
             export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
             export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
-            export TF_VAR_s3_access_key=\$AWS_ACCESS_KEY_ID
-            export TF_VAR_s3_secret_key=\$AWS_SECRET_ACCESS_KEY
             export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
-            export TF_VAR_s3_endpoint=\$S3_ENDPOINT
 
             # Override AWS creds for backend (uses CI project, not production)
             export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
