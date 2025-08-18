@@ -1,5 +1,7 @@
 import { parse } from "@std/csv";
 import { parseArgs } from "@std/cli";
+import { BfClient } from "@bfmono/packages/bolt-foundry/BfClient.ts";
+import OpenAI from "@openai/openai";
 
 /**
  * Fastpitch - AI/tech news curator for engineers
@@ -66,21 +68,86 @@ export async function generate(args: string[]) {
       }));
     }
 
-    // TODO: In Phase 4, this will be replaced with actual deck execution
-    // For now, create a mock response to test the pipeline
-    const mockResponse = {
-      selected_stories: stories.slice(0, 5).map((story, index) => ({
-        title: story.title,
-        summary: `Mock summary for story ${index + 1}: ${
-          story.title.substring(0, 50)
-        }...`,
-        url: story.url,
-        reasoning: "Mock reasoning - Phase 4 will add real AI curation",
-      })),
-    };
+    // Initialize BfClient for telemetry
+    const client = new BfClient({
+      apiKey: Deno.env.get("FASTPITCH_BF_API_KEY") || "bf+fastpitch-test",
+    });
+
+    // Configure OpenAI client for OpenRouter with BfClient's fetch
+    const openai = new OpenAI({
+      apiKey: Deno.env.get("OPENROUTER_API_KEY") || "",
+      baseURL: Deno.env.get("OPENROUTER_BASE_URL") ||
+        "https://openrouter.ai/api/v1",
+      defaultHeaders: {
+        "HTTP-Referer": "https://boltfoundry.com",
+        "X-Title": "Fastpitch",
+      },
+      fetch: client.fetch, // Use BfClient's fetch for telemetry
+    });
+
+    // Check if API key is configured
+    if (!Deno.env.get("OPENROUTER_API_KEY")) {
+      console.warn("Warning: OPENROUTER_API_KEY not set, using mock response");
+
+      // Mock response for testing without API key
+      const mockResponse = {
+        selected_stories: stories.slice(0, 5).map((story, index) => ({
+          title: story.title,
+          summary: `Mock summary for story ${index + 1}: ${
+            story.title.substring(0, 50)
+          }...`,
+          url: story.url,
+          reasoning:
+            "Mock reasoning - Set OPENROUTER_API_KEY for real AI curation",
+        })),
+      };
+
+      const output = JSON.stringify(mockResponse, null, 2);
+      if (flags.output) {
+        await Deno.writeTextFile(flags.output, output);
+        console.log(`✓ Generated output saved to ${flags.output}`);
+      } else {
+        console.log(output);
+      }
+      return;
+    }
+
+    // Load deck via client
+    const deck = await client.readDeckFromPath(
+      "infra/bft/tasks/fastpitch/decks/fastpitch-curator.deck.md",
+    );
+
+    // Render deck with context
+    const request = deck.render({
+      context: {
+        stories: JSON.stringify(stories), // Pass stories as JSON string
+      },
+    });
+
+    // Execute via OpenAI client (telemetry tracked automatically)
+    const completion = await openai.chat.completions.create(request);
+
+    // Parse the AI response
+    let result;
+    try {
+      let content = completion.choices[0]?.message?.content || "{}";
+
+      // Handle markdown code blocks
+      if (content.includes("```json")) {
+        content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+      }
+
+      result = JSON.parse(content);
+    } catch (e) {
+      console.error("Failed to parse AI response:", e);
+      result = {
+        error: "Failed to parse AI response",
+        raw: completion.choices[0]?.message?.content,
+      };
+    }
 
     // Format output
-    const output = JSON.stringify(mockResponse, null, 2);
+    const output = JSON.stringify(result, null, 2);
 
     // Write to file or stdout
     if (flags.output) {
