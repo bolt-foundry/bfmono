@@ -56,6 +56,7 @@
           pkgs.ripgrep
           pkgs.fd
           pkgs.lsof
+          pkgs.bind.dnsutils  # Provides nslookup and dig
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
           # containerTool
