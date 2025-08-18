@@ -1,0 +1,16 @@
+# Fastpitch Curator Context Samples
+
+[samples.tech-news-selection]
+score = 3
+
+[[samples.tech-news-selection.messages]]
+role = "user"
+content = """
+Analyze these technology articles and select the 5 most relevant for software engineers.
+"""
+
+[[samples.tech-news-selection.messages]]
+role = "assistant"
+content = """
+Based on the provided articles, I'll select the 5 most impactful stories for software engineers.
+"""
