@@ -1,0 +1,4 @@
+[contexts.stories]
+type = "object"
+question = "What technology articles should be analyzed?"
+description = "Array of technology news articles with title, content, url, and published_at fields"
