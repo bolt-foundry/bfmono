@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
+import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
+import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
@@ -119,6 +121,7 @@ export function GradingSamplesList({
   availableSamples = [],
 }: GradingSamplesListProps) {
   const { navigate } = useRouter();
+
   // Process samples synchronously - no loading delay needed
   const gradedSamples = useMemo(() => {
     // Get graded samples from the available samples (those with humanGrade)
@@ -136,6 +139,60 @@ export function GradingSamplesList({
   const ungradedCount = useMemo(() => {
     return availableSamples.filter((sample) => !sample.humanGrade).length;
   }, [availableSamples]);
+
+  const handleBulkDelete = (_selectedIds: Array<string>) => {
+    // TODO: Implement actual delete functionality
+  };
+
+  const handleBulkRefine = (_selectedIds: Array<string>) => {
+    // TODO: Implement actual refine functionality
+  };
+
+  const handleBulkCancel = () => {
+    // Cancel will be handled by the clearSelection function from BfDsList
+  };
+
+  const renderBulkActions = (
+    selectedIds: Array<string>,
+    clearSelection: () => void,
+  ) => {
+    return (
+      <div className="bulk-actions-toolbar flexRow gapSmall">
+        <BfDsButton
+          variant="secondary"
+          size="small"
+          icon="trash"
+          onClick={() => {
+            handleBulkDelete(selectedIds);
+            clearSelection();
+          }}
+        >
+          Delete ({selectedIds.length})
+        </BfDsButton>
+        <BfDsButton
+          variant="primary"
+          size="small"
+          icon="edit"
+          onClick={() => {
+            handleBulkRefine(selectedIds);
+            clearSelection();
+          }}
+        >
+          Refine ({selectedIds.length})
+        </BfDsButton>
+        <BfDsButton
+          variant="ghost"
+          size="small"
+          onClick={() => {
+            handleBulkCancel();
+            clearSelection();
+          }}
+        >
+          Cancel
+        </BfDsButton>
+      </div>
+    );
+  };
 
   // No loading state needed - samples are processed synchronously
 
@@ -183,8 +240,12 @@ export function GradingSamplesList({
       )}
 
       <div className="samples-list-section">
-        <h3>Graded samples history</h3>
-        <div className="samples-list">
+        <BfDsList
+          header="Graded samples history"
+          bulkSelect
+          initialSelectedValues={justCompletedIds}
+          bulkActions={renderBulkActions}
+        >
           {gradedSamples.map((sample) => {
             const isJustCompleted = justCompletedIds.includes(sample.id);
             const avgScore = (sample.graderEvaluations?.reduce(
@@ -195,73 +256,143 @@ export function GradingSamplesList({
             const agreementGrade = getAgreementGrade(avgScore, humanScore);
 
             return (
-              <div
+              <BfDsListBar
                 key={sample.id}
-                className="sample-list-item"
+                value={sample.id}
+                clickable
                 onClick={() => {
                   // V3 routing: Navigate to sample view fullscreen
                   navigate(`/pg/grade/sample/${sample.id}`);
                   // Keep the original callback for backward compatibility
                   onViewSample(sample);
                 }}
-              >
-                {isJustCompleted && (
-                  <BfDsBadge variant="success">
-                    new
-                  </BfDsBadge>
-                )}
-                <div className="sample-info">
-                  <div className="sample-timestamp">
-                    {new Date(sample.timestamp).toLocaleString()}
-                  </div>
-                  <div className="sample-meta">
-                    <span className="provider">{sample.provider}</span>
-                    <span className="duration">{sample.duration}ms</span>
-                  </div>
-                </div>
-                <div className="sample-scores">
-                  <div className="ai-score">
-                    <span className="score-label">AI:</span>
-                    <span
-                      className={`score-value ${
-                        avgScore >= 2
-                          ? "positive"
-                          : avgScore <= -2
-                          ? "negative"
-                          : "neutral"
-                      }`}
-                    >
-                      {avgScore > 0 ? "+" : ""}
-                      {avgScore.toFixed(1)}
-                    </span>
-                  </div>
-                  {sample.humanGrade && (
-                    <div className="human-score">
-                      <span className="score-label">Human:</span>
-                      <span
-                        className={`score-value ${
-                          sample.humanGrade.grades[0].score > 0
-                            ? "positive"
-                            : "negative"
-                        }`}
+                left={
+                  <div
+                    className="sample-primary-info"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
+                    {isJustCompleted && (
+                      <BfDsBadge variant="success">
+                        new
+                      </BfDsBadge>
+                    )}
+                    <div>
+                      <div
+                        className="sample-timestamp"
+                        style={{ fontWeight: "600", fontSize: "14px" }}
                       >
-                        {sample.humanGrade.grades[0].score > 0 ? "+" : ""}
-                        {sample.humanGrade.grades[0].score}
-                      </span>
+                        {new Date(sample.timestamp).toLocaleString()}
+                      </div>
+                      <div
+                        className="sample-meta"
+                        style={{
+                          fontSize: "13px",
+                          color: "var(--bfds-text-secondary)",
+                          marginTop: "2px",
+                        }}
+                      >
+                        <span className="provider">{sample.provider}</span>
+                        <span style={{ margin: "0 8px" }}>•</span>
+                        <span className="duration">{sample.duration}ms</span>
+                      </div>
                     </div>
-                  )}
-                  {sample.humanGrade && (
-                    <div className="agreement-badge">
+                  </div>
+                }
+                right={
+                  <div
+                    className="sample-scores-and-grade"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                    }}
+                  >
+                    <div
+                      className="sample-scores"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                      }}
+                    >
+                      <div
+                        className="ai-score"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        <span
+                          className="score-label"
+                          style={{
+                            fontSize: "13px",
+                            color: "var(--bfds-text-secondary)",
+                          }}
+                        >
+                          AI:
+                        </span>
+                        <span
+                          className={`score-value ${
+                            avgScore >= 2
+                              ? "positive"
+                              : avgScore <= -2
+                              ? "negative"
+                              : "neutral"
+                          }`}
+                          style={{ fontWeight: "600", fontSize: "14px" }}
+                        >
+                          {avgScore > 0 ? "+" : ""}
+                          {avgScore.toFixed(1)}
+                        </span>
+                      </div>
+                      {sample.humanGrade && (
+                        <div
+                          className="human-score"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            className="score-label"
+                            style={{
+                              fontSize: "13px",
+                              color: "var(--bfds-text-secondary)",
+                            }}
+                          >
+                            Human:
+                          </span>
+                          <span
+                            className={`score-value ${
+                              sample.humanGrade.grades[0].score > 0
+                                ? "positive"
+                                : "negative"
+                            }`}
+                            style={{ fontWeight: "600", fontSize: "14px" }}
+                          >
+                            {sample.humanGrade.grades[0].score > 0 ? "+" : ""}
+                            {sample.humanGrade.grades[0].score}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {sample.humanGrade && (
                       <BfDsBadge variant={getAgreementVariant(agreementGrade)}>
                         {agreementGrade}
                       </BfDsBadge>
-                    </div>
-                  )}
-                </div>
-              </div>
+                    )}
+                  </div>
+                }
+              />
             );
           })}
-        </div>
+        </BfDsList>
       </div>
     </div>
   );
