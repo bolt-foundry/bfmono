@@ -46,6 +46,7 @@ interface ServerEnvVars {
   readonly S3_ACCESS_KEY?: string;
   readonly S3_SECRET_KEY?: string;
   readonly ASSET_STORAGE_BUCKET?: string;
+  readonly CLOUDFLARE_ACCOUNT_ID?: string;
 }
 
 // Environment-aware typing
