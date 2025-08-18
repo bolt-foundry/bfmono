@@ -2387,3 +2387,99 @@
   padding: 1.5rem;
 }
 
+/* Sample list item components */
+.sample-primary-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sample-timestamp {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sample-meta {
+  font-size: 13px;
+  color: var(--bfds-text-secondary);
+  margin-top: 2px;
+}
+
+.sample-meta .provider {
+  /* Provider styling handled by parent */
+}
+
+.sample-meta .duration {
+  /* Duration styling handled by parent */
+}
+
+.sample-scores-and-grade {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sample-scores {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ai-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.human-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-label {
+  font-size: 13px;
+  color: var(--bfds-text-secondary);
+}
+
+.score-value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.score-value.positive {
+  color: var(--bfds-success);
+}
+
+.score-value.negative {
+  color: var(--bfds-error);
+}
+
+.score-value.neutral {
+  color: var(--bfds-warning);
+}
+
+.grading-summary-callout {
+  margin: 1.5rem;
+  padding: 1.25rem;
+  background: var(--bfds-primary-01);
+  border: 1px solid var(--bfds-primary-02);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.grading-summary-callout.success {
+  background: var(--bfds-success-01);
+  border-color: var(--bfds-success-02);
+}
+
+.grading-summary-callout.clickable {
+  cursor: pointer;
+}
+
+.grading-summary-callout .callout-content {
+  flex: 1;
+}
+
