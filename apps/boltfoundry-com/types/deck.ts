@@ -1,7 +1,7 @@
 export enum DeckTab {
   Samples = "samples",
   Graders = "graders",
-  Grading = "grading",
+  Inbox = "inbox",
 }
 
 export const DECK_TABS = Object.values(DeckTab) as Array<string>;
