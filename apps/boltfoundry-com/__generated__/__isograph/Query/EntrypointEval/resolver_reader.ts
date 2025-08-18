@@ -8,7 +8,12 @@ const readerAst: ReaderAst<Query__EntrypointEval__param> = [
   {
     kind: "Resolver",
     alias: "Eval",
-    arguments: null,
+    arguments: [
+      [
+        "deckId",
+        { kind: "Variable", name: "deckId" },
+      ],
+    ],
     readerArtifact: Query__Eval__resolver_reader,
     usedRefetchQueries: [],
   },

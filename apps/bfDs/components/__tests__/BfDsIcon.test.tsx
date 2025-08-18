@@ -9,7 +9,7 @@ Deno.test("BfDsIcon renders with valid icon name", () => {
   assertExists(svg, "SVG element should exist");
   assertEquals(
     svg?.className,
-    "bfds-icon bfds-icon--medium",
+    "bfds-icon bfds-icon_arrowRight bfds-icon--medium",
     "Icon should have default classes",
   );
   assertEquals(

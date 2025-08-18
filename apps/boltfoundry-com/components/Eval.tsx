@@ -27,7 +27,7 @@ function EvalContent() {
 }
 
 export const Eval = iso(`
-  field Query.Eval($deckId: String, $sampleId: String) @component {
+  field Query.Eval($deckId: String) @component {
     currentViewer {
       id
       personBfGid
@@ -51,16 +51,11 @@ export const Eval = iso(`
       }
     }
     # Conditionally load deck data when deckId is provided
-    deck(id: $deckId) @loadable {
+    deck(id: $deckId) {
       id
       name
       description
       slug
-    }
-    # Conditionally load sample data when sampleId is provided  
-    sample(id: $sampleId) @loadable {
-      id
-      # Add sample fields as they become available
     }
   }
 `)(function Eval({ data: _data }) {

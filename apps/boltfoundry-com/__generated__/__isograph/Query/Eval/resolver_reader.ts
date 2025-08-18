@@ -139,6 +139,49 @@ const readerAst: ReaderAst<Query__Eval__param> = [
       },
     ],
   },
+  {
+    kind: "Linked",
+    fieldName: "deck",
+    alias: null,
+    arguments: [
+      [
+        "id",
+        { kind: "Variable", name: "deckId" },
+      ],
+    ],
+    condition: null,
+    isUpdatable: false,
+    selections: [
+      {
+        kind: "Scalar",
+        fieldName: "id",
+        alias: null,
+        arguments: null,
+        isUpdatable: false,
+      },
+      {
+        kind: "Scalar",
+        fieldName: "name",
+        alias: null,
+        arguments: null,
+        isUpdatable: false,
+      },
+      {
+        kind: "Scalar",
+        fieldName: "description",
+        alias: null,
+        arguments: null,
+        isUpdatable: false,
+      },
+      {
+        kind: "Scalar",
+        fieldName: "slug",
+        alias: null,
+        arguments: null,
+        isUpdatable: false,
+      },
+    ],
+  },
 ];
 
 const artifact: ComponentReaderArtifact<

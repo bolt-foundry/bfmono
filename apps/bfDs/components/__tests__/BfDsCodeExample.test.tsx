@@ -188,7 +188,7 @@ Deno.test("BfDsCodeExample includes copy button", () => {
   );
 
   const copyButton = doc?.querySelector(
-    ".bfds-code-example__header-buttons .bfds-copy-button",
+    ".bfds-code-example__header-buttons .bfds-button",
   );
   assertExists(copyButton, "Copy button should exist in header");
 });

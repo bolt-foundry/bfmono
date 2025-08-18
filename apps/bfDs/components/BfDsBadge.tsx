@@ -210,7 +210,7 @@ export function BfDsBadge({
   };
 
   const iconSize = size === "small"
-    ? "xsmall"
+    ? "small"
     : size === "large"
     ? "medium"
     : "small";

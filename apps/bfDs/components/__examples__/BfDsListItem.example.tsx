@@ -32,9 +32,18 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
   onClick={() => {}}              // () => void - click handler
   className=""                    // string - additional CSS classes
   expandContents={<div />}        // ReactNode - expandable content
+  value="unique-id"               // string - value for bulk selection
+  nonSelectable={false}           // boolean - exclude from bulk selection
 >
   List item content
-</BfDsListItem>`}
+</BfDsListItem>
+
+// Bulk selection usage
+<BfDsList bulkSelect onSelectionChange={(selected) => console.log(selected)}>
+  <BfDsListItem value="item1">Selectable Item 1</BfDsListItem>
+  <BfDsListItem value="item2">Selectable Item 2</BfDsListItem>
+  <BfDsListItem nonSelectable>Non-selectable Item</BfDsListItem>
+</BfDsList>`}
         />
       </div>
 

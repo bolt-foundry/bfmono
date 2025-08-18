@@ -1,4 +1,4 @@
-export default 'query EntrypointEval  {\
+export default 'query EntrypointEval ($deckId: String) {\
   id,\
   currentViewer {\
     __typename,\
@@ -24,5 +24,11 @@ export default 'query EntrypointEval  {\
         name,\
       },\
     },\
+  },\
+  deck____id___v_deckId: deck(id: $deckId) {\
+    id,\
+    description,\
+    name,\
+    slug,\
   },\
 }';

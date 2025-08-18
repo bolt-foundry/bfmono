@@ -123,6 +123,39 @@ const normalizationAst: NormalizationAst = {
         },
       ],
     },
+    {
+      kind: "Linked",
+      fieldName: "deck",
+      arguments: [
+        [
+          "id",
+          { kind: "Variable", name: "deckId" },
+        ],
+      ],
+      concreteType: "BfDeck",
+      selections: [
+        {
+          kind: "Scalar",
+          fieldName: "id",
+          arguments: null,
+        },
+        {
+          kind: "Scalar",
+          fieldName: "description",
+          arguments: null,
+        },
+        {
+          kind: "Scalar",
+          fieldName: "name",
+          arguments: null,
+        },
+        {
+          kind: "Scalar",
+          fieldName: "slug",
+          arguments: null,
+        },
+      ],
+    },
   ],
 };
 export default normalizationAst;

@@ -51,8 +51,6 @@ export function formatEnvFile(vars: Record<string, string>): string {
   const lines: Array<string> = [];
 
   for (const [key, value] of Object.entries(vars)) {
-    // For multi-line values (like SSH keys), don't escape newlines
-    // The parseEnvFile function will handle unescaping when reading
     let formattedValue = value;
 
     // Check if value needs quoting
@@ -63,10 +61,15 @@ export function formatEnvFile(vars: Record<string, string>): string {
       value.includes("'") ||
       value.includes("=")
     ) {
-      // For values with actual newlines, keep them as-is
-      // This allows SSH keys and other multi-line values to work correctly
-      // when sourced by bash
-      formattedValue = `"${value.replace(/"/g, '\\"')}"`;
+      // Escape special characters
+      formattedValue = value
+        .replace(/\\/g, "\\\\") // Escape backslashes first
+        .replace(/"/g, '\\"') // Escape double quotes
+        .replace(/\n/g, "\\n") // Escape newlines
+        .replace(/\r/g, "\\r") // Escape carriage returns
+        .replace(/\t/g, "\\t"); // Escape tabs
+
+      formattedValue = `"${formattedValue}"`;
     }
 
     lines.push(`${key}=${formattedValue}`);

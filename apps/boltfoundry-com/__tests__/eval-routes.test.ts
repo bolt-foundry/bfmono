@@ -37,13 +37,13 @@ Deno.test("V3 Simplified Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/pg/grade/deck/sports-grader/samples",
+        "/pg/grade/decks/sports-grader/samples",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/pg/grade/deck/:deckId/samples");
-        assertEquals(match.params, { deckId: "sports-grader" });
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/:tab");
+        assertEquals(match.params, { deckId: "sports-grader", tab: "samples" });
         break;
       }
     }
@@ -54,12 +54,12 @@ Deno.test("V3 Simplified Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/pg/grade/sample/sample-001",
+        "/pg/grade/samples/sample-001",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/pg/grade/sample/:sampleId");
+        assertEquals(routePattern, "/pg/grade/samples/:sampleId");
         assertEquals(match.params, {
           sampleId: "sample-001",
         });
@@ -73,13 +73,13 @@ Deno.test("V3 Simplified Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/pg/grade/deck/my-deck/grade",
+        "/pg/grade/decks/my-deck/grade",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/pg/grade/deck/:deckId/grade");
-        assertEquals(match.params, { deckId: "my-deck" });
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/:tab");
+        assertEquals(match.params, { deckId: "my-deck", tab: "grade" });
         break;
       }
     }
@@ -90,13 +90,13 @@ Deno.test("V3 Simplified Eval System Routes", async (t) => {
     let foundMatch = false;
     for (const routePattern of allRoutes) {
       const match = matchRouteWithParams(
-        "/pg/grade/deck/test-deck/samples?tab=results&mode=debug",
+        "/pg/grade/decks/test-deck/samples?tab=results&mode=debug",
         routePattern,
       );
       if (match.match) {
         foundMatch = true;
-        assertEquals(routePattern, "/pg/grade/deck/:deckId/samples");
-        assertEquals(match.params, { deckId: "test-deck" });
+        assertEquals(routePattern, "/pg/grade/decks/:deckId/:tab");
+        assertEquals(match.params, { deckId: "test-deck", tab: "samples" });
         assertEquals(match.queryParams, { tab: "results", mode: "debug" });
         break;
       }
