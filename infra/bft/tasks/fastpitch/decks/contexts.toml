@@ -1,0 +1,12 @@
+# Fastpitch Curator Context Configuration
+
+[default]
+# Default context values for the fastpitch-curator deck
+model = "claude-3-5-sonnet-20241022"
+temperature = 0.3
+max_tokens = 2000
+
+[variables]
+# Stories array will be injected at runtime from CSV data
+# Format: Array of objects with title, content, url, published_at fields
+stories = []
