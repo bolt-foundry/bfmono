@@ -330,13 +330,13 @@ export function BfDsCheckbox({
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
       >
-        {actualChecked && (
-          <BfDsIcon
-            name="check"
-            size="small"
-            className="bfds-checkbox-icon"
-          />
-        )}
+        <BfDsIcon
+          name="check"
+          size="small"
+          className={`bfds-checkbox-icon ${
+            actualChecked ? "" : "bfds-checkbox-icon--hidden"
+          }`}
+        />
       </div>
       {label && (
         <span className="bfds-checkbox-label">

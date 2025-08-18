@@ -4,6 +4,9 @@
  * @since 2.0.0
  */
 import type * as React from "react";
+import { useEffect } from "react";
+import { BfDsCheckbox } from "./BfDsCheckbox.tsx";
+import { useBfDsList } from "./BfDsList.tsx";
 
 /**
  * Props for the BfDsListBar component
@@ -23,6 +26,10 @@ export type BfDsListBarProps = {
   onClick?: () => void;
   /** Additional CSS classes to apply to the list bar container for custom styling */
   className?: string;
+  /** Value for bulk selection (required when parent list has bulkSelect enabled) */
+  value?: string;
+  /** When true, excludes this item from bulk selection even when bulkSelect is enabled */
+  nonSelectable?: boolean;
 };
 
 /**
@@ -219,11 +226,30 @@ export function BfDsListBar({
   clickable = false,
   onClick,
   className,
+  value,
+  nonSelectable = false,
 }: BfDsListBarProps) {
+  const listContext = useBfDsList();
+  const showBulkSelect = listContext?.bulkSelect && !nonSelectable && value;
+  const isSelected = showBulkSelect &&
+    listContext.selectedValues.includes(value);
+
+  // Register/unregister this item for bulk selection
+  useEffect(() => {
+    if (showBulkSelect && value && listContext) {
+      listContext.registerSelectableValue(value);
+      return () => {
+        listContext.unregisterSelectableValue(value);
+      };
+    }
+  }, [showBulkSelect, value]);
+
   const barClasses = [
     "bfds-list-bar",
     active && "bfds-list-bar--active",
     clickable && "bfds-list-bar--clickable",
+    showBulkSelect && "bfds-list-bar--selectable",
+    isSelected && "bfds-list-bar--selected",
     className,
   ].filter(Boolean).join(" ");
 
@@ -240,6 +266,12 @@ export function BfDsListBar({
     }
   };
 
+  const handleCheckboxChange = () => {
+    if (showBulkSelect && value && listContext) {
+      listContext.toggleSelection(value);
+    }
+  };
+
   return (
     <div
       className={barClasses}
@@ -248,6 +280,15 @@ export function BfDsListBar({
       tabIndex={clickable ? 0 : undefined}
       role={clickable ? "button" : undefined}
     >
+      {showBulkSelect && (
+        <div className="bfds-list-bar__checkbox">
+          <BfDsCheckbox
+            checked={!!isSelected}
+            onChange={handleCheckboxChange}
+            className="bfds-list-bar-checkbox"
+          />
+        </div>
+      )}
       <div className="bfds-list-bar__left">
         {left}
       </div>

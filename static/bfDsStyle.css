@@ -493,6 +493,52 @@ a:not(.bfds-button).dark:visited {
   padding-right: 48px;
 }
 
+/* Bulk Selection styles */
+.bfds-list-item--selectable {
+  display: flex !important;
+  align-items: center;
+  gap: var(--bfds-spacing-medium, 12px);
+}
+
+.bfds-list-item__checkbox {
+  flex-shrink: 0;
+}
+
+.bfds-list-controls-row {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--bfds-border);
+}
+
+/* Hide border when followed by a list bar */
+.bfds-list-header-section:has(+ .bfds-list-bar) .bfds-list-controls-row {
+  border-bottom: none;
+}
+
+.bfds-list-select-controls {
+  flex-shrink: 0;
+}
+
+.bfds-list-bulk-actions {
+  flex-shrink: 0;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.bfds-list-bulk-actions--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bfds-list-bar--selectable {
+  display: flex !important;
+  align-items: center;
+  gap: var(--bfds-spacing-medium, 12px);
+}
+
+.bfds-list-bar__checkbox {
+  flex-shrink: 0;
+}
+
 /* BfDsListBar styles */
 .bfds-list-bar {
   display: flex;
@@ -1497,6 +1543,15 @@ a.bfds-button:hover {
 
 .bfds-checkbox-icon {
   color: var(--bfds-background);
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.bfds-checkbox-icon--hidden {
+  opacity: 0;
 }
 
 .bfds-checkbox-label {
