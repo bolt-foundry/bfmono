@@ -225,7 +225,7 @@ export function GradingSamplesList({
           <div className="callout-content">
             <h3>
               {ungradedCount} new sample{ungradedCount !== 1 ? "s" : ""}{" "}
-              to Grade
+              to Grade in Inbox
             </h3>
             <p>New samples are ready for human evaluation</p>
           </div>
@@ -234,7 +234,7 @@ export function GradingSamplesList({
             onClick={onStartGrading}
             icon="grade"
           >
-            Start grading
+            Start manual grading
           </BfDsButton>
         </div>
       )}
