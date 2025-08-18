@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { BfDsList } from "../BfDsList.tsx";
 import { BfDsListItem } from "../BfDsListItem.tsx";
+import { BfDsListBar } from "../BfDsListBar.tsx";
+import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsCallout } from "../BfDsCallout.tsx";
 import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 
@@ -9,6 +11,7 @@ export function BfDsListExample() {
     message: "",
     visible: false,
   });
+  const [_selectedItems, setSelectedItems] = useState<Array<string>>([]);
 
   return (
     <div className="bfds-example">
@@ -20,6 +23,8 @@ export function BfDsListExample() {
           language="tsx"
           code={`import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
+import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
+import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 
 // Basic usage
 <BfDsList>
@@ -33,8 +38,33 @@ import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
   accordion={false}               // boolean - only one item expanded at a time
   header="List Title"             // string - optional header text
   className=""                    // string - additional CSS classes
+  bulkSelect={true}               // boolean - enable bulk selection
+  initialSelectedValues={["item1"]} // array - initial selected values
+  onSelectionChange={(selected) => console.log(selected)} // callback for selection changes
+  bulkActions={(selected, clear) => (   // render function for bulk actions
+    <div style={{ display: "flex", gap: "8px" }}>
+      <BfDsButton size="small" onClick={() => deleteItems(selected)}>
+        Delete ({selected.length})
+      </BfDsButton>
+      <BfDsButton variant="ghost" size="small" onClick={clear}>
+        Clear
+      </BfDsButton>
+    </div>
+  )}
 >
-  <BfDsListItem>Content</BfDsListItem>
+  <BfDsListItem value="item1">Item 1</BfDsListItem>
+  <BfDsListItem value="item2">Item 2</BfDsListItem>
+  <BfDsListItem value="item3" nonSelectable>Non-selectable Item</BfDsListItem>
+</BfDsList>
+
+// Using with BfDsListBar for structured data
+<BfDsList bulkSelect>
+  <BfDsListBar
+    value="project1"
+    left="Project Name"
+    center="Description"
+    right="Status"
+  />
 </BfDsList>`}
         />
       </div>
@@ -241,6 +271,114 @@ import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
           >
             Section 4: Support
           </BfDsListItem>
+        </BfDsList>
+      </div>
+
+      <div className="bfds-example__section">
+        <h3>Bulk Selection List</h3>
+        <p>
+          Select multiple items with checkboxes. Actions appear when items are
+          selected.
+        </p>
+        <BfDsList
+          bulkSelect
+          onSelectionChange={setSelectedItems}
+          bulkActions={(selected, clearSelection) => (
+            <div style={{ display: "flex", gap: "8px" }}>
+              <BfDsButton
+                variant="secondary"
+                size="small"
+                onClick={() => {
+                  setNotification({
+                    message: `Deleted ${selected.length} items`,
+                    visible: true,
+                  });
+                  clearSelection();
+                }}
+              >
+                Delete ({selected.length})
+              </BfDsButton>
+              <BfDsButton
+                variant="outline"
+                size="small"
+                onClick={() => {
+                  setNotification({
+                    message: `Exported ${selected.length} items`,
+                    visible: true,
+                  });
+                }}
+              >
+                Export ({selected.length})
+              </BfDsButton>
+              <BfDsButton
+                variant="ghost"
+                size="small"
+                onClick={clearSelection}
+              >
+                Clear
+              </BfDsButton>
+            </div>
+          )}
+        >
+          <BfDsListItem value="bulk1">Selectable Item 1</BfDsListItem>
+          <BfDsListItem value="bulk2">Selectable Item 2</BfDsListItem>
+          <BfDsListItem value="bulk3">Selectable Item 3</BfDsListItem>
+          <BfDsListItem nonSelectable>Non-selectable Item</BfDsListItem>
+          <BfDsListItem value="bulk4">Selectable Item 4</BfDsListItem>
+        </BfDsList>
+      </div>
+
+      <div className="bfds-example__section">
+        <h3>Bulk Selection with BfDsListBar</h3>
+        <p>
+          Using BfDsListBar components with bulk selection for structured data.
+        </p>
+        <BfDsList
+          bulkSelect
+          header="Project List"
+          onSelectionChange={(selected) =>
+            setNotification({
+              message: `Selected: ${selected.join(", ")}`,
+              visible: true,
+            })}
+          bulkActions={(selected, clearSelection) => (
+            <div style={{ display: "flex", gap: "8px" }}>
+              <BfDsButton variant="outline" size="small">
+                Archive ({selected.length})
+              </BfDsButton>
+              <BfDsButton variant="outline" size="small">
+                Move ({selected.length})
+              </BfDsButton>
+              <BfDsButton variant="ghost" size="small" onClick={clearSelection}>
+                Cancel
+              </BfDsButton>
+            </div>
+          )}
+        >
+          <BfDsListBar
+            value="project1"
+            left={
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <span style={{ fontWeight: "600" }}>Website Redesign</span>
+              </div>
+            }
+            center={<span>Complete redesign with modern UI</span>}
+            right={<span style={{ color: "green" }}>92% complete</span>}
+          />
+          <BfDsListBar
+            value="project2"
+            left={<span style={{ fontWeight: "600" }}>Mobile App</span>}
+            center={<span>Native iOS and Android application</span>}
+            right={<span style={{ color: "orange" }}>45% complete</span>}
+          />
+          <BfDsListBar
+            value="project3"
+            left={<span style={{ fontWeight: "600" }}>API Documentation</span>}
+            center={<span>Complete API reference and guides</span>}
+            right={<span style={{ color: "blue" }}>In review</span>}
+          />
         </BfDsList>
       </div>
     </div>
