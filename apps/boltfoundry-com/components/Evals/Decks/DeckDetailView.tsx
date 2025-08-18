@@ -82,8 +82,8 @@ export function DeckDetailView({
     return (
       <GradingSamplesList
         onStartGrading={() => {
-          // Navigate to grading tab
-          navigate(`/pg/grade/decks/${deckId}/grading`);
+          // Navigate to inbox tab
+          navigate(`/pg/grade/decks/${deckId}/inbox`);
         }}
         onViewSample={(sample) => {
           // Navigate to sample detail view
@@ -106,7 +106,7 @@ export function DeckDetailView({
     );
   };
 
-  const renderGradingContent = () => {
+  const renderInboxContent = () => {
     return (
       <GradingContainer
         deckId={deckId}
@@ -143,9 +143,9 @@ export function DeckDetailView({
             content: renderGradersContent(),
           },
           {
-            id: DeckTab.Grading,
-            label: "Grading",
-            content: renderGradingContent(),
+            id: DeckTab.Inbox,
+            label: "Inbox",
+            content: renderInboxContent(),
           },
         ]}
         activeTab={currentTab}
