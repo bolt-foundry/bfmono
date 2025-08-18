@@ -63,7 +63,22 @@ variable "cloudflare_zone_id_bltcdn" {
   type        = string
 }
 
+variable "cloudflare_account_id" {
+  description = "Cloudflare Account ID"
+  type        = string
+}
 
+variable "r2_access_key" {
+  description = "R2 Access Key ID (can reuse AWS_ACCESS_KEY_ID)"
+  type        = string
+  sensitive   = true
+}
+
+variable "r2_secret_key" {
+  description = "R2 Secret Access Key (can reuse AWS_SECRET_ACCESS_KEY)"
+  type        = string
+  sensitive   = true
+}
 
 variable "ssh_public_key" {
   description = "SSH public key for server access"
@@ -82,29 +97,13 @@ variable "hyperdx_api_key" {
   sensitive   = true
 }
 
-variable "s3_access_key" {
-  description = "S3 access key for asset storage"
-  type        = string
-  sensitive   = true
-}
-
-variable "s3_secret_key" {
-  description = "S3 secret key for asset storage"
-  type        = string
-  sensitive   = true
-}
-
-
 variable "hetzner_project_id" {
   description = "Hetzner Cloud Project ID"
   type        = string
 }
 
-variable "s3_endpoint" {
-  description = "S3 endpoint for Hetzner Object Storage"
-  type        = string
-  default     = "https://hel1.your-objectstorage.com"
-}
+# Note: We still keep S3 credentials for Terraform state backend (Hetzner)
+# Those are passed via AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars
 
 provider "hcloud" {
   token = var.hcloud_token
@@ -116,22 +115,23 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# AWS provider for S3 (Hetzner Object Storage in Production project)
+# AWS provider for R2 (Cloudflare R2 Object Storage)
 # This is for application assets, NOT Terraform state
+# Note: We still need AWS provider for Terraform state backend (Hetzner)
 provider "aws" {
-  access_key = var.s3_access_key
-  secret_key = var.s3_secret_key
-  region     = "hel1"  # Helsinki region for object storage
+  alias      = "r2"
+  access_key = var.r2_access_key
+  secret_key = var.r2_secret_key
+  region     = "auto"
   
   endpoints {
-    s3 = var.s3_endpoint  # Helsinki endpoint for buckets
+    s3 = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com"
   }
   
   skip_credentials_validation = true
   skip_metadata_api_check     = true
   skip_region_validation      = true
   skip_requesting_account_id  = true
-  s3_use_path_style          = true
 }
 
 # SSH key for server access
@@ -210,59 +210,26 @@ resource "cloudflare_record" "promptgrade" {
   proxied = true  # Enable Cloudflare proxy for SSL termination and protection
 }
 
-# S3 bucket for asset storage
-resource "aws_s3_bucket" "assets" {
-  bucket = "bft-assets-${random_string.bucket_suffix.result}"
+# Cloudflare R2 bucket for asset storage
+resource "cloudflare_r2_bucket" "assets" {
+  account_id = var.cloudflare_account_id
+  name       = "bft-assets"  # Simple name, no random suffix needed
+  location   = "ENAM"  # Eastern North America
 }
 
-# Random suffix for bucket uniqueness
-resource "random_string" "bucket_suffix" {
-  length  = 8
-  special = false
-  upper   = false
+# Custom domain for R2 bucket - automatic CDN setup!
+resource "cloudflare_r2_custom_domain" "bltcdn" {
+  zone_id    = var.cloudflare_zone_id_bltcdn
+  bucket     = cloudflare_r2_bucket.assets.name
+  domain     = "bltcdn.com"
 }
 
-# Make bucket publicly readable
-resource "aws_s3_bucket_public_access_block" "assets" {
-  bucket = aws_s3_bucket.assets.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-# Bucket ACL for public read
-resource "aws_s3_bucket_acl" "assets" {
-  bucket = aws_s3_bucket.assets.id
-  acl    = "public-read"
-  
-  depends_on = [aws_s3_bucket_public_access_block.assets]
-}
-
-# IMPORTANT: Hetzner Object Storage limitation
-# While the aws_s3_bucket_acl resource applies without error, Hetzner's S3-compatible API
-# doesn't actually implement public-read functionality through ACLs.
-# 
-# MANUAL STEP REQUIRED:
-# After running Terraform apply, you must manually set the bucket to public:
-# 1. Go to Hetzner Console → Your Project → Object Storage
-# 2. Click on the bucket (bft-assets-*)
-# 3. Change Visibility from "Private" to "Public"
-# 4. Save the changes
-#
-# This will make the bucket publicly readable for the CDN to work.
-# Note: Hetzner also doesn't support AWS-style bucket policies and CORS via S3 API
-
-# Cloudflare DNS record for CDN domain
-resource "cloudflare_record" "bltcdn" {
-  zone_id = var.cloudflare_zone_id_bltcdn
-  name    = "@"
-  value   = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"
-  type    = "CNAME"
-  ttl     = 1
-  proxied = true
-}
+# Note: R2 automatically handles:
+# - Public access (when accessing via custom domain)
+# - CDN integration
+# - SSL/TLS
+# - No Host header issues
+# - Zero egress fees!
 
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
@@ -284,21 +251,17 @@ output "volume_id" {
   value = hcloud_volume.database.id
 }
 
-output "s3_bucket_name" {
-  value = aws_s3_bucket.assets.id
-  description = "The actual S3 bucket name (with random suffix) - REQUIRES MANUAL PUBLIC VISIBILITY SETUP IN HETZNER CONSOLE"
+output "r2_bucket_name" {
+  value = cloudflare_r2_bucket.assets.name
+  description = "R2 bucket name for asset storage"
 }
 
-output "s3_bucket_domain_name" {
-  value = aws_s3_bucket.assets.bucket_domain_name
-}
-
-output "s3_bucket_endpoint" {
-  value = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"
-  description = "Full endpoint for the S3 bucket"
+output "r2_bucket_endpoint" {
+  value = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com/${cloudflare_r2_bucket.assets.name}"
+  description = "R2 bucket S3 API endpoint"
 }
 
 output "bltcdn_domain" {
   value = "bltcdn.com"
-  description = "CDN domain for assets (automatically configured via Cloudflare)"
+  description = "CDN domain for assets (automatically configured with R2)"
 }
