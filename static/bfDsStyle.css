@@ -228,6 +228,9 @@ a:not(.bfds-button).dark:visited {
 .flexWrap {
   flex-wrap: wrap;
 }
+.gapSmall {
+  gap: 4px;
+}
 .gapMedium {
   gap: 8px;
 }
