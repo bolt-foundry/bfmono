@@ -84,7 +84,7 @@ header.landing-header {
 }
 
 .hero-section {
-  background: url(https://hel1.your-objectstorage.com/bf-assets/bf-symbol-angle-left-1000_black_wide.jpg);
+  background: url(https://bolt-foundry-assets.s3.us-east-2.amazonaws.com/bf-symbol-angle-left-1000_black_wide.jpg);
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
