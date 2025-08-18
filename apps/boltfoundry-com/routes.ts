@@ -37,7 +37,7 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/pg/grade", entrypointEval], // Redirects to /pg/grade/decks
   ["/pg/grade/decks", entrypointEval], // Decks list (main content)
   ["/pg/grade/decks/:deckId", entrypointEval], // Deck detail view (redirects to samples tab)
-  ["/pg/grade/decks/:deckId/:tab", entrypointEval], // Deck detail with tab (samples/graders/grading)
+  ["/pg/grade/decks/:deckId/:tab", entrypointEval], // Deck detail with tab (samples/graders/inbox)
   ["/pg/grade/decks/:deckId/grade", entrypointEval], // Grading interface for deck
   ["/pg/grade/samples", entrypointEval], // All samples list
   ["/pg/grade/samples/:sampleId", entrypointEval], // Sample detail view
