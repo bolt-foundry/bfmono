@@ -2483,3 +2483,152 @@
   flex: 1;
 }
 
+/* Grader Refinement Modal - Deviation Chart */
+.deviation-chart {
+  width: 100%;
+}
+
+.deviation-chart-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 8px;
+  background-color: var(--bfds-background-02);
+  border-radius: 6px;
+  border: 1px solid var(--bfds-border);
+  position: relative;
+}
+
+.deviation-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 16px;
+}
+
+.deviation-bar {
+  width: 100%;
+  border: 1px solid var(--bfds-border);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 4px;
+  align-self: flex-end;
+  transition: all 0.2s ease;
+}
+
+.deviation-bar--perfect {
+  background-color: var(--bfds-success);
+}
+
+.deviation-bar--good {
+  background-color: var(--bfds-info);
+}
+
+.deviation-bar--poor {
+  background-color: var(--bfds-error);
+}
+
+.deviation-label {
+  font-size: 10px;
+  color: var(--bfds-text-muted);
+  font-weight: normal;
+}
+
+.deviation-label--perfect {
+  font-size: 10px;
+  color: var(--bfds-text);
+  font-weight: 600;
+}
+
+.deviation-chart-centerline {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  bottom: 20px;
+  width: 2px;
+  background-color: var(--bfds-text-secondary);
+  opacity: 0.3;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.deviation-chart-description {
+  font-size: 11px;
+  color: var(--bfds-text-muted);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* Grader Selection Step */
+.grader-selection-step {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grader-selection-description {
+  margin-bottom: 20px;
+  color: var(--bfds-text-secondary);
+}
+
+.grader-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grader-card {
+  border: 1px solid var(--bfds-border);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: var(--bfds-background);
+  transition: background-color 0.2s ease;
+}
+
+.grader-card--selected {
+  background-color: var(--bfds-background-hover);
+}
+
+.grader-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.grader-card-info {
+  flex: 1;
+}
+
+.grader-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.grader-card-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.grader-card-accuracy {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: var(--bfds-text-secondary);
+}
+
+.grader-card-sample-count {
+  text-align: right;
+}
+
+.grader-card-sample-count-text {
+  font-size: 12px;
+  color: var(--bfds-text-secondary);
+}
+
+.grader-selection-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--bfds-text-secondary);
+}

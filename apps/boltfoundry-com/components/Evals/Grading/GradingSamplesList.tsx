@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
@@ -6,6 +6,7 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
+import { GraderRefinementModal } from "./GraderRefinementModal.tsx";
 
 interface GradingSamplesListProps {
   onStartGrading: () => void;
@@ -121,6 +122,9 @@ export function GradingSamplesList({
   availableSamples = [],
 }: GradingSamplesListProps) {
   const { navigate } = useRouter();
+  const [isRefinementModalOpen, setIsRefinementModalOpen] = useState(false);
+  const [selectedSamplesForRefinement, setSelectedSamplesForRefinement] =
+    useState<Array<GradingSample>>([]);
 
   // Process samples synchronously - no loading delay needed
   const gradedSamples = useMemo(() => {
@@ -144,8 +148,13 @@ export function GradingSamplesList({
     // TODO: Implement actual delete functionality
   };
 
-  const handleBulkRefine = (_selectedIds: Array<string>) => {
-    // TODO: Implement actual refine functionality
+  const handleBulkRefine = (selectedIds: Array<string>) => {
+    // Get the selected samples from the gradedSamples array
+    const selectedSamples = gradedSamples.filter((sample) =>
+      selectedIds.includes(sample.id)
+    );
+    setSelectedSamplesForRefinement(selectedSamples);
+    setIsRefinementModalOpen(true);
   };
 
   const handleBulkCancel = () => {
@@ -197,143 +206,152 @@ export function GradingSamplesList({
   // No loading state needed - samples are processed synchronously
 
   return (
-    <div className="grading-samples-list">
-      {/* Completion summary callout */}
-      {completionSummary && (
-        <div className="grading-summary-callout success">
-          <BfDsIcon name="checkCircle" size="medium" />
-          <div className="callout-content">
-            <h3>Grading session complete!</h3>
-            <p>
-              You graded {completionSummary.totalGraded}{" "}
-              samples with an average human score of{" "}
-              {completionSummary.averageScore > 0 ? "+" : ""}
-              {completionSummary.averageScore.toFixed(1)}
-            </p>
+    <>
+      <GraderRefinementModal
+        isOpen={isRefinementModalOpen}
+        onClose={() => setIsRefinementModalOpen(false)}
+        selectedSamples={selectedSamplesForRefinement}
+      />
+      <div className="grading-samples-list">
+        {/* Completion summary callout */}
+        {completionSummary && (
+          <div className="grading-summary-callout success">
+            <BfDsIcon name="checkCircle" size="medium" />
+            <div className="callout-content">
+              <h3>Grading session complete!</h3>
+              <p>
+                You graded {completionSummary.totalGraded}{" "}
+                samples with an average human score of{" "}
+                {completionSummary.averageScore > 0 ? "+" : ""}
+                {completionSummary.averageScore.toFixed(1)}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Ungraded samples callout */}
-      {ungradedCount > 0 && !completionSummary && (
-        <div
-          className="grading-summary-callout clickable"
-          onClick={onStartGrading}
-        >
-          <BfDsIcon name="bell" size="medium" />
-          <div className="callout-content">
-            <h3>
-              {ungradedCount} new sample{ungradedCount !== 1 ? "s" : ""}{" "}
-              to Grade in Inbox
-            </h3>
-            <p>New samples are ready for human evaluation</p>
-          </div>
-          <BfDsButton
-            variant="primary"
+        {/* Ungraded samples callout */}
+        {ungradedCount > 0 && !completionSummary && (
+          <div
+            className="grading-summary-callout clickable"
             onClick={onStartGrading}
-            icon="grade"
           >
-            Start manual grading
-          </BfDsButton>
-        </div>
-      )}
+            <BfDsIcon name="bell" size="medium" />
+            <div className="callout-content">
+              <h3>
+                {ungradedCount} new sample{ungradedCount !== 1 ? "s" : ""}{" "}
+                to Grade
+              </h3>
+              <p>New samples are ready for human evaluation</p>
+            </div>
+            <BfDsButton
+              variant="primary"
+              onClick={onStartGrading}
+              icon="grade"
+            >
+              Start grading
+            </BfDsButton>
+          </div>
+        )}
 
-      <div className="samples-list-section">
-        <BfDsList
-          header="Graded samples history"
-          bulkSelect
-          initialSelectedValues={justCompletedIds}
-          bulkActions={renderBulkActions}
-        >
-          {gradedSamples.map((sample) => {
-            const isJustCompleted = justCompletedIds.includes(sample.id);
-            const avgScore = (sample.graderEvaluations?.reduce(
-              (sum, e) => sum + e.score,
-              0,
-            ) || 0) / (sample.graderEvaluations?.length || 1);
-            const humanScore = sample.humanGrade?.grades[0]?.score || 0;
-            const agreementGrade = getAgreementGrade(avgScore, humanScore);
+        <div className="samples-list-section">
+          <BfDsList
+            header="Graded samples history"
+            bulkSelect
+            initialSelectedValues={justCompletedIds}
+            bulkActions={renderBulkActions}
+          >
+            {gradedSamples.map((sample) => {
+              const isJustCompleted = justCompletedIds.includes(sample.id);
+              const avgScore = (sample.graderEvaluations?.reduce(
+                (sum, e) => sum + e.score,
+                0,
+              ) || 0) / (sample.graderEvaluations?.length || 1);
+              const humanScore = sample.humanGrade?.grades[0]?.score || 0;
+              const agreementGrade = getAgreementGrade(avgScore, humanScore);
 
-            return (
-              <BfDsListBar
-                key={sample.id}
-                value={sample.id}
-                clickable
-                onClick={() => {
-                  // V3 routing: Navigate to sample view fullscreen
-                  navigate(`/pg/grade/sample/${sample.id}`);
-                  // Keep the original callback for backward compatibility
-                  onViewSample(sample);
-                }}
-                left={
-                  <div className="sample-primary-info">
-                    {isJustCompleted && (
-                      <BfDsBadge variant="success">
-                        new
-                      </BfDsBadge>
-                    )}
-                    <div>
-                      <div className="sample-timestamp">
-                        {new Date(sample.timestamp).toLocaleString()}
-                      </div>
-                      <div className="sample-meta">
-                        <span className="provider">{sample.provider}</span>
-                        <span style={{ margin: "0 8px" }}>•</span>
-                        <span className="duration">{sample.duration}ms</span>
+              return (
+                <BfDsListBar
+                  key={sample.id}
+                  value={sample.id}
+                  clickable
+                  onClick={() => {
+                    // V3 routing: Navigate to sample view fullscreen
+                    navigate(`/pg/grade/sample/${sample.id}`);
+                    // Keep the original callback for backward compatibility
+                    onViewSample(sample);
+                  }}
+                  left={
+                    <div className="sample-primary-info">
+                      {isJustCompleted && (
+                        <BfDsBadge variant="success">
+                          new
+                        </BfDsBadge>
+                      )}
+                      <div>
+                        <div className="sample-timestamp">
+                          {new Date(sample.timestamp).toLocaleString()}
+                        </div>
+                        <div className="sample-meta">
+                          <span className="provider">{sample.provider}</span>
+                          <span style={{ margin: "0 8px" }}>•</span>
+                          <span className="duration">{sample.duration}ms</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                }
-                right={
-                  <div className="sample-scores-and-grade">
-                    <div className="sample-scores">
-                      <div className="ai-score">
-                        <span className="score-label">
-                          AI:
-                        </span>
-                        <span
-                          className={`score-value ${
-                            avgScore >= 2
-                              ? "positive"
-                              : avgScore <= -2
-                              ? "negative"
-                              : "neutral"
-                          }`}
-                        >
-                          {avgScore > 0 ? "+" : ""}
-                          {avgScore.toFixed(1)}
-                        </span>
-                      </div>
-                      {sample.humanGrade && (
-                        <div className="human-score">
+                  }
+                  right={
+                    <div className="sample-scores-and-grade">
+                      <div className="sample-scores">
+                        <div className="ai-score">
                           <span className="score-label">
-                            Human:
+                            AI:
                           </span>
                           <span
                             className={`score-value ${
-                              sample.humanGrade.grades[0].score > 0
+                              avgScore >= 2
                                 ? "positive"
-                                : "negative"
+                                : avgScore <= -2
+                                ? "negative"
+                                : "neutral"
                             }`}
                           >
-                            {sample.humanGrade.grades[0].score > 0 ? "+" : ""}
-                            {sample.humanGrade.grades[0].score}
+                            {avgScore > 0 ? "+" : ""}
+                            {avgScore.toFixed(1)}
                           </span>
                         </div>
+                        {sample.humanGrade && (
+                          <div className="human-score">
+                            <span className="score-label">
+                              Human:
+                            </span>
+                            <span
+                              className={`score-value ${
+                                sample.humanGrade.grades[0].score > 0
+                                  ? "positive"
+                                  : "negative"
+                              }`}
+                            >
+                              {sample.humanGrade.grades[0].score > 0 ? "+" : ""}
+                              {sample.humanGrade.grades[0].score}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {sample.humanGrade && (
+                        <BfDsBadge
+                          variant={getAgreementVariant(agreementGrade)}
+                        >
+                          {agreementGrade}
+                        </BfDsBadge>
                       )}
                     </div>
-                    {sample.humanGrade && (
-                      <BfDsBadge variant={getAgreementVariant(agreementGrade)}>
-                        {agreementGrade}
-                      </BfDsBadge>
-                    )}
-                  </div>
-                }
-              />
-            );
-          })}
-        </BfDsList>
+                  }
+                />
+              );
+            })}
+          </BfDsList>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
