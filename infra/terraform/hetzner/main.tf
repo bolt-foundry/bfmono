@@ -217,6 +217,24 @@ resource "random_string" "bucket_suffix" {
   upper   = false
 }
 
+# Make bucket publicly readable
+resource "aws_s3_bucket_public_access_block" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# Bucket ACL for public read
+resource "aws_s3_bucket_acl" "assets" {
+  bucket = aws_s3_bucket.assets.id
+  acl    = "public-read"
+  
+  depends_on = [aws_s3_bucket_public_access_block.assets]
+}
+
 # Note: Hetzner Object Storage doesn't support AWS-style bucket policies and CORS
 # These can be configured via Hetzner's console if needed
 
@@ -254,12 +272,19 @@ output "volume_id" {
 
 output "s3_bucket_name" {
   value = aws_s3_bucket.assets.id
+  description = "The actual S3 bucket name (with random suffix)"
 }
 
 output "s3_bucket_domain_name" {
   value = aws_s3_bucket.assets.bucket_domain_name
 }
 
+output "s3_bucket_endpoint" {
+  value = "${aws_s3_bucket.assets.id}.${replace(var.s3_endpoint, "https://", "")}"
+  description = "Full endpoint for the S3 bucket"
+}
+
 output "bltcdn_domain" {
   value = "bltcdn.com"
+  description = "CDN domain for assets (requires manual Cloudflare setup)"
 }
