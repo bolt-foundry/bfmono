@@ -1,0 +1,74 @@
+name: Terraform State Cleanup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: infrastructure
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Remove S3 Resources from State
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync all variables from 1Password
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+
+            # Source both config and secrets
+            source .env.config
+            source .env.secrets
+
+            # Map to Terraform variable names
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+            export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+            export TF_VAR_r2_access_key=\$AWS_ACCESS_KEY_ID
+            export TF_VAR_r2_secret_key=\$AWS_SECRET_ACCESS_KEY
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+            # Use backend credentials for state access
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+            # Initialize Terraform
+            cd infra/terraform/hetzner
+            terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+
+            # List current state resources
+            echo 'Current resources in state:'
+            terraform state list || true
+
+            # Remove S3 and random resources from state if they exist
+            echo 'Removing S3 resources from state...'
+            terraform state rm aws_s3_bucket.assets || true
+            terraform state rm aws_s3_bucket_acl.assets || true
+            terraform state rm aws_s3_bucket_public_access_block.assets || true
+            terraform state rm aws_s3_bucket_cors_configuration.assets || true
+            terraform state rm random_string.bucket_suffix || true
+
+            # Also remove the promptgrade DNS record if it exists
+            terraform state rm cloudflare_record.promptgrade || true
+
+            # List state again to confirm
+            echo 'Resources remaining in state:'
+            terraform state list
+
+            # Run plan to verify state is clean
+            terraform plan
+          "
