@@ -119,10 +119,10 @@ Deno.test("Eval page functionality", async (t) => {
         logger.debug("❌ No auth cookies found after Google sign-in");
       }
 
-      // Verify we were redirected to /eval
+      // Verify we were redirected to /pg (eval routes start with /pg)
       assert(
-        currentUrl.includes("/eval"),
-        `Should be redirected to /eval after authentication, but was redirected to ${currentUrl}`,
+        currentUrl.includes("/pg"),
+        `Should be redirected to /pg after authentication, but was redirected to ${currentUrl}`,
       );
 
       await context.takeScreenshot("eval-test-after-auth");
@@ -131,7 +131,7 @@ Deno.test("Eval page functionality", async (t) => {
     await t.step("Navigate to eval page and verify decks", async () => {
       await showSubtitle("📊 Navigating to eval page...");
 
-      // Should already be on /eval after auth
+      // Should already be on /pg after auth
       await context.page.waitForNetworkIdle();
 
       // Wait for DeckList component to mount

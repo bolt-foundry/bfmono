@@ -68,11 +68,11 @@ Deno.test("HUD functionality", async (t) => {
       // Wait for authentication to process
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Verify we were redirected to /eval
+      // Verify we were redirected to /pg (eval routes start with /pg)
       const authUrl = context.page.url();
       assert(
-        authUrl.includes("/eval"),
-        `Should be redirected to /eval after authentication, but was redirected to ${authUrl}`,
+        authUrl.includes("/pg"),
+        `Should be redirected to /pg after authentication, but was redirected to ${authUrl}`,
       );
 
       await showSubtitle("✅ Logged in successfully!");

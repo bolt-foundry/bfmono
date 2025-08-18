@@ -9,6 +9,7 @@ import { appRoutes, isographAppRoutes } from "./routes.ts";
 import { createApiRoutes } from "./apiRoutes.ts";
 import { getIsographEnvironment } from "./server/isographEnvironment.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
+import { matchRouteWithParams } from "./contexts/RouterContext.tsx";
 
 const logger = getLogger(import.meta);
 const requestLogger = getLogger("boltfoundry-com/requests");
@@ -76,15 +77,11 @@ function shouldHandleWithReact(pathname: string): boolean {
     return true;
   }
 
-  // Check for parameterized routes (basic implementation)
+  // Use the same parameter matching logic as client-side
   for (const [routePath] of [...isographAppRoutes, ...appRoutes]) {
-    if (routePath.includes(":")) {
-      // Simple parameterized route matching
-      const routePattern = routePath.replace(/:[^/]+/g, "[^/]+");
-      const regex = new RegExp(`^${routePattern}$`);
-      if (regex.test(pathname)) {
-        return true;
-      }
+    const match = matchRouteWithParams(pathname, routePath);
+    if (match.match) {
+      return true;
     }
   }
 

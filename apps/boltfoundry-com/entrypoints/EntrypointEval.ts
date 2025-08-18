@@ -4,12 +4,12 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 const logger = getLogger(import.meta);
 
 export const EntrypointEval = iso(`
-  field Query.EntrypointEval {
-    Eval
+  field Query.EntrypointEval($deckId: String, $sampleId: String) {
+    Eval(deckId: $deckId, sampleId: $sampleId)
   }
 `)(function EntrypointEval({ data }) {
   const Body = data.Eval;
-  logger.debug("dataer", data);
+  logger.debug("EntrypointEval data with parameters:", data);
   const title = "Eval - Bolt Foundry";
   return { Body, title };
 });
