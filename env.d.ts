@@ -42,6 +42,10 @@ interface ServerEnvVars {
   readonly SSH_PRIVATE_KEY?: string;
   readonly GITHUB_PERSONAL_ACCESS_TOKEN?: string;
   readonly TERRAFORM_BACKEND_ENDPOINT?: string;
+  readonly CLOUDFLARE_ZONE_ID_BLTCDN?: string;
+  readonly S3_ACCESS_KEY?: string;
+  readonly S3_SECRET_KEY?: string;
+  readonly ASSET_STORAGE_BUCKET?: string;
 }
 
 // Environment-aware typing
