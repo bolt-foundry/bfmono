@@ -1,0 +1,20 @@
+[contexts.stories]
+type = "object"
+question = "What technology articles should be analyzed?"
+description = "Array of technology news articles with title, content, url, and published_at fields"
+
+[contexts.outputFormat]
+type = "string"
+question = "What format should the output follow?"
+description = "JSON structure for the curated news selection"
+default = """
+{
+  "selected_stories": [
+    {
+      "title": "Original article title",
+      "summary": "One clear sentence in inverted pyramid style stating the most important fact first.",
+      "url": "Article URL",
+      "reasoning": "Brief explanation of why this matters to engineers"
+    }
+  ]
+}"""
