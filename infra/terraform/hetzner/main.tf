@@ -115,9 +115,19 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+# Default AWS provider for Terraform S3 backend (Hetzner Object Storage)
+# This is required even though backend config handles auth, due to provider requirements
+provider "aws" {
+  region = "us-east-1"  # Dummy region, not used by Hetzner S3
+  
+  skip_credentials_validation = true
+  skip_metadata_api_check     = true
+  skip_region_validation      = true
+  skip_requesting_account_id  = true
+}
+
 # AWS provider for R2 (Cloudflare R2 Object Storage)
 # This is for application assets, NOT Terraform state
-# Note: We still need AWS provider for Terraform state backend (Hetzner)
 provider "aws" {
   alias      = "r2"
   access_key = var.r2_access_key
