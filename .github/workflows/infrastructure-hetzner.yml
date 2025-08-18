@@ -44,7 +44,6 @@ jobs:
             export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
             export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
             export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
-            export TF_VAR_cloudflare_zone_id_promptgrade=\$CLOUDFLARE_ZONE_ID_PROMPTGRADE
             export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
             export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
             export TF_VAR_r2_access_key=\$AWS_ACCESS_KEY_ID
