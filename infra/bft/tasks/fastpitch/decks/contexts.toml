@@ -1,0 +1,5 @@
+# Fastpitch Curator Context Configuration
+
+[contexts.stories]
+assistantQuestion = "Here are the technology articles to analyze:"
+description = "Array of article objects with title, content, url, published_at fields"
