@@ -18,13 +18,16 @@ export function BfDsListBarExample() {
         <BfDsCodeExample
           language="tsx"
           code={`import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
+import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 
-// Basic usage
-<BfDsListBar
-  left={<span>Title</span>}
-  center={<span>Description</span>}
-  right={<button>Action</button>}
-/>
+// Basic usage (use with BfDsList)
+<BfDsList>
+  <BfDsListBar
+    left={<span>Title</span>}
+    center={<span>Description</span>}
+    right={<button>Action</button>}
+  />
+</BfDsList>
 
 // All available props
 <BfDsListBar
@@ -35,7 +38,25 @@ export function BfDsListBarExample() {
   clickable={false}               // boolean - make clickable
   onClick={() => {}}              // () => void - click handler
   className=""                    // string - additional classes
-/>`}
+  value="unique-id"               // string - value for bulk selection
+  nonSelectable={false}           // boolean - exclude from bulk selection
+/>
+
+// Bulk selection usage
+<BfDsList bulkSelect onSelectionChange={(selected) => console.log(selected)}>
+  <BfDsListBar
+    value="project1"
+    left="Project Alpha"
+    center="Website redesign project"
+    right="In Progress"
+  />
+  <BfDsListBar
+    value="project2" 
+    left="Project Beta"
+    center="Mobile app development"
+    right="Planning"
+  />
+</BfDsList>`}
         />
       </div>
 
