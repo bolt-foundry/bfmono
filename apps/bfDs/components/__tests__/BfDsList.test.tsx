@@ -139,7 +139,11 @@ Deno.test("BfDsList renders with mixed content types", () => {
 
   assertExists(list, "List element should exist");
   assertEquals(listItems?.length, 2, "List should contain two li elements");
-  assertEquals(divs?.length, 1, "List should contain one div element");
+  assertEquals(
+    divs?.length,
+    2,
+    "List should contain two div elements (container + child)",
+  );
 });
 
 Deno.test("BfDsList preserves child element attributes", () => {

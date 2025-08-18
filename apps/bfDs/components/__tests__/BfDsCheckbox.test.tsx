@@ -78,7 +78,12 @@ Deno.test("BfDsCheckbox renders in unchecked state", () => {
     false,
     "Checkbox should not have checked class",
   );
-  assertEquals(icon, null, "Check icon should not be visible when unchecked");
+  assertExists(icon, "Check icon element should exist");
+  assertEquals(
+    icon.classList.contains("bfds-checkbox-icon--hidden"),
+    true,
+    "Check icon should be hidden when unchecked",
+  );
 });
 
 Deno.test("BfDsCheckbox renders in disabled state", () => {
