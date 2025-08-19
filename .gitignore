@@ -43,3 +43,7 @@ tmp/codebot-workspaces/
 
 # Shared folder for host-container communication
 shared/
+
+# Generated Kamal deployment config
+config/deploy.yml
+.kamal/
