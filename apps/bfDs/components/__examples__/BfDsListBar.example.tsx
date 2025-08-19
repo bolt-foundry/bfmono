@@ -3,6 +3,7 @@ import { BfDsIcon } from "../BfDsIcon.tsx";
 import { BfDsButton } from "../BfDsButton.tsx";
 import { BfDsBadge } from "../BfDsBadge.tsx";
 import { BfDsPill } from "../BfDsPill.tsx";
+import { BfDsProgressBar } from "../BfDsProgressBar.tsx";
 import { BfDsCodeExample } from "../BfDsCodeExample.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
@@ -34,6 +35,7 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
   left={<ReactNode />}           // ReactNode (required) - left content
   center={<ReactNode />}          // ReactNode - center content
   right={<ReactNode />}           // ReactNode - right content
+  after={<ReactNode />}           // ReactNode - full-width content underneath
   active={false}                  // boolean - show active state
   clickable={false}               // boolean - make clickable
   onClick={() => {}}              // () => void - click handler
@@ -216,6 +218,59 @@ import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
               />
             ))}
           </div>
+        </div>
+
+        <div>
+          <h4>List Bar with 'after' Content</h4>
+          <BfDsListBar
+            left={
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <BfDsIcon name="cpu" size="small" />
+                <div>
+                  <div style={{ fontWeight: "600" }}>Accuracy Grader</div>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "var(--bfds-text-secondary)",
+                    }}
+                  >
+                    Evaluates response accuracy against expected outputs
+                  </div>
+                </div>
+              </div>
+            }
+            right={
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontWeight: "600" }}>92.5%</div>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      color: "var(--bfds-text-secondary)",
+                    }}
+                  >
+                    Accuracy
+                  </div>
+                </div>
+                <BfDsBadge variant="warning">Refining</BfDsBadge>
+              </div>
+            }
+            after={
+              <BfDsProgressBar
+                label="Analyzing samples..."
+                value={67}
+                size="small"
+                showValue
+                helpText="Examining training samples and identifying patterns"
+              />
+            }
+            clickable
+            onClick={() => logger.info("Grader clicked")}
+          />
         </div>
       </div>
     </div>

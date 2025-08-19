@@ -20,6 +20,7 @@ import { BfDsToastExample } from "../components/__examples__/BfDsToast.example.t
 import { BfDsPillExample } from "../components/__examples__/BfDsPill.example.tsx";
 import { BfDsSpinnerExample } from "../components/__examples__/BfDsSpinner.example.tsx";
 import { BfDsRangeExample } from "../components/__examples__/BfDsRange.example.tsx";
+import { BfDsProgressBarExample } from "../components/__examples__/BfDsProgressBar.example.tsx";
 import { BfDsModalExample } from "../components/__examples__/BfDsModal.example.tsx";
 import { BfDsEmptyStateExample } from "../components/__examples__/BfDsEmptyState.example.tsx";
 import { BfDsCardExample } from "../components/__examples__/BfDsCard.example.tsx";
@@ -143,6 +144,14 @@ const componentSections: Array<ComponentSection> = [
       "Range sliders with value display, ticks, and custom formatting",
     component: BfDsRangeExample,
     category: "Form",
+  },
+  {
+    id: "progress-bar",
+    name: "Progress Bar",
+    description:
+      "Progress indicators for uploads, tasks, and completion tracking",
+    component: BfDsProgressBarExample,
+    category: "Core",
   },
   {
     id: "callout",
