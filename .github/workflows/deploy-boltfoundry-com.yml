@@ -172,6 +172,60 @@ jobs:
       - name: Install Kamal
         run: sudo gem install kamal --version 2.7.0 --no-document
 
+      - name: Check for stale deploy locks
+        id: check-lock
+        run: |
+          echo "Checking for existing deploy locks..."
+          SERVER_IP="${{ steps.terraform_output.outputs.server_ip }}"
+
+          # Setup SSH for this check
+          nix develop .#production --accept-flake-config --command bash -c "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+            source .env.secrets
+
+            mkdir -p ~/.ssh
+            echo \"\$SSH_PRIVATE_KEY\" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            echo \"Host $SERVER_IP\" >> ~/.ssh/config
+            echo \"  StrictHostKeyChecking no\" >> ~/.ssh/config
+            echo \"  UserKnownHostsFile /dev/null\" >> ~/.ssh/config
+            chmod 600 ~/.ssh/config
+          "
+
+          # Check if lock exists and get its age
+          if ssh root@$SERVER_IP "test -d .kamal/lock-boltfoundry-com"; then
+            echo "Deploy lock found. Checking age..."
+
+            # Get lock creation time
+            LOCK_TIME=$(ssh root@$SERVER_IP "stat -c %Y .kamal/lock-boltfoundry-com" || echo "0")
+            CURRENT_TIME=$(date +%s)
+            LOCK_AGE=$((CURRENT_TIME - LOCK_TIME))
+
+            # If lock is older than 30 minutes (1800 seconds), consider it stale
+            if [ $LOCK_AGE -gt 1800 ]; then
+              echo "Lock is older than 30 minutes ($LOCK_AGE seconds). Removing stale lock..."
+              ssh root@$SERVER_IP "rm -rf .kamal/lock-boltfoundry-com"
+              echo "✅ Stale lock removed"
+            else
+              echo "Lock is recent ($LOCK_AGE seconds old). Checking if deployment is active..."
+
+              # Check if any kamal process is running
+              if ! ssh root@$SERVER_IP "pgrep -f kamal > /dev/null 2>&1"; then
+                echo "No active Kamal process found. Removing orphaned lock..."
+                ssh root@$SERVER_IP "rm -rf .kamal/lock-boltfoundry-com"
+                echo "✅ Orphaned lock removed"
+              else
+                echo "❌ Active deployment in progress. Cannot proceed."
+                echo "To force unlock, run the 'Unlock Kamal Deploy' workflow manually."
+                exit 1
+              fi
+            fi
+          else
+            echo "No existing deploy lock found ✅"
+          fi
+
       - name: Deploy with Kamal
         run: |
           # Sync production config and secrets from 1Password and generate Kamal config
