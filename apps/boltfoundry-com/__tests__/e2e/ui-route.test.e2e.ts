@@ -12,9 +12,9 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
   const context = await setupBoltFoundryComTest();
 
   try {
-    // Start annotated video recording
+    // Start video recording
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording(
+      .startRecording(
         "ui-route-demo",
         {
           outputFormat: "mp4" as const,
@@ -29,15 +29,15 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     await navigateTo(context, "/ui");
 
     // Wait for content to ensure page loaded
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`UI page title: ${title}`);
 
     // Check the current URL
-    const currentUrl = await context.page.url();
+    const currentUrl = await context.__UNSAFE_page_useContextMethodsInstead.url();
     logger.info(`Current URL: ${currentUrl}`);
 
     // Check the environment and routing state
-    const routingInfo = await context.page.evaluate(() => {
+    const routingInfo = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       return {
         pathname: globalThis.location.pathname,
         // @ts-expect-error - Accessing global variable
@@ -55,7 +55,7 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     assertEquals(title, "Bolt Foundry", "Page title should be 'Bolt Foundry'");
 
     // Check if the page contains expected UIDemo content
-    const bodyText = await context.page.evaluate(() =>
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
       document.body.textContent
     );
 

@@ -11,9 +11,9 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
   const context = await setupBoltFoundryComTest();
 
   try {
-    // Start annotated video recording
+    // Start video recording
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording("rlhf-demo");
+      .startRecording("rlhf-demo");
 
     await showSubtitle("RLHF page authentication test");
 
@@ -21,10 +21,10 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     await navigateTo(context, "/rlhf");
 
     // Wait for page to load completely
-    await context.page.waitForNetworkIdle({ timeout: 5000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({ timeout: 5000 });
 
     // Wait for React hydration to complete - look for auth-aware content
-    await context.page.waitForFunction(() => {
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(() => {
       const h1 = document.querySelector("h1");
       // Since this test doesn't authenticate, we expect the login page
       return h1 && (
@@ -34,21 +34,21 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     }, { timeout: 5000 });
 
     // Check that page loaded successfully (no 404)
-    const response = await context.page.goto(context.page.url());
+    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(context.__UNSAFE_page_useContextMethodsInstead.url());
     const statusCode = response?.status();
     logger.info("HTTP Status Code:", statusCode);
 
-    logger.info("Page title:", await context.page.title());
-    logger.info("Page URL:", context.page.url());
+    logger.info("Page title:", await context.__UNSAFE_page_useContextMethodsInstead.title());
+    logger.info("Page URL:", context.__UNSAFE_page_useContextMethodsInstead.url());
 
     // Extract just the body content for debugging
-    const bodyContent = await context.page.evaluate(() =>
+    const bodyContent = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
       document.body.innerText
     );
     logger.info("Body content:", bodyContent.substring(0, 500));
 
     // Check for JavaScript errors
-    const errors = await context.page.evaluate(() => {
+    const errors = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       return globalThis.console?.error || [];
     });
     logger.info("JavaScript errors:", errors);

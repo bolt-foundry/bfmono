@@ -261,6 +261,14 @@ Examples:
     const hostname = Deno.hostname();
     ui.output(`Background server started on http://localhost:${port}`);
     ui.output(`Also available at http://${hostname}.codebot.local:${port}`);
+
+    // Add special URLs for boltfoundry-com
+    if (appName === "boltfoundry-com") {
+      ui.output(
+        `🟢 bft https://${hostname}.codebot.local / https://${hostname}.codebot.local/sl`,
+      );
+    }
+
     ui.output(`Logs are being written to tmp/${appName}-dev.log`);
     ui.output(
       `Use 'bft dev ${appName} --foreground' to run in foreground`,

@@ -10,7 +10,7 @@ Deno.test("Login page does not show development warnings in production mode", as
 
   try {
     // Start video recording
-    const { stop, showSubtitle } = await context.startAnnotatedVideoRecording(
+    const { stop, showSubtitle } = await context.startRecording(
       "login-production-mode-fix",
       {
         quality: "high",
@@ -22,10 +22,10 @@ Deno.test("Login page does not show development warnings in production mode", as
 
     // Navigate to login page
     await navigateTo(context, "/login");
-    await context.page.waitForNetworkIdle({ timeout: 3000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({ timeout: 3000 });
 
     // Get page content
-    const bodyText = await context.page.evaluate(() =>
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
       document.body.textContent
     );
 

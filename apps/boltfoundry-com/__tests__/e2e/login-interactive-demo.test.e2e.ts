@@ -3,7 +3,6 @@ import {
   navigateTo,
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
-import { smoothClick } from "@bfmono/infra/testing/video-recording/smooth-ui.ts";
 import { setupBoltFoundryComTest } from "../helpers.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
@@ -14,8 +13,10 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
 
   try {
     // Mock Google OAuth before navigation
-    await context.page.setRequestInterception(true);
-    context.page.on("request", (req) => {
+    await context.__UNSAFE_page_useContextMethodsInstead.setRequestInterception(
+      true,
+    );
+    context.__UNSAFE_page_useContextMethodsInstead.on("request", (req) => {
       const url = req.url();
 
       // Block real Google Identity Services
@@ -46,25 +47,26 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     });
 
     // Inject Google OAuth mock
-    await context.page.evaluateOnNewDocument(() => {
-      let interceptedCallback:
-        | ((response: { credential: string; select_by: string }) => void)
-        | undefined;
+    await context.__UNSAFE_page_useContextMethodsInstead.evaluateOnNewDocument(
+      () => {
+        let interceptedCallback:
+          | ((response: { credential: string; select_by: string }) => void)
+          | undefined;
 
-      (globalThis as { google?: unknown }).google = {
-        accounts: {
-          id: {
-            initialize(
-              { callback }: {
-                callback: (
-                  response: { credential: string; select_by: string },
-                ) => void;
+        (globalThis as { google?: unknown }).google = {
+          accounts: {
+            id: {
+              initialize(
+                { callback }: {
+                  callback: (
+                    response: { credential: string; select_by: string },
+                  ) => void;
+                },
+              ) {
+                interceptedCallback = callback;
               },
-            ) {
-              interceptedCallback = callback;
-            },
-            renderButton(el: HTMLElement) {
-              el.innerHTML = `
+              renderButton(el: HTMLElement) {
+                el.innerHTML = `
                 <button 
                   id="google-signin-button"
                   style="
@@ -97,30 +99,31 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
                   Sign in with Google
                 </button>`;
 
-              el.querySelector("button")?.addEventListener("click", () => {
-                // Simulate click animation
-                const btn = el.querySelector("button");
-                if (btn) {
-                  btn.style.transform = "scale(0.98)";
-                  setTimeout(() => {
-                    btn.style.transform = "scale(1)";
-                    interceptedCallback?.({
-                      credential: "mock.jwt.token.for.testing",
-                      select_by: "btn",
-                    });
-                  }, 100);
-                }
-              });
+                el.querySelector("button")?.addEventListener("click", () => {
+                  // Simulate click animation
+                  const btn = el.querySelector("button");
+                  if (btn) {
+                    btn.style.transform = "scale(0.98)";
+                    setTimeout(() => {
+                      btn.style.transform = "scale(1)";
+                      interceptedCallback?.({
+                        credential: "mock.jwt.token.for.testing",
+                        select_by: "btn",
+                      });
+                    }, 100);
+                  }
+                });
+              },
+              prompt() {},
+              disableAutoSelect() {},
             },
-            prompt() {},
-            disableAutoSelect() {},
           },
-        },
-      };
-    });
+        };
+      },
+    );
 
     // Start video recording
-    const { stop, showSubtitle } = await context.startAnnotatedVideoRecording(
+    const { stop, showSubtitle } = await context.startRecording(
       "interactive-login-demo",
       {
         quality: "high",
@@ -133,7 +136,9 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     // Navigate to login page
     logger.info("Navigating to login page...");
     await navigateTo(context, "/login");
-    await context.page.waitForNetworkIdle({ timeout: 3000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      timeout: 3000,
+    });
 
     // Wait for page to fully load
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -144,7 +149,8 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await context.takeScreenshot("login-page-before-click");
 
     // Check page content
-    const pageText = await context.page.evaluate(() => document.body.innerText);
+    const pageText = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => document.body.innerText);
 
     assert(
       pageText.includes("Sign In to Bolt Foundry"),
@@ -159,16 +165,18 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await showSubtitle("👆 Clicking Google Sign-In button...");
 
     // Wait for button to be ready
-    await context.page.waitForSelector("#google-signin-button", {
-      timeout: 5000,
-    });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      "#google-signin-button",
+      {
+        timeout: 5000,
+      },
+    );
 
     // Use smooth click for nice animation
     logger.info("Performing smooth click on Google Sign-In button...");
-    await smoothClick(context, "#google-signin-button", {
-      before: "before-google-signin-click",
-      after: "after-google-signin-click",
-    });
+    await context.takeScreenshot("before-google-signin-click");
+    await context.click("#google-signin-button");
+    await context.takeScreenshot("after-google-signin-click");
 
     // Wait for authentication to process
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -176,10 +184,11 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await showSubtitle("🎉 Authentication successful!");
 
     // Check if we were redirected or if there's an auth cookie
-    const currentUrl = context.page.url();
+    const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
     logger.info(`Current URL after auth: ${currentUrl}`);
 
-    const cookies = await context.page.cookies();
+    const cookies = await context.__UNSAFE_page_useContextMethodsInstead
+      .cookies();
     const authCookies = cookies.filter((cookie) =>
       cookie.name === "bf_access" || cookie.name === "bf_refresh"
     );
