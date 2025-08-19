@@ -1,0 +1,164 @@
+name: Unlock Kamal Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_ip:
+        description: 'Server IP address (leave empty to auto-detect from Terraform)'
+        required: false
+        type: string
+      force:
+        description: 'Force unlock even if deployment is running'
+        required: false
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      server_ip:
+        description: 'Server IP address'
+        required: false
+        type: string
+
+jobs:
+  unlock:
+    name: Unlock Kamal Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          logger: pretty
+
+      - name: Get server IP from Terraform if not provided
+        id: get-server-ip
+        if: inputs.server_ip == ''
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync all variables from 1Password
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+            
+            # Source both config and secrets
+            source .env.config
+            source .env.secrets
+            
+            # Map to Terraform variable names
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+            export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+            
+            # Override AWS creds for backend (uses CI project, not production)
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+            
+            # Get server IP from Terraform
+            cd infra/terraform/hetzner
+            terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+            SERVER_IP=\$(terraform output -raw server_ip)
+            echo \"server_ip=\$SERVER_IP\" >> \$GITHUB_OUTPUT
+          "
+
+      - name: Set server IP
+        id: server-ip
+        run: |
+          if [ -n "${{ inputs.server_ip }}" ]; then
+            echo "SERVER_IP=${{ inputs.server_ip }}" >> $GITHUB_ENV
+          else
+            echo "SERVER_IP=${{ steps.get-server-ip.outputs.server_ip }}" >> $GITHUB_ENV
+          fi
+          echo "Using server IP: $SERVER_IP"
+
+      - name: Setup SSH
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync secrets to get SSH key
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+            
+            # Source secrets
+            source .env.secrets
+            
+            # Setup SSH key
+            mkdir -p ~/.ssh
+            echo \"\$SSH_PRIVATE_KEY\" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            
+            # Configure SSH
+            echo \"Host $SERVER_IP\" >> ~/.ssh/config
+            echo \"  StrictHostKeyChecking no\" >> ~/.ssh/config
+            echo \"  UserKnownHostsFile /dev/null\" >> ~/.ssh/config
+            chmod 600 ~/.ssh/config
+          "
+
+      - name: Check lock status
+        id: check-lock
+        run: |
+          echo "Checking for deploy lock on $SERVER_IP..."
+          
+          # Check if lock exists
+          if ssh root@$SERVER_IP "test -d .kamal/lock-boltfoundry-com"; then
+            echo "Deploy lock found!"
+            echo "lock_exists=true" >> $GITHUB_OUTPUT
+            
+            # Get lock details
+            ssh root@$SERVER_IP "cat .kamal/lock-boltfoundry-com/details | base64 -d" || true
+          else
+            echo "No deploy lock found"
+            echo "lock_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Unlock deployment
+        if: steps.check-lock.outputs.lock_exists == 'true'
+        run: |
+          if [ "${{ inputs.force }}" == "true" ]; then
+            echo "Force unlocking deployment..."
+            ssh root@$SERVER_IP "rm -rf .kamal/lock-boltfoundry-com"
+            echo "✅ Deploy lock forcefully removed"
+          else
+            echo "Checking if deployment is still running..."
+            
+            # Check if kamal processes are running
+            if ssh root@$SERVER_IP "pgrep -f kamal > /dev/null 2>&1"; then
+              echo "⚠️ Kamal process is still running. Use force=true to override."
+              exit 1
+            else
+              echo "No active Kamal process found. Removing stale lock..."
+              ssh root@$SERVER_IP "rm -rf .kamal/lock-boltfoundry-com"
+              echo "✅ Stale deploy lock removed"
+            fi
+          fi
+
+      - name: Verify unlock
+        if: steps.check-lock.outputs.lock_exists == 'true'
+        run: |
+          if ssh root@$SERVER_IP "test -d .kamal/lock-boltfoundry-com"; then
+            echo "❌ Failed to remove deploy lock"
+            exit 1
+          else
+            echo "✅ Deploy lock successfully removed"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Kamal Deploy Unlock Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Server IP**: $SERVER_IP" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check-lock.outputs.lock_exists }}" == "true" ]; then
+            echo "- **Lock Status**: Found and removed ✅" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Lock Status**: No lock found ℹ️" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ inputs.force }}" == "true" ]; then
+            echo "- **Force Mode**: Enabled ⚠️" >> $GITHUB_STEP_SUMMARY
+          fi
