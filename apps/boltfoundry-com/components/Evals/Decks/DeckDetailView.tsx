@@ -2,8 +2,10 @@ import { BfDsTabs } from "@bfmono/apps/bfDs/components/BfDsTabs.tsx";
 import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
+import { useRefinementContext } from "@bfmono/apps/boltfoundry-com/contexts/RefinementContext.tsx";
 import { GradingSamplesList } from "../Grading/GradingSamplesList.tsx";
 import { GradingContainer } from "../Grading/GradingContainer.tsx";
+import { GradersView } from "../Graders/GradersView.tsx";
 import { DeckTab } from "@bfmono/apps/boltfoundry-com/types/deck.ts";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
@@ -27,6 +29,7 @@ export function DeckDetailView({
   completionSummary,
 }: DeckDetailViewProps) {
   const { navigate } = useRouter();
+  const { isRefining } = useRefinementContext();
 
   const handleTabChange = (newTab: string) => {
     navigate(`/pg/grade/decks/${deckId}/${newTab}`);
@@ -97,13 +100,7 @@ export function DeckDetailView({
   };
 
   const renderGradersContent = () => {
-    return (
-      <BfDsEmptyState
-        title="No graders yet"
-        description="Grader management is coming soon. You'll be able to add and manage graders for this deck here."
-        icon="cpu"
-      />
-    );
+    return <GradersView deckId={deckId} />;
   };
 
   const renderInboxContent = () => {
@@ -141,11 +138,15 @@ export function DeckDetailView({
             id: DeckTab.Graders,
             label: "Graders",
             content: renderGradersContent(),
+            badge: isRefining ? "Refining" : undefined,
+            badgeVariant: isRefining ? "warning" : undefined,
           },
           {
             id: DeckTab.Inbox,
             label: "Inbox",
             content: renderInboxContent(),
+            badge: "New",
+            badgeVariant: "warning",
           },
         ]}
         activeTab={currentTab}

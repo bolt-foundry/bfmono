@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { BfDsModal } from "@bfmono/apps/bfDs/components/BfDsModal.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsCheckbox } from "@bfmono/apps/bfDs/components/BfDsCheckbox.tsx";
+import { BfDsProgressBar } from "@bfmono/apps/bfDs/components/BfDsProgressBar.tsx";
+import { BfDsCallout } from "@bfmono/apps/bfDs/components/BfDsCallout.tsx";
+import {
+  type RefinementProgress,
+  type RefinementResult,
+  useRefinementContext,
+} from "@bfmono/apps/boltfoundry-com/contexts/RefinementContext.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
 interface GraderRefinementModalProps {
@@ -19,38 +26,6 @@ interface GraderDeviationData {
 
 interface DeviationDistribution {
   [deviation: number]: number; // deviation -> count
-}
-
-interface RefinementProgress {
-  graderId: string;
-  graderName: string;
-  status: "pending" | "refining" | "completed" | "failed";
-  progress: number; // 0-100
-  currentStage: "analyze" | "adjust" | "test" | "complete";
-  stageProgress: {
-    analyze: number; // 0-100
-    adjust: number; // 0-100
-    test: number; // 0-100
-  };
-  startTime?: number;
-  endTime?: number;
-}
-
-interface RefinementResult {
-  graderId: string;
-  graderName: string;
-  previousAccuracy: number;
-  newAccuracy: number;
-  samplesProcessed: number;
-  testSamplesUsed: number;
-  improvementSummary: string;
-  changesApplied: {
-    parametersAdjusted: Array<string>;
-    biasCorrection: string;
-    thresholdChanges: Array<
-      { parameter: string; oldValue: number; newValue: number }
-    >;
-  };
 }
 
 // Calculate deviation between human and grader scores
@@ -97,89 +72,9 @@ function mockStartRefinement(
           startTime: Date.now(),
         };
       });
+
       resolve(progressData);
     }, 500);
-  });
-}
-
-function mockUpdateProgress(
-  progressData: Array<RefinementProgress>,
-): Promise<Array<RefinementProgress>> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const updated = progressData.map((item) => {
-        if (item.status === "completed" || item.status === "failed") {
-          return item;
-        }
-
-        let newStatus: RefinementProgress["status"] = item.status;
-        let newStage = item.currentStage;
-        const newStageProgress = { ...item.stageProgress };
-
-        if (item.status === "pending") {
-          newStatus = "refining";
-        }
-
-        // Update current stage progress
-        const increment = Math.random() * 30 + 15; // 15-45% increment
-
-        switch (item.currentStage) {
-          case "analyze":
-            newStageProgress.analyze = Math.min(
-              item.stageProgress.analyze + increment,
-              100,
-            );
-            if (newStageProgress.analyze >= 100) {
-              newStage = "adjust";
-            }
-            break;
-          case "adjust":
-            newStageProgress.adjust = Math.min(
-              item.stageProgress.adjust + increment,
-              100,
-            );
-            if (newStageProgress.adjust >= 100) {
-              newStage = "test";
-            }
-            break;
-          case "test": {
-            // Test stage takes longer (smaller increments)
-            const testIncrement = Math.random() * 20 + 10; // 10-30%
-            newStageProgress.test = Math.min(
-              item.stageProgress.test + testIncrement,
-              100,
-            );
-            if (newStageProgress.test >= 100) {
-              newStage = "complete";
-              newStatus = Math.random() > 0.1 ? "completed" : "failed"; // 90% success rate
-            }
-            break;
-          }
-          case "complete":
-            newStatus = "completed";
-            break;
-        }
-
-        // Calculate overall progress (weighted: analyze 20%, adjust 30%, test 50%)
-        const overallProgress = Math.round(
-          (newStageProgress.analyze * 0.2) +
-            (newStageProgress.adjust * 0.3) +
-            (newStageProgress.test * 0.5),
-        );
-
-        return {
-          ...item,
-          progress: overallProgress,
-          status: newStatus,
-          currentStage: newStage,
-          stageProgress: newStageProgress,
-          endTime: newStatus === "completed" || newStatus === "failed"
-            ? Date.now()
-            : undefined,
-        };
-      });
-      resolve(updated);
-    }, 1000 + Math.random() * 2000); // 1-3 second delay
   });
 }
 
@@ -307,19 +202,21 @@ export function GraderRefinementModal({
   onClose,
   selectedSamples,
 }: GraderRefinementModalProps) {
+  const {
+    isRefining,
+    refinementProgress,
+    startRefinement,
+    updateProgressStatus,
+  } = useRefinementContext();
   const [step, setStep] = useState<"selection" | "progress" | "results">(
     "selection",
   );
   const [selectedGraderIds, setSelectedGraderIds] = useState<Set<string>>(
     new Set(),
   );
-  const [refinementProgress, setRefinementProgress] = useState<
-    Array<RefinementProgress>
-  >([]);
   const [refinementResults, setRefinementResults] = useState<
     Array<RefinementResult>
   >([]);
-  const [isRefining, setIsRefining] = useState(false);
 
   // Process grader data from selected samples
   const graderData = useMemo<Array<GraderDeviationData>>(() => {
@@ -355,49 +252,57 @@ export function GraderRefinementModal({
     }));
   }, [selectedSamples]);
 
-  // Progress tracking effect
+  // Monitor refinement completion
   useEffect(() => {
-    if (!isRefining || refinementProgress.length === 0) return;
+    if (!isRefining) return;
 
-    const allCompleted = refinementProgress.every((p) =>
-      p.status === "completed" || p.status === "failed"
+    // Check if any items just completed/failed and generate results for them
+    const newlyCompleted = refinementProgress.filter((p) =>
+      (p.status === "completed" || p.status === "failed") &&
+      !refinementResults.some((r) => r.graderId === p.graderId)
     );
 
-    if (allCompleted) {
-      const results = mockGetResults(refinementProgress, graderData);
-      setRefinementResults(results);
-      setIsRefining(false);
-      setStep("results");
-      return;
+    if (newlyCompleted.length > 0) {
+      const newResults = mockGetResults(newlyCompleted, graderData);
+      setRefinementResults((prev) => [...prev, ...newResults]);
     }
 
-    const timer = setTimeout(async () => {
-      const updated = await mockUpdateProgress(refinementProgress);
-      setRefinementProgress(updated);
-    }, 1500);
+    const allDismissed = refinementProgress.every((p) =>
+      p.status === "dismissed"
+    );
 
-    return () => clearTimeout(timer);
-  }, [isRefining, refinementProgress, graderData]);
+    if (allDismissed && step === "progress") {
+      setStep("results");
+    }
+  }, [
+    isRefining,
+    refinementProgress,
+    graderData,
+    step,
+    refinementResults,
+  ]);
 
   const handleClose = () => {
+    // Only reset UI state, not refinement progress
+    // This allows refinement to continue in background
     setStep("selection");
     setSelectedGraderIds(new Set());
-    setRefinementProgress([]);
     setRefinementResults([]);
-    setIsRefining(false);
+    // Don't reset: setRefinementProgress([]) and setIsRefining(false)
     onClose();
   };
 
   const handleStartRefinement = async () => {
     const graderIdsArray = Array.from(selectedGraderIds);
     setStep("progress");
-    setIsRefining(true);
 
     const initialProgress = await mockStartRefinement(
       graderIdsArray,
       graderData,
     );
-    setRefinementProgress(initialProgress);
+
+    // Start refinement using context
+    startRefinement(initialProgress);
   };
 
   const getStageLabel = (stage: RefinementProgress["currentStage"]): string => {
@@ -513,91 +418,51 @@ export function GraderRefinementModal({
 
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {refinementProgress.map((progress) => (
-            <div
+            <BfDsCallout
               key={progress.graderId}
-              style={{
-                padding: "16px",
-                border: "1px solid var(--bfds-border)",
-                borderRadius: "8px",
-                backgroundColor: "var(--bfds-background)",
-              }}
+              variant={progress.status === "completed"
+                ? "success"
+                : progress.status === "failed"
+                ? "error"
+                : progress.status === "refining"
+                ? "info"
+                : "info"}
+              autoDismiss={progress.status === "completed" ||
+                  progress.status === "failed"
+                ? 5000
+                : 0}
+              onDismiss={() =>
+                updateProgressStatus(progress.graderId, "dismissed")}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                }}
-              >
+              <div style={{ marginBottom: "8px" }}>
                 <span style={{ fontWeight: "600" }}>{progress.graderName}</span>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: progress.status === "completed"
-                      ? "var(--bfds-success)"
-                      : progress.status === "failed"
-                      ? "var(--bfds-error)"
-                      : progress.status === "refining"
-                      ? "var(--bfds-info)"
-                      : "var(--bfds-text-secondary)",
-                  }}
-                >
-                  {progress.status === "completed"
-                    ? "Completed"
-                    : progress.status === "failed"
-                    ? "Failed"
-                    : progress.status === "refining"
-                    ? getStageLabel(progress.currentStage)
-                    : "Pending"}
-                </span>
               </div>
 
-              {/* Stage details */}
-              {progress.status === "refining" && (
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--bfds-text-muted)",
-                    marginBottom: "8px",
-                  }}
-                >
-                  {getStageDescription(progress.currentStage)}
-                </div>
-              )}
-
-              <div
-                style={{
-                  width: "100%",
-                  height: "8px",
-                  backgroundColor: "var(--bfds-background-02)",
-                  borderRadius: "4px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${progress.progress}%`,
-                    height: "100%",
-                    backgroundColor: progress.status === "failed"
-                      ? "var(--bfds-error)"
-                      : "var(--bfds-info)",
-                    transition: "width 0.3s ease",
-                    borderRadius: "4px",
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  fontSize: "12px",
-                  color: "var(--bfds-text-muted)",
-                  marginTop: "4px",
-                }}
-              >
-                {progress.progress.toFixed(0)}% complete
-              </div>
-            </div>
+              <BfDsProgressBar
+                label={progress.status === "refining"
+                  ? getStageLabel(progress.currentStage)
+                  : progress.status === "completed"
+                  ? "Complete!"
+                  : progress.status === "failed"
+                  ? "Failed"
+                  : "Pending..."}
+                value={progress.progress}
+                size="small"
+                state={progress.status === "failed"
+                  ? "error"
+                  : progress.status === "completed"
+                  ? "success"
+                  : "default"}
+                showValue
+                helpText={progress.status === "refining"
+                  ? getStageDescription(progress.currentStage)
+                  : progress.status === "completed"
+                  ? "Refinement completed successfully"
+                  : progress.status === "failed"
+                  ? "Refinement failed - may need manual review"
+                  : "Waiting to start..."}
+              />
+            </BfDsCallout>
           ))}
         </div>
       </div>
