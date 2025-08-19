@@ -114,7 +114,10 @@ WORKDIR /internalbf/bfmono
 
 # Install development tools from flake (includes gh, deno, sapling, etc.)
 # Install as root but make available system-wide
-RUN nix profile install .#codebot-env --accept-flake-config
+# Ensure Nix store is writable for the install operation
+RUN chmod -R 755 /nix || true && \
+    nix-store --init && \
+    nix profile install .#codebot-env --accept-flake-config
 
 # Note: Claude Code is now installed at runtime in the shared directory
 # to allow updates without rebuilding the container

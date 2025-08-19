@@ -64,18 +64,6 @@ variable "cloudflare_account_id" {
   type        = string
 }
 
-variable "r2_access_key" {
-  description = "R2 Access Key ID (can reuse AWS_ACCESS_KEY_ID)"
-  type        = string
-  sensitive   = true
-}
-
-variable "r2_secret_key" {
-  description = "R2 Secret Access Key (can reuse AWS_SECRET_ACCESS_KEY)"
-  type        = string
-  sensitive   = true
-}
-
 variable "ssh_public_key" {
   description = "SSH public key for server access"
   type        = string
@@ -115,24 +103,6 @@ provider "cloudflare" {
 # This is required even though backend config handles auth, due to provider requirements
 provider "aws" {
   region = "us-east-1"  # Dummy region, not used by Hetzner S3
-  
-  skip_credentials_validation = true
-  skip_metadata_api_check     = true
-  skip_region_validation      = true
-  skip_requesting_account_id  = true
-}
-
-# AWS provider for R2 (Cloudflare R2 Object Storage)
-# This is for application assets, NOT Terraform state
-provider "aws" {
-  alias      = "r2"
-  access_key = var.r2_access_key
-  secret_key = var.r2_secret_key
-  region     = "auto"
-  
-  endpoints {
-    s3 = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com"
-  }
   
   skip_credentials_validation = true
   skip_metadata_api_check     = true
@@ -207,43 +177,6 @@ resource "cloudflare_record" "web" {
 }
 
 
-# Cloudflare R2 bucket for asset storage
-resource "cloudflare_r2_bucket" "assets" {
-  account_id = var.cloudflare_account_id
-  name       = "bft-assets"  # Simple name, no random suffix needed
-  location   = "ENAM"  # Eastern North America
-}
-
-# R2 Custom Domain configuration
-# Note: The cloudflare_r2_custom_domain resource may not be available in all provider versions
-# As a workaround, you can:
-# 1. Set up the custom domain manually in Cloudflare Dashboard -> R2 -> Your bucket -> Settings -> Custom Domains
-# 2. Or use a CNAME record pointing to the R2 public URL (once public access is enabled)
-
-# For now, create a CNAME to the R2 public bucket URL
-# The bucket needs to have public access enabled in the dashboard
-resource "cloudflare_record" "bltcdn" {
-  zone_id = var.cloudflare_zone_id_bltcdn
-  name    = "@"
-  # R2 public URL format: <bucket-name>.<account-id>.r2.dev
-  value   = "${cloudflare_r2_bucket.assets.name}.${var.cloudflare_account_id}.r2.dev"
-  type    = "CNAME"
-  ttl     = 1
-  proxied = true  # Use Cloudflare CDN
-}
-
-# IMPORTANT: Manual step required after Terraform apply:
-# 1. Go to Cloudflare Dashboard -> R2 -> bft-assets bucket
-# 2. Go to Settings tab
-# 3. Under "Public Access", click "Allow Access"
-# 4. Add custom domain: bltcdn.com
-#
-# Benefits of R2:
-# - Zero egress fees
-# - Automatic CDN integration
-# - No Host header issues (unlike S3)
-# - SSL/TLS included
-
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
 
@@ -262,19 +195,4 @@ output "domain" {
 
 output "volume_id" {
   value = hcloud_volume.database.id
-}
-
-output "r2_bucket_name" {
-  value = cloudflare_r2_bucket.assets.name
-  description = "R2 bucket name for asset storage"
-}
-
-output "r2_bucket_endpoint" {
-  value = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com/${cloudflare_r2_bucket.assets.name}"
-  description = "R2 bucket S3 API endpoint"
-}
-
-output "bltcdn_domain" {
-  value = "bltcdn.com"
-  description = "CDN domain for assets (automatically configured with R2)"
 }
