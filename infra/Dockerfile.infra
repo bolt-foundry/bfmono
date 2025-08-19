@@ -171,6 +171,8 @@ if [ -d "/internalbf/bfmono/shared" ]; then\n\
         echo "📦 Updating Claude Code: $CURRENT_VERSION → $LATEST_VERSION"\n\
         cd /internalbf/bfmono/shared && npm install --prefix . @anthropic-ai/claude-code@latest\n\
         echo "✅ Claude Code updated to $LATEST_VERSION"\n\
+        # Return to the proper working directory after update\n\
+        cd /internalbf/bfmono\n\
     else\n\
         echo "✅ Claude Code is up to date (v$CURRENT_VERSION)"\n\
     fi\n\
