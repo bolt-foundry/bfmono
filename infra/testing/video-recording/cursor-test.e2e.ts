@@ -4,7 +4,8 @@ import {
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { smoothClick, smoothHover, smoothMoveTo } from "./smooth-mouse.ts";
+// Using context methods for click and hover, but keeping smoothMoveTo for cursor positioning
+import { smoothMoveTo } from "./smooth-mouse.ts";
 
 const logger = getLogger(import.meta);
 
@@ -14,9 +15,9 @@ Deno.test.ignore("Cursor overlay test with video recording", async () => {
   });
 
   try {
-    // Start annotated video recording with cursor overlay
+    // Start video recording with cursor overlay
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording(
+      .startRecording(
         "cursor-test",
         {
           outputFormat: "mp4",
@@ -38,41 +39,66 @@ Deno.test.ignore("Cursor overlay test with video recording", async () => {
     logger.info("Testing cursor overlay with various movements...");
 
     // Move to different areas of the page to show cursor
-    await smoothMoveTo(context.page, 200, 200, 1000);
+    await smoothMoveTo(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      200,
+      200,
+      1000,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    await smoothMoveTo(context.page, 600, 300, 1000);
+    await smoothMoveTo(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      600,
+      300,
+      1000,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    await smoothMoveTo(context.page, 400, 500, 1000);
+    await smoothMoveTo(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      400,
+      500,
+      1000,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Try to find and hover over a link
-    const links = await context.page.$$("a");
+    const links = await context.__UNSAFE_page_useContextMethodsInstead.$$("a");
     if (links.length > 0) {
       logger.info("Hovering over first link...");
-      await smoothHover(context.page, "a");
+      await context.hover("a");
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     // Try to interact with the page
     logger.info("Demonstrating click animation...");
     try {
-      await smoothClick(context.page, "body");
+      await context.click("body");
       await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (_error) {
       logger.debug("Click test completed");
     }
 
     // More cursor movements
-    await smoothMoveTo(context.page, 100, 100, 800);
+    await smoothMoveTo(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      100,
+      100,
+      800,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    await smoothMoveTo(context.page, 700, 400, 800);
+    await smoothMoveTo(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      700,
+      400,
+      800,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Get page title to verify test ran
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`Page title: ${title}`);
 
     // Basic assertions

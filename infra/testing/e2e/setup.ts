@@ -6,10 +6,14 @@ import { join } from "@std/path";
 import {
   injectRecordingThrobberOnAllPages,
   removeRecordingThrobber,
+  smoothClick,
+  smoothScroll,
+  smoothType,
 } from "../video-recording/smooth-ui.ts";
+import { smoothHover } from "../video-recording/smooth-mouse.ts";
 import {
-  startScreencastRecording,
-  stopScreencastRecording,
+  _startScreencastRecordingInternal,
+  _stopScreencastRecordingInternal,
   type VideoRecordingSession as _VideoRecordingSession,
 } from "../video-recording/recorder.ts";
 import type {
@@ -23,7 +27,7 @@ import {
 
 const logger = getLogger(import.meta);
 
-export interface AnnotatedVideoRecordingControls {
+export interface VideoRecordingControls {
   stop: () => Promise<VideoConversionResult | null>;
   showSubtitle: (text: string) => Promise<void>;
   highlightElement: (selector: string, text: string) => Promise<void>;
@@ -94,18 +98,37 @@ function _isCI(): boolean {
 
 export interface E2ETestContext {
   browser: Browser;
-  page: Page;
+  __UNSAFE_page_useContextMethodsInstead: Page;
   baseUrl: string;
   takeScreenshot: (
     name: string,
     options?: { fullPage?: boolean; showAnnotations?: boolean },
   ) => Promise<string>;
   navigateTo: (path: string) => Promise<void>;
-  startAnnotatedVideoRecording: (
+  startRecording: (
     name: string,
     options?: VideoConversionOptions,
-  ) => Promise<AnnotatedVideoRecordingControls>;
+  ) => Promise<VideoRecordingControls>;
   teardown: () => Promise<void>;
+  // Smooth interaction methods (preferred for E2E tests)
+  click: (selector: string) => Promise<void>;
+  type: (selector: string, text: string, options?: {
+    clearFirst?: boolean;
+    clickFirst?: boolean;
+  }) => Promise<void>;
+  hover: (selector: string) => Promise<void>;
+  scroll: (direction: "up" | "down") => Promise<void>;
+  waitForSelector: (
+    selector: string,
+    options?: { timeout?: number; visible?: boolean },
+  ) => Promise<void>;
+  evaluate: <T>(
+    // deno-lint-ignore no-explicit-any
+    fn: (...args: Array<any>) => T,
+    // deno-lint-ignore no-explicit-any
+    ...args: Array<any>
+  ) => Promise<T>;
+  url: () => string;
 }
 
 /**
@@ -333,9 +356,9 @@ export async function setupE2ETest(options: {
     };
 
     // Create context methods
-    const context = {
+    const context: E2ETestContext = {
       browser,
-      page,
+      __UNSAFE_page_useContextMethodsInstead: page,
       baseUrl,
       takeScreenshot,
       navigateTo: async (path: string): Promise<void> => {
@@ -349,10 +372,10 @@ export async function setupE2ETest(options: {
         // Note: both cursor overlay and recording throbber are automatically
         // re-injected after navigation using evaluateOnNewDocument
       },
-      startAnnotatedVideoRecording: async (
+      startRecording: async (
         name: string,
         options?: VideoConversionOptions,
-      ): Promise<AnnotatedVideoRecordingControls> => {
+      ): Promise<VideoRecordingControls> => {
         const videosDir = getConfigurationVariable("BF_E2E_VIDEO_DIR") ||
           join(Deno.cwd(), "tmp", "videos");
 
@@ -363,13 +386,17 @@ export async function setupE2ETest(options: {
         try {
           await injectCursorOverlayOnAllPages(page);
           logger.debug(
-            "Cursor overlay injected for annotated video recording with auto-persistence",
+            "Cursor overlay injected for video recording with auto-persistence",
           );
         } catch (error) {
           logger.warn("Failed to inject cursor overlay:", error);
         }
 
-        const session = await startScreencastRecording(page, name, videosDir);
+        const session = await _startScreencastRecordingInternal(
+          page,
+          name,
+          videosDir,
+        );
 
         // Inject throbber on all pages to persist across navigations
         await injectRecordingThrobberOnAllPages(page);
@@ -380,7 +407,7 @@ export async function setupE2ETest(options: {
               // Stop throbber before stopping recording
               await removeRecordingThrobber(page);
 
-              const videoResult = await stopScreencastRecording(
+              const videoResult = await _stopScreencastRecordingInternal(
                 page,
                 session,
                 options,
@@ -394,14 +421,12 @@ export async function setupE2ETest(options: {
               }
 
               logger.info(
-                `Annotated video recording completed: ${videoResult.videoPath} (${videoResult.fileSize} bytes)`,
+                `Video recording completed: ${videoResult.videoPath} (${videoResult.fileSize} bytes)`,
               );
               return videoResult;
             } catch (error) {
               logger.error(
-                `Failed to stop annotated video recording: ${
-                  (error as Error).message
-                }`,
+                `Failed to stop video recording: ${(error as Error).message}`,
               );
               return null;
             }
@@ -594,6 +619,45 @@ export async function setupE2ETest(options: {
           },
         };
       },
+      // Smooth interaction methods (preferred for E2E tests)
+      click: async (selector: string): Promise<void> => {
+        await smoothClick({ page, takeScreenshot }, selector);
+      },
+      type: async (
+        selector: string,
+        text: string,
+        options?: { clearFirst?: boolean; clickFirst?: boolean },
+      ): Promise<void> => {
+        await smoothType(
+          { page, takeScreenshot },
+          selector,
+          text,
+          options,
+        );
+      },
+      hover: async (selector: string): Promise<void> => {
+        await smoothHover(page, selector);
+      },
+      scroll: async (direction: "up" | "down"): Promise<void> => {
+        await smoothScroll(page, direction);
+      },
+      waitForSelector: async (
+        selector: string,
+        options?: { timeout?: number; visible?: boolean },
+      ): Promise<void> => {
+        await page.waitForSelector(selector, options);
+      },
+      evaluate: async <T>(
+        // deno-lint-ignore no-explicit-any
+        fn: (...args: Array<any>) => T,
+        // deno-lint-ignore no-explicit-any
+        ...args: Array<any>
+      ): Promise<T> => {
+        return await page.evaluate(fn, ...args);
+      },
+      url: (): string => {
+        return page.url();
+      },
       teardown: async (): Promise<void> => {
         try {
           // First close any open pages
@@ -630,8 +694,9 @@ export async function setupE2ETest(options: {
 export async function teardownE2ETest(context: E2ETestContext): Promise<void> {
   try {
     // First close any open pages
-    if (context.page && !context.page.isClosed()) {
-      await context.page.close();
+    const page = context.__UNSAFE_page_useContextMethodsInstead;
+    if (page && !page.isClosed()) {
+      await page.close();
     }
 
     // Then close the browser completely

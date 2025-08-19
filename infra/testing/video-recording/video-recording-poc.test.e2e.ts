@@ -4,7 +4,7 @@ import {
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { smoothHover } from "./smooth-mouse.ts";
+// Using context.hover() instead of importing smoothHover
 
 const logger = getLogger(import.meta);
 
@@ -14,9 +14,9 @@ Deno.test.ignore("Video recording proof of concept", async () => {
   });
 
   try {
-    // Start annotated video recording
+    // Start video recording
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording("poc-test");
+      .startRecording("poc-test");
 
     // Navigate to a simple page
     await context.navigateTo("/");
@@ -29,22 +29,22 @@ Deno.test.ignore("Video recording proof of concept", async () => {
     await context.takeScreenshot("video-poc-initial");
 
     // Perform some smooth mouse movements for the video
-    const links = await context.page.$$("a");
+    const links = await context.__UNSAFE_page_useContextMethodsInstead.$$("a");
     if (links.length > 0) {
       await showSubtitle("Hovering over page links");
-      await smoothHover(context.page, "a");
+      await context.hover("a");
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     // Scroll the page smoothly
     await showSubtitle("Scrolling the page");
-    await context.page.evaluate(() => {
+    await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       globalThis.scrollTo({ top: 300, behavior: "smooth" });
     });
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Get page title to verify test ran
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`Page title: ${title}`);
 
     // Basic assertions

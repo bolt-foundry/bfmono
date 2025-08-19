@@ -12,9 +12,9 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
   const context = await setupBoltFoundryComTest();
 
   try {
-    // Start annotated video recording with conversion to MP4
+    // Start video recording with conversion to MP4
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording(
+      .startRecording(
         "ssr-hydration-demo",
         {
           outputFormat: "mp4" as const,
@@ -29,26 +29,26 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     await navigateTo(context, "/");
 
     // Try direct navigation instead of clicking since button might not be interactive yet
-    await context.page.goto(`${context.baseUrl}/ui`);
+    await context.__UNSAFE_page_useContextMethodsInstead.goto(`${context.baseUrl}/ui`);
 
     // Wait for navigation to complete
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Check current URL after navigation
-    const currentUrl = context.page.url();
+    const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
     logger.info(`Current URL after button click: ${currentUrl}`);
 
     // Remove manual screenshot - let video recording capture naturally
 
     // Wait for content to ensure page loaded
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`Page title: ${title}`);
 
     // Verify the page title is correct
     assertEquals(title, "Bolt Foundry", "Page title should be 'Bolt Foundry'");
 
     // Check if the page contains expected server-rendered content
-    const bodyText = await context.page.evaluate(() =>
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
       document.body.textContent
     );
 
@@ -71,15 +71,15 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     );
 
     // Verify SSR-specific elements are present
-    const rootElement = await context.page.$("#root");
+    const rootElement = await context.__UNSAFE_page_useContextMethodsInstead.$("#root");
     assert(rootElement, "Page should have #root element for React hydration");
 
     // Check that the server rendered the initial HTML structure
-    const appElement = await context.page.$("#root");
+    const appElement = await context.__UNSAFE_page_useContextMethodsInstead.$("#root");
     assert(appElement, "Page should have #root element from server rendering");
 
     // Verify that the client bundle script is loaded
-    const clientScript = await context.page.evaluate(() => {
+    const clientScript = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const script = document.querySelector(
         'script[src^="/static/build/ClientRoot-"]',
       );
@@ -88,7 +88,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     assert(clientScript, "Page should include ClientRoot script");
 
     // Verify that the __ENVIRONMENT__ global is set up for rehydration
-    const hasEnvironment = await context.page.evaluate(() => {
+    const hasEnvironment = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       // @ts-expect-error - Testing runtime global
       return typeof globalThis.__ENVIRONMENT__ === "object";
     });
@@ -98,7 +98,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     );
 
     // Verify the environment contains expected data
-    const environment = await context.page.evaluate(() => {
+    const environment = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       // @ts-expect-error - Testing runtime global
       return globalThis.__ENVIRONMENT__;
     });
@@ -106,7 +106,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     assert(environment?.port, "Environment should contain port");
 
     // Verify that the page is visually functional (basic styling applied)
-    const hasVisibleContent = await context.page.evaluate(() => {
+    const hasVisibleContent = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const body = document.body;
       const styles = globalThis.getComputedStyle(body);
       // Just check that basic styling is applied (page isn't completely unstyled)
@@ -142,7 +142,7 @@ Deno.test("SSR serves correct response headers", async () => {
 
   try {
     // Make request and check response headers
-    const response = await context.page.goto(context.baseUrl);
+    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(context.baseUrl);
 
     // Verify response is successful
     assertEquals(response?.status(), 200, "Response should be 200 OK");
@@ -200,7 +200,7 @@ Deno.test("SSR handles static assets correctly", async () => {
     await navigateTo(context, "/");
 
     // Test that CSS is loaded correctly by checking if it's actually loaded in the page
-    const cssLoaded = await context.page.evaluate(() => {
+    const cssLoaded = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const cssLinks = Array.from(
         document.querySelectorAll('link[rel="stylesheet"]'),
       );
@@ -213,13 +213,13 @@ Deno.test("SSR handles static assets correctly", async () => {
     assert(cssLoaded, "CSS should be properly loaded via manifest");
 
     // Test that the CSS file from the manifest is actually served
-    const cssHref = await context.page.evaluate(() => {
+    const cssHref = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const cssLink = document.querySelector('link[rel="stylesheet"]');
       return cssLink ? cssLink.getAttribute("href") : null;
     });
 
     if (cssHref) {
-      const cssResponse = await context.page.goto(
+      const cssResponse = await context.__UNSAFE_page_useContextMethodsInstead.goto(
         new URL(cssHref, context.baseUrl).toString(),
       );
       assertEquals(
@@ -238,8 +238,8 @@ Deno.test("SSR handles static assets correctly", async () => {
     }
 
     // Test that JavaScript is loaded correctly - navigate to home page first
-    await context.page.goto(context.baseUrl);
-    const jsPath = await context.page.evaluate(() => {
+    await context.__UNSAFE_page_useContextMethodsInstead.goto(context.baseUrl);
+    const jsPath = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const script = document.querySelector(
         'script[src^="/static/build/ClientRoot-"]',
       );
@@ -247,7 +247,7 @@ Deno.test("SSR handles static assets correctly", async () => {
     });
     assert(jsPath, "ClientRoot script should be found on page");
 
-    const jsResponse = await context.page.goto(
+    const jsResponse = await context.__UNSAFE_page_useContextMethodsInstead.goto(
       new URL(jsPath, context.baseUrl).toString(),
     );
     assertEquals(

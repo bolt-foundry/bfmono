@@ -4,7 +4,7 @@ import {
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { smoothHover } from "./smooth-mouse.ts";
+// Using context.hover() instead of importing smoothHover
 
 const logger = getLogger(import.meta);
 
@@ -14,9 +14,9 @@ Deno.test.ignore("Video conversion proof of concept - MP4", async () => {
   });
 
   try {
-    // Start annotated video recording with MP4 conversion
+    // Start video recording with MP4 conversion
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording(
+      .startRecording(
         "conversion-poc-mp4",
         {
           outputFormat: "mp4",
@@ -37,22 +37,22 @@ Deno.test.ignore("Video conversion proof of concept - MP4", async () => {
     await context.takeScreenshot("video-conversion-initial");
 
     // Perform some smooth mouse movements for the video
-    const links = await context.page.$$("a");
+    const links = await context.__UNSAFE_page_useContextMethodsInstead.$$("a");
     if (links.length > 0) {
       await showSubtitle("Testing mouse hover interactions");
-      await smoothHover(context.page, "a");
+      await context.hover("a");
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     // Scroll the page smoothly
     await showSubtitle("Scrolling demonstration");
-    await context.page.evaluate(() => {
+    await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       globalThis.scrollTo({ top: 300, behavior: "smooth" });
     });
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Get page title to verify test ran
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`Page title: ${title}`);
 
     // Basic assertions
@@ -97,8 +97,8 @@ Deno.test.ignore("Video conversion proof of concept - WebM", async () => {
   });
 
   try {
-    // Start annotated video recording with WebM conversion
-    const { stop, showSubtitle } = await context.startAnnotatedVideoRecording(
+    // Start video recording with WebM conversion
+    const { stop, showSubtitle } = await context.startRecording(
       "conversion-poc-webm",
       {
         outputFormat: "webm",
@@ -115,7 +115,7 @@ Deno.test.ignore("Video conversion proof of concept - WebM", async () => {
 
     // Simple interaction
     await showSubtitle("Testing page scroll");
-    await context.page.evaluate(() => {
+    await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       globalThis.scrollTo({ top: 200, behavior: "smooth" });
     });
     await new Promise((resolve) => setTimeout(resolve, 1000));

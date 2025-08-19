@@ -219,7 +219,68 @@ const plugin: any = {
     },
 
     /* ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
-    /*  5. Prevent logger.setLevel from being committed                      */
+    /*  5. Discourage direct page usage in E2E tests                         */
+    /* ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
+    "no-direct-page-methods-in-e2e": {
+      create(context: any) {
+        const filename = context.filename;
+
+        // Only apply to E2E test files
+        if (
+          !filename.includes(".e2e.ts") && !filename.includes(".test.e2e.ts")
+        ) {
+          return {};
+        }
+
+        return {
+          // Match common page interaction methods
+          'CallExpression[callee.property.name=/^(click|type|focus|hover|tap|dblclick|fill|selectOption|press|check|uncheck)$/][callee.object.name="page"]'(
+            node: any,
+          ) {
+            const methodName = node.callee.property.name;
+            context.report({
+              node,
+              message:
+                `Direct page.${methodName}() is discouraged in E2E tests. Use context.${methodName}() for smooth, video-friendly interactions. If you must use page directly, use context.__UNSAFE_page_useContextMethodsInstead.${methodName}() to make it explicit.`,
+            });
+          },
+          // Also catch page access from context.page
+          'MemberExpression[property.name="page"][object.type="Identifier"]'(
+            node: any,
+          ) {
+            // Skip if it's already the UNSAFE variant
+            if (
+              node.parent?.property?.name ===
+                "__UNSAFE_page_useContextMethodsInstead"
+            ) {
+              return;
+            }
+
+            // Only flag if it's being used to call a method
+            if (
+              node.parent?.type === "MemberExpression" &&
+              node.parent?.parent?.type === "CallExpression"
+            ) {
+              const methodName = node.parent.property?.name;
+              if (
+                methodName &&
+                /^(click|type|focus|hover|tap|dblclick|fill|selectOption|press|check|uncheck)$/
+                  .test(methodName)
+              ) {
+                context.report({
+                  node: node.parent.parent,
+                  message:
+                    `Direct page.${methodName}() via context.page is discouraged. Use context.${methodName}() instead, or context.__UNSAFE_page_useContextMethodsInstead.${methodName}() if absolutely necessary.`,
+                });
+              }
+            }
+          },
+        };
+      },
+    },
+
+    /* ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
+    /*  6. Prevent logger.setLevel from being committed                      */
     /* ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
     "no-logger-set-level": {
       create(context: any) {
