@@ -9,6 +9,7 @@ export interface VideoConversionOptions {
   quality?: "low" | "medium" | "high";
   deleteFrames?: boolean;
   preserveFrames?: boolean;
+  interpolation?: "none" | "blend" | "mci" | "fast";
 }
 
 export interface VideoConversionResult {
@@ -24,10 +25,11 @@ export async function convertFramesToVideo(
 ): Promise<VideoConversionResult> {
   const {
     outputFormat = "mp4",
-    framerate = 24, // Increased to 24 fps for smoother video
+    framerate = 48, // Default to 48 fps for smoother video
     quality = "medium",
     deleteFrames = true,
     preserveFrames = false,
+    interpolation = "blend",
   } = options;
 
   // If preserveFrames is true, override deleteFrames to false
@@ -46,6 +48,7 @@ export async function convertFramesToVideo(
     outputFormat,
     framerate,
     quality,
+    interpolation,
   });
 
   logger.info(`Converting frames to video: ${outputPath}`);
@@ -87,12 +90,14 @@ function buildFFmpegArgs({
   outputFormat,
   framerate,
   quality,
+  interpolation = "blend",
 }: {
   frameDirectory: string;
   outputPath: string;
   outputFormat: string;
   framerate: number;
   quality: string;
+  interpolation?: string;
 }): Array<string> {
   const framePattern = join(frameDirectory, "frame_%06d.png");
 
@@ -110,13 +115,13 @@ function buildFFmpegArgs({
   // Format-specific settings
   const formatArgs = getFormatArgs(outputFormat);
 
-  // Add output framerate filter
-  const framerateFilter = ["-filter:v", `fps=${framerate}`];
+  // Build video filters including frame interpolation
+  const videoFilters = getVideoFilters(outputFormat, framerate);
 
   return [
     ...baseArgs,
     ...qualityArgs,
-    ...framerateFilter,
+    ...videoFilters,
     ...formatArgs,
     outputPath,
   ];
@@ -156,11 +161,21 @@ function getQualityArgs(format: string, quality: string): Array<string> {
 function getFormatArgs(format: string): Array<string> {
   switch (format) {
     case "mp4":
-      return ["-c:v", "libx264", "-pix_fmt", "yuv420p"];
+      // Use x264 with compatibility settings and fast start for web streaming
+      return [
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
+      ];
     case "webm":
-      return ["-c:v", "libvpx-vp9"];
+      // VP9 codec for WebM
+      return ["-c:v", "libvpx-vp9", "-auto-alt-ref", "0"];
     case "gif":
-      return ["-vf", "fps=10,flags=lanczos,palettegen"];
+      // GIF-specific encoding (palette is handled in filters)
+      return [];
     default:
       return [];
   }
@@ -253,6 +268,27 @@ async function cleanupFrames(frameDirectory: string): Promise<void> {
   } catch (error) {
     logger.warn(`Could not clean up frames: ${(error as Error).message}`);
   }
+}
+
+function getVideoFilters(
+  format: string,
+  framerate: number,
+): Array<string> {
+  const filters: string[] = [];
+
+  // Simple fps conversion without interpolation
+  // Just drop/duplicate frames as needed - simple and clean
+  filters.push(`fps=${framerate}`);
+
+  // Add format-specific filters
+  if (format === "gif") {
+    // For GIF, we need to generate a palette first
+    filters.push(
+      "split[s0][s1];[s0]palettegen=reserve_transparent=0[p];[s1][p]paletteuse",
+    );
+  }
+
+  return filters.length > 0 ? ["-filter_complex", filters.join(",")] : [];
 }
 
 function getDirectoryName(path: string): string {

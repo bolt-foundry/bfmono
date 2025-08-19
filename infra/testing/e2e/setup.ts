@@ -107,7 +107,6 @@ export interface E2ETestContext {
   navigateTo: (path: string) => Promise<void>;
   startRecording: (
     name: string,
-    options?: VideoConversionOptions,
   ) => Promise<VideoRecordingControls>;
   teardown: () => Promise<void>;
   // Smooth interaction methods (preferred for E2E tests)
@@ -374,10 +373,39 @@ export async function setupE2ETest(options: {
       },
       startRecording: async (
         name: string,
-        options?: VideoConversionOptions,
       ): Promise<VideoRecordingControls> => {
+        // Check if video recording is disabled
+        if (getConfigurationVariable("BF_E2E_NO_VIDEO") === "true") {
+          logger.debug("Video recording disabled by BF_E2E_NO_VIDEO");
+          // Return no-op controls
+          return {
+            stop: async () => null,
+            showSubtitle: async () => {},
+            highlightElement: async () => {},
+          };
+        }
+
         const videosDir = getConfigurationVariable("BF_E2E_VIDEO_DIR") ||
           join(Deno.cwd(), "tmp", "videos");
+
+        // Get video configuration from environment variables
+        const videoOptions: VideoConversionOptions = {
+          outputFormat:
+            (getConfigurationVariable("BF_E2E_VIDEO_FORMAT") || "mp4") as
+              | "mp4"
+              | "webm"
+              | "gif",
+          quality:
+            (getConfigurationVariable("BF_E2E_VIDEO_QUALITY") || "medium") as
+              | "low"
+              | "medium"
+              | "high",
+          framerate: parseInt(
+            getConfigurationVariable("BF_E2E_VIDEO_FPS") || "48",
+            10,
+          ),
+          deleteFrames: true,
+        };
 
         // Ensure videos directory exists
         await ensureDir(videosDir);
@@ -410,7 +438,7 @@ export async function setupE2ETest(options: {
               const videoResult = await _stopScreencastRecordingInternal(
                 page,
                 session,
-                options,
+                videoOptions,
               );
 
               // Clean up cursor overlay

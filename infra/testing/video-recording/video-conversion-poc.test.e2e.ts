@@ -8,23 +8,15 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
-Deno.test.ignore("Video conversion proof of concept - MP4", async () => {
+Deno.test("Video conversion proof of concept - MP4", async () => {
   const context = await setupE2ETest({
-    baseUrl: "https://example.com",
+    baseUrl: "https://google.com",
   });
 
   try {
-    // Start video recording with MP4 conversion
+    // Start video recording
     const { stop, showSubtitle } = await context
-      .startRecording(
-        "conversion-poc-mp4",
-        {
-          outputFormat: "mp4",
-          quality: "medium",
-          framerate: 10,
-          deleteFrames: true,
-        },
-      );
+      .startRecording("conversion-poc-mp4");
 
     // Navigate to a simple page
     await context.navigateTo("/");
@@ -93,19 +85,13 @@ Deno.test.ignore("Video conversion proof of concept - MP4", async () => {
 
 Deno.test.ignore("Video conversion proof of concept - WebM", async () => {
   const context = await setupE2ETest({
-    baseUrl: "https://example.com",
+    baseUrl: "https://google.com",
   });
 
   try {
-    // Start video recording with WebM conversion
+    // Start video recording
     const { stop, showSubtitle } = await context.startRecording(
       "conversion-poc-webm",
-      {
-        outputFormat: "webm",
-        quality: "high",
-        framerate: 15,
-        deleteFrames: true,
-      },
     );
 
     // Navigate and perform actions

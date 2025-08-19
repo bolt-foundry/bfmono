@@ -9,7 +9,7 @@ export async function smoothMoveTo(
   page: Page,
   targetX: number,
   targetY: number,
-  pixelsPerSecond = 800, // Consistent movement speed
+  pixelsPerSecond = 1200, // Faster movement speed for better visual effect
 ): Promise<void> {
   // Get current mouse position from our global state or default to center
   const currentPos = await page.evaluate(() => {
@@ -26,13 +26,18 @@ export async function smoothMoveTo(
     Math.min(1500, (distance / pixelsPerSecond) * 1000),
   ); // Min 100ms, max 1.5s
 
-  const steps = Math.max(5, Math.min(30, Math.ceil(duration / 50))); // 5-30 steps, ~50ms per step
+  // Calculate steps to match 60fps (16.67ms per frame)
+  // This ensures smooth movement that matches video framerate
+  const targetFrameTime = 1000 / 60; // 60fps
+  const steps = Math.max(5, Math.ceil(duration / targetFrameTime));
   const stepDelay = duration / steps;
 
   for (let i = 0; i <= steps; i++) {
     const progress = i / steps;
-    // Easing function (ease-out)
-    const eased = 1 - Math.pow(1 - progress, 3);
+    // Easing function (ease-in-out) - smooth acceleration and deceleration
+    const eased = progress < 0.5
+      ? 4 * progress * progress * progress // ease-in (first half)
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2; // ease-out (second half)
 
     const x = currentPos.x + (targetX - currentPos.x) * eased;
     const y = currentPos.y + (targetY - currentPos.y) * eased;
@@ -42,6 +47,44 @@ export async function smoothMoveTo(
     // Update cursor overlay to follow mouse movement
     try {
       await updateCursorPosition(page, x, y);
+
+      // Check if we're hovering over an interactive element and update cursor style
+      const isOverInteractive = await page.evaluate(
+        (mouseX, mouseY) => {
+          const element = document.elementFromPoint(mouseX, mouseY);
+          if (!element) return false;
+
+          // Check if element or any parent is interactive
+          let current: Element | null = element;
+          while (current) {
+            const tagName = current.tagName?.toLowerCase();
+            const role = current.getAttribute("role");
+            const hasClickHandler = (current as HTMLElement).onclick !== null;
+            const cursorStyle = (current as HTMLElement).style?.cursor;
+
+            if (
+              tagName === "a" ||
+              tagName === "button" ||
+              tagName === "input" ||
+              tagName === "select" ||
+              tagName === "textarea" ||
+              role === "button" ||
+              role === "link" ||
+              hasClickHandler ||
+              cursorStyle === "pointer"
+            ) {
+              return true;
+            }
+            current = current.parentElement;
+          }
+          return false;
+        },
+        x,
+        y,
+      );
+
+      // Set appropriate cursor style
+      await setCursorStyle(page, isOverInteractive ? "hover" : "default");
     } catch {
       // Cursor overlay might not be injected yet, ignore
     }
