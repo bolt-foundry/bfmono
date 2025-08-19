@@ -4,6 +4,28 @@ on:
   merge_group: # 👈 add this
     types: [checks_requested] # optional but keeps the run list tidy
   workflow_dispatch:
+    inputs:
+      job:
+        description: "Specific job to run (default: all)"
+        type: choice
+        default: all
+        options:
+          - all
+          - lint
+          - format
+          - typecheck
+          - test
+          - build
+          - docker-build
+          - e2e
+      test_filter:
+        description: "Test filter pattern (optional)"
+        type: string
+        required: false
+      debug:
+        description: "Enable debug logging"
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -90,6 +112,7 @@ jobs:
           key: ${{ steps.cache-build.outputs.cache-primary-key }}
 
   lint:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'lint' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: setup
@@ -130,6 +153,7 @@ jobs:
           "
 
   format:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'format' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: setup
@@ -170,6 +194,7 @@ jobs:
           "
 
   typecheck:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'typecheck' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: setup
@@ -210,6 +235,7 @@ jobs:
           "
 
   test:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'test' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: setup
@@ -246,10 +272,15 @@ jobs:
         run: |
           nix develop .#github-actions --accept-flake-config --command bash -euc "
             export DENO_DIR=\"/home/runner/.cache/deno\"
-            bft test
+            if [ -n "${{ github.event.inputs.test_filter }}" ]; then
+              bft test --filter "${{ github.event.inputs.test_filter }}"
+            else
+              bft test
+            fi
           "
 
   build:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'build' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: setup
@@ -303,6 +334,7 @@ jobs:
 
   # Docker build validation for boltfoundry-com
   docker-build-validation:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'docker-build' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: [build]
@@ -429,6 +461,7 @@ jobs:
           docker rm boltfoundry-com-test >/dev/null 2>&1 || true
 
   e2e:
+    if: ${{ !github.event.inputs.job || github.event.inputs.job == 'all' || github.event.inputs.job == 'e2e' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build]

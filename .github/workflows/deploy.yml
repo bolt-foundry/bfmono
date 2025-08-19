@@ -1,0 +1,240 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/boltfoundry-com/**"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deployment target"
+        type: choice
+        required: true
+        options:
+          - boltfoundry-com
+          - infra
+
+# Prevent concurrent deployments
+concurrency:
+  group: deploy-${{ github.event.inputs.target || 'auto' }}
+  cancel-in-progress: false
+
+jobs:
+  detect-changes:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      boltfoundry-com: ${{ steps.changes.outputs.boltfoundry-com }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            boltfoundry-com:
+              - 'apps/boltfoundry-com/**'
+
+  deploy-boltfoundry-com:
+    needs: [detect-changes]
+    if: |
+      always() && (
+        (github.event_name == 'push' && needs.detect-changes.outputs.boltfoundry-com == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'boltfoundry-com')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
+
+      - name: Build binary and sync production env
+        run: |
+          nix develop .#production --accept-flake-config --command bash -c "
+            # Sync environment variables from vault accessible by service account
+            # The OP_SERVICE_ACCOUNT_TOKEN determines which vault is used
+            if [ -n \"${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}\" ]; then
+              bft sitevar sync --force
+            fi
+            # Build the binary
+            bft compile boltfoundry-com
+          "
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push Docker image
+        run: |
+          # Build with git hash and latest tags
+          docker build \
+            -t ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} \
+            -f infra/Dockerfile.deploy \
+            --build-arg BINARY_PATH=build/boltfoundry-com \
+            --build-arg BINARY_NAME=boltfoundry-com \
+            .
+          docker tag ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest
+          docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/boltfoundry-com:latest
+
+      - name: Setup SSH
+        run: |
+          # First sync secrets from 1Password to get SSH_PRIVATE_KEY
+          nix develop .#production --accept-flake-config --command bash -euc "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
+            # Sync all secrets from 1Password
+            # Note: We only sync secrets here for SSH setup
+            # Full sync happens in the deployment step
+            bft sitevar sync --force --secret-only
+          "
+
+          # Now source the secrets file and setup SSH outside of Nix shell
+          # This ensures the SSH key persists for subsequent steps
+          source .env.secrets
+
+          # Start SSH agent and add the key
+          eval "$(ssh-agent -s)"
+
+          # Setup SSH directory and key
+          mkdir -p ~/.ssh
+
+          # Write the SSH key to file
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Try to validate the key format
+          echo "Validating SSH key format..."
+          ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1 && echo "Key format is valid" || echo "Key format is INVALID"
+
+          # Verify the key is valid before proceeding
+          if ! ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null 2>&1; then
+            echo "ERROR: SSH key format is invalid"
+            echo "Key content first 50 chars: $(head -c 50 ~/.ssh/id_rsa)"
+            echo "Key content last 50 chars: $(tail -c 50 ~/.ssh/id_rsa)"
+            # Don't exit yet - let's try to continue without SSH agent
+            echo "Will attempt to continue without SSH agent"
+          else
+            # Add the key to the SSH agent only if it's valid
+            ssh-add ~/.ssh/id_rsa || echo "Failed to add key to SSH agent, continuing anyway"
+          fi
+
+          # Export SSH_AUTH_SOCK for subsequent steps
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
+
+          # Note: ssh-keyscan will be done after we have the server IP
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Deploy with Kamal
+        run: |
+          nix develop .#production --accept-flake-config --command bash -euc "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}'
+
+            # Sync all secrets to .env.secrets
+            bft sitevar sync --force
+
+            # Source the secrets
+            source .env.secrets
+
+            # Export variables for Terraform
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_s3_access_key=\$AWS_ACCESS_KEY_ID
+            export TF_VAR_s3_secret_key=\$AWS_SECRET_ACCESS_KEY
+            export TF_VAR_github_token=\$GITHUB_PERSONAL_ACCESS_TOKEN
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+            export TF_VAR_s3_endpoint=\$S3_ENDPOINT
+
+            # Use CI credentials for Terraform backend
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+            # Get server IP from Terraform state (read-only operation)
+            cd infra/terraform/hetzner
+            # Map backend endpoint to S3 endpoint for consistency
+            export TERRAFORM_S3_ENDPOINT=\$TERRAFORM_BACKEND_ENDPOINT
+            terraform init -backend-config=\"endpoint=\$TERRAFORM_S3_ENDPOINT\"
+
+            # Just read the floating IP from state, don't modify anything
+            FLOATING_IP=\$(terraform output -raw server_ip 2>/dev/null || echo '')
+
+            if [ -z \"\$FLOATING_IP\" ]; then
+              echo \"❌ Could not get server IP from Terraform state\"
+              exit 1
+            fi
+
+            echo \"✅ Server IP: \$FLOATING_IP\"
+
+            # Add server to known_hosts
+            ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts 2>/dev/null || true
+
+            # Go back to root for Kamal deployment
+            cd \$GITHUB_WORKSPACE
+
+            # Deploy with Kamal
+            cd apps/boltfoundry-com
+            kamal deploy --skip-push
+          "
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.PRODUCTION_OP_SERVICE_ACCOUNT_TOKEN }}
+
+  deploy-infra:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'infra'
+    runs-on: ubuntu-latest
+    environment: infrastructure
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Run Terraform Operations
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync all variables from 1Password
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+
+            # Source both config and secrets
+            source .env.config
+            source .env.secrets
+
+            # Map to Terraform variable names (required for TF to recognize them)
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+            export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+            # Override AWS creds for backend (uses CI project, not production)
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+            # Run Terraform
+            cd infra/terraform/hetzner
+            terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+            terraform plan
+            terraform apply -auto-approve
+          "
