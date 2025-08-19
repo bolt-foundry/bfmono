@@ -242,6 +242,14 @@ jobs:
             # Generate Kamal config dynamically based on available secrets
             bft generate-kamal-config infra/terraform/hetzner/deploy.yml.tpl config/deploy.yml production
 
+            # Validate that all required secrets are available
+            echo \"🔍 Validating Kamal config has all required secrets...\"
+            bft validate-kamal-config config/deploy.yml || {
+              echo \"❌ Kamal config validation failed - missing required secrets\"
+              echo \"Please check the logs above and ensure all secrets are in 1Password\"
+              exit 1
+            }
+
             # Create .env file for Kamal with config values only
             # Secrets are handled separately via .kamal/secrets for security
             cp .env.config .env
