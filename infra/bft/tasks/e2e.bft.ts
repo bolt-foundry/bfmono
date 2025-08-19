@@ -295,8 +295,8 @@ async function resolveTestFiles(
 export async function e2eCommand(options: Array<string>): Promise<number> {
   // Parse command line arguments
   const parsed = parseArgs(options, {
-    boolean: ["build", "verbose", "show-browser"],
-    string: ["show-browser"],
+    boolean: ["build", "verbose", "show-browser", "no-video"],
+    string: ["show-browser", "video-format", "video-quality", "video-fps"],
     alias: {
       b: "build",
       v: "verbose",
@@ -304,6 +304,10 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
     default: {
       "show-browser": false,
       verbose: false,
+      "no-video": false,
+      "video-format": "mp4",
+      "video-quality": "medium",
+      "video-fps": "48",
     },
     unknown: () => {
       // Allow unknown args to be passed through to deno test
@@ -313,6 +317,10 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
 
   const shouldShowBrowser = parsed["show-browser"] === true;
   const verbose = parsed.verbose;
+  const noVideo = parsed["no-video"] === true;
+  const videoFormat = parsed["video-format"] as string;
+  const videoQuality = parsed["video-quality"] as string;
+  const videoFps = parsed["video-fps"] as string;
 
   // Acquire E2E lock to prevent concurrent runs
   await acquireE2ELock();
@@ -322,7 +330,9 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
   // Get remaining args for deno test (excluding our parsed flags)
   const denoTestOptions = options.filter((opt) =>
     !opt.startsWith("--show-browser") && opt !== "--build" && opt !== "-b" &&
-    opt !== "--verbose" && opt !== "-v"
+    opt !== "--verbose" && opt !== "-v" && !opt.startsWith("--no-video") &&
+    !opt.startsWith("--video-format") && !opt.startsWith("--video-quality") &&
+    !opt.startsWith("--video-fps")
   );
 
   const testFilePatterns = denoTestOptions.filter((opt) =>
@@ -337,6 +347,20 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
     Deno.env.set("BF_E2E_SHOW_BROWSER", "false");
     logger.debug(
       "🕶️  Running in headless mode (use --show-browser to see browser)",
+    );
+  }
+
+  // Set video recording configuration via environment variables
+  if (noVideo) {
+    Deno.env.set("BF_E2E_NO_VIDEO", "true");
+    logger.debug("📹 Video recording disabled (--no-video)");
+  } else {
+    Deno.env.set("BF_E2E_NO_VIDEO", "false");
+    Deno.env.set("BF_E2E_VIDEO_FORMAT", videoFormat);
+    Deno.env.set("BF_E2E_VIDEO_QUALITY", videoQuality);
+    Deno.env.set("BF_E2E_VIDEO_FPS", videoFps);
+    logger.debug(
+      `📹 Video recording enabled: ${videoFormat} format, ${videoQuality} quality, ${videoFps}fps`,
     );
   }
 
