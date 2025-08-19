@@ -99,6 +99,8 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       "CLOUDFLARE_API_TOKEN", // Infrastructure management only
       "CLOUDFLARE_ZONE_ID", // Infrastructure management only
       "CLOUDFLARE_ZONE_ID_PROMPTGRADE", // Infrastructure management only
+      "CLOUDFLARE_ZONE_ID_BLTCDN", // Infrastructure management only
+      "CLOUDFLARE_ACCOUNT_ID", // Infrastructure management only
       "HETZNER_PROJECT_ID", // Infrastructure management only
       "S3_ENDPOINT", // Infrastructure configuration
       "BOLTFOUNDRY_COM_SERVER_IP", // Handled separately as server config
