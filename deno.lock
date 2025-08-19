@@ -26,6 +26,7 @@
     "jsr:@std/cli@*": "1.0.20",
     "jsr:@std/cli@^1.0.20": "1.0.20",
     "jsr:@std/collections@^1.1.1": "1.1.2",
+    "jsr:@std/csv@^1.0.6": "1.0.6",
     "jsr:@std/data-structures@^1.0.8": "1.0.8",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
@@ -60,6 +61,7 @@
     "jsr:@std/path@^1.1.1": "1.1.1",
     "jsr:@std/path@~0.225.2": "0.225.2",
     "jsr:@std/streams@^1.0.10": "1.0.10",
+    "jsr:@std/streams@^1.0.9": "1.0.10",
     "jsr:@std/testing@^1.0.9": "1.0.14",
     "jsr:@std/toml@^1.0.3": "1.0.8",
     "jsr:@std/toml@^1.0.4": "1.0.8",
@@ -240,6 +242,12 @@
     "@std/collections@1.1.2": {
       "integrity": "f1685dd45c3ec27c39d0e8a642ccf810f391ec8a6cb5e7355926e6dacc64c43e"
     },
+    "@std/csv@1.0.6": {
+      "integrity": "52ef0e62799a0028d278fa04762f17f9bd263fad9a8e7f98c14fbd371d62d9fd",
+      "dependencies": [
+        "jsr:@std/streams@^1.0.9"
+      ]
+    },
     "@std/data-structures@1.0.8": {
       "integrity": "2fb7219247e044c8fcd51341788547575653c82ae2c759ff209e0263ba7d9b66"
     },
@@ -295,7 +303,7 @@
         "jsr:@std/media-types",
         "jsr:@std/net",
         "jsr:@std/path@^1.1.1",
-        "jsr:@std/streams"
+        "jsr:@std/streams@^1.0.10"
       ]
     },
     "@std/internal@1.0.9": {
