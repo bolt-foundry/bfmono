@@ -17,12 +17,6 @@ async function dev(args: Array<string>): Promise<number> {
       vitePort: 8080,
       hmrPort: 8081,
     },
-    "promptgrade-ai": {
-      description: "promptgrade.ai marketing site",
-      port: 9001,
-      vitePort: 9081,
-      hmrPort: 9082,
-    },
   };
 
   // Check for global help flag
@@ -38,7 +32,6 @@ Available apps:`);
     ui.output(`
 Examples:
   bft dev boltfoundry-com           # Run boltfoundry-com in development mode
-  bft dev promptgrade-ai            # Run promptgrade-ai in development mode
   bft dev boltfoundry-com --help    # Show app-specific help`);
     return 0;
   }

@@ -9,6 +9,7 @@ import { appRoutes, isographAppRoutes } from "./routes.ts";
 import { createApiRoutes } from "./apiRoutes.ts";
 import { getIsographEnvironment } from "./server/isographEnvironment.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
+import { matchRouteWithParams } from "./contexts/RouterContext.tsx";
 
 const logger = getLogger(import.meta);
 const requestLogger = getLogger("boltfoundry-com/requests");
@@ -76,15 +77,11 @@ function shouldHandleWithReact(pathname: string): boolean {
     return true;
   }
 
-  // Check for parameterized routes (basic implementation)
+  // Use the same parameter matching logic as client-side
   for (const [routePath] of [...isographAppRoutes, ...appRoutes]) {
-    if (routePath.includes(":")) {
-      // Simple parameterized route matching
-      const routePattern = routePath.replace(/:[^/]+/g, "[^/]+");
-      const regex = new RegExp(`^${routePattern}$`);
-      if (regex.test(pathname)) {
-        return true;
-      }
+    const match = matchRouteWithParams(pathname, routePath);
+    if (match.match) {
+      return true;
     }
   }
 
@@ -233,6 +230,64 @@ const handler = async (request: Request): Promise<Response> => {
       }
 
       // Production mode: Handle with React SSR
+
+      // First, check if this route has an Isograph entrypoint that returns a redirect
+      let matchedEntrypoint = null;
+      for (const [routePath, entrypoint] of isographAppRoutes) {
+        const match = matchRouteWithParams(url.pathname, routePath);
+        if (match.match) {
+          matchedEntrypoint = entrypoint;
+          break;
+        }
+      }
+
+      // If we have an Isograph entrypoint, check if it wants to redirect
+      if (matchedEntrypoint) {
+        logger.info(`[${requestId}] Checking for redirect on ${url.pathname}`);
+        try {
+          // Get the resolver from the entrypoint's reader artifact
+          const entrypointModule = matchedEntrypoint as any;
+          const readerArtifact = entrypointModule.readerWithRefetchQueries
+            ?.readerArtifact;
+          const resolver = readerArtifact?.resolver;
+
+          logger.debug(`[${requestId}] Found resolver:`, !!resolver);
+
+          // Call the resolver with minimal data to check if it returns a redirect
+          // Note: This won't work for entrypoints that need actual query data
+          // but it will work for simple redirect entrypoints
+          const result = resolver ? resolver({ data: {} }) : null;
+
+          logger.debug(`[${requestId}] Resolver result:`, result);
+
+          if (result && result.status === 302 && result.headers?.Location) {
+            // Return a redirect response
+            const redirectResponse = new Response(null, {
+              status: 302,
+              headers: {
+                Location: result.headers.Location,
+              },
+            });
+            logResponse(
+              requestId,
+              redirectResponse,
+              startTime,
+              method,
+              url.pathname,
+              url.search,
+              "SSR Redirect",
+            );
+            return redirectResponse;
+          }
+        } catch (e) {
+          // If we can't determine redirect status, continue with normal rendering
+          logger.debug(
+            `Could not check redirect status for ${url.pathname}:`,
+            e,
+          );
+        }
+      }
+
       const environment = {
         mode: isDev ? "development" : "production",
         port: port,

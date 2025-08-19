@@ -56,6 +56,7 @@
           pkgs.ripgrep
           pkgs.fd
           pkgs.lsof
+          pkgs.bind.dnsutils  # Provides nslookup and dig
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
           # containerTool
@@ -129,7 +130,7 @@
           
           export PATH="$BF_ROOT/bin:$BF_ROOT/infra/bin:$INTERNALBF_ROOT/infra/bin:$PATH"
           export DENO_DIR="''${HOME}/.cache/deno"
-          export GH_REPO="bolt-foundry/bolt-foundry"
+          export GH_REPO="bolt-foundry/bfmono"
 
           # Auto-sync sitevars from 1Password if enabled
           ${if autoSyncSitevars then syncSitevarsIfNeeded { inherit pkgs; bfRoot = "$BF_ROOT"; } else ""}

@@ -9,19 +9,34 @@ export type RouteEntrypoint = {
 };
 
 iso(`entrypoint Mutation.JoinWaitlist`)
+iso(`entrypoint Query.EntrypointAnalyze`)
+iso(`entrypoint Query.EntrypointChat`)
 iso(`entrypoint Query.EntrypointEval`)
+iso(`entrypoint Query.EntrypointGradeDecks`)
+iso(`entrypoint Query.EntrypointGrade`)
 iso(`entrypoint Query.EntrypointHome`)
 iso(`entrypoint Query.EntrypointLogin`)
+iso(`entrypoint Query.EntrypointPg`)
 iso(`entrypoint Query.EntrypointRlhf`)
 
+import entrypointAnalyze from "@iso-bfc/Query/EntrypointAnalyze/entrypoint.ts"
+import entrypointChat from "@iso-bfc/Query/EntrypointChat/entrypoint.ts"
 import entrypointEval from "@iso-bfc/Query/EntrypointEval/entrypoint.ts"
+import entrypointGrade from "@iso-bfc/Query/EntrypointGrade/entrypoint.ts"
+import entrypointGradeDecks from "@iso-bfc/Query/EntrypointGradeDecks/entrypoint.ts"
 import entrypointHome from "@iso-bfc/Query/EntrypointHome/entrypoint.ts"
 import entrypointLogin from "@iso-bfc/Query/EntrypointLogin/entrypoint.ts"
+import entrypointPg from "@iso-bfc/Query/EntrypointPg/entrypoint.ts"
 import entrypointRlhf from "@iso-bfc/Query/EntrypointRlhf/entrypoint.ts"
 import joinWaitlist from "@iso-bfc/Mutation/JoinWaitlist/entrypoint.ts"
 
+export {entrypointAnalyze};
+export {entrypointChat};
 export {entrypointEval};
+export {entrypointGradeDecks};
+export {entrypointGrade};
 export {entrypointHome};
 export {entrypointLogin};
+export {entrypointPg};
 export {entrypointRlhf};
 export {joinWaitlist};

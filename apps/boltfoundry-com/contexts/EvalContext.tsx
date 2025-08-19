@@ -1,11 +1,25 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
+import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
+
+type HumanGrade = {
+  grades: Array<{
+    graderId: string;
+    score: -3 | -2 | -1 | 1 | 2 | 3;
+    reason: string;
+  }>;
+  gradedBy: string;
+  gradedAt: string;
+};
 
 type MainView = "Decks" | "Analyze" | "Chat";
 type ChatMode = null | "createDeck";
 type SidebarMode = "normal" | "grading";
 
 interface EvalContextType {
+  // Organization data from Isograph
+  organization?: any;
+
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;
   activeMainContent: MainView;
@@ -19,6 +33,17 @@ interface EvalContextType {
   gradingDeckId: string | null;
   gradingDeckName: string | null;
 
+  // Samples state - central storage
+  deckSamples: Record<string, Array<GradingSample>>; // deckId -> samples
+  samplesLoading: Record<string, boolean>; // deckId -> loading state
+
+  // Completion state
+  recentlyCompletedSamples: Record<string, Array<string>>; // deckId -> sampleIds
+  completionSummaries: Record<
+    string,
+    { totalGraded: number; averageScore: number }
+  >; // deckId -> summary
+
   setLeftSidebarOpen: (open: boolean) => void;
   setActiveMainContent: (content: MainView) => void;
   openRightSidebar: (content: string) => void;
@@ -27,6 +52,29 @@ interface EvalContextType {
   exitChatMode: () => void;
   startGrading: (deckId: string, deckName: string) => void;
   exitGrading: () => void;
+
+  // Samples management
+  setSamplesForDeck: (deckId: string, samples: Array<GradingSample>) => void;
+  setSamplesLoading: (deckId: string, loading: boolean) => void;
+  updateSampleGrade: (
+    deckId: string,
+    sampleId: string,
+    humanGrade: HumanGrade,
+  ) => void;
+
+  markSamplesCompleted: (
+    deckId: string,
+    gradedSamples: Array<
+      {
+        sampleId: string;
+        grades: Array<
+          { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
+        >;
+      }
+    >,
+    avgScore: number,
+  ) => void;
+  clearCompletionStatus: (deckId: string) => void;
 }
 
 const EvalContext = createContext<EvalContextType | undefined>(undefined);
@@ -37,7 +85,13 @@ const isMobile = () => {
   return globalThis.innerWidth <= 768;
 };
 
-export function EvalProvider({ children }: { children: ReactNode }) {
+export function EvalProvider({
+  children,
+  organization,
+}: {
+  children: ReactNode;
+  organization?: any; // Organization data from Isograph query with DecksView component
+}) {
   const [leftSidebarOpen, setLeftSidebarOpenState] = useState(() =>
     !isMobile()
   );
@@ -57,6 +111,56 @@ export function EvalProvider({ children }: { children: ReactNode }) {
   // Grading state
   const [gradingDeckId, setGradingDeckId] = useState<string | null>(null);
   const [gradingDeckName, setGradingDeckName] = useState<string | null>(null);
+
+  // Samples state - central storage
+  // Initialize with GraphQL data if available
+  const [deckSamples, setDeckSamples] = useState<
+    Record<string, Array<GradingSample>>
+  >(() => {
+    const initialSamples: Record<string, Array<GradingSample>> = {};
+
+    // Process GraphQL decks data if available
+    if (organization?.decks?.edges) {
+      organization.decks.edges.forEach((edge: any) => {
+        const deck = edge.node;
+        if (deck.samples?.edges) {
+          // Transform GraphQL samples to GradingSample format
+          initialSamples[deck.slug || deck.id] = deck.samples.edges.map(
+            (sampleEdge: any) => {
+              const sample = sampleEdge.node;
+              return {
+                id: sample.id,
+                prompt: sample.completionData?.request?.body?.prompt || "",
+                modelResponse: sample.completionData?.response?.body?.content ||
+                  "",
+                metadata: {
+                  model: sample.completionData?.provider || "unknown",
+                  timestamp: new Date().toISOString(),
+                  source: sample.collectionMethod || "telemetry",
+                },
+                humanGrade: null,
+                aiGrades: [],
+              };
+            },
+          );
+        }
+      });
+    }
+
+    return initialSamples;
+  });
+
+  const [samplesLoading, setSamplesLoadingState] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Completion state
+  const [recentlyCompletedSamples, setRecentlyCompletedSamples] = useState<
+    Record<string, Array<string>>
+  >({});
+  const [completionSummaries, setCompletionSummaries] = useState<
+    Record<string, { totalGraded: number; averageScore: number }>
+  >({});
 
   const setLeftSidebarOpen = (open: boolean) => {
     setLeftSidebarOpenState(open);
@@ -111,6 +215,98 @@ export function EvalProvider({ children }: { children: ReactNode }) {
     closeRightSidebar();
   };
 
+  const markSamplesCompleted = (
+    deckId: string,
+    gradedSamples: Array<
+      {
+        sampleId: string;
+        grades: Array<
+          { graderId: string; score: -3 | -2 | -1 | 1 | 2 | 3; reason: string }
+        >;
+      }
+    >,
+    avgScore: number,
+  ) => {
+    // Mock GraphQL mutation effect - update samples with grades
+    const sampleIds = gradedSamples.map((g) => g.sampleId);
+
+    // Update samples with humanGrade data
+    setDeckSamples((prev) => ({
+      ...prev,
+      [deckId]: prev[deckId]?.map((sample) => {
+        const gradedSample = gradedSamples.find((g) =>
+          g.sampleId === sample.id
+        );
+        if (gradedSample) {
+          return {
+            ...sample,
+            humanGrade: {
+              grades: gradedSample.grades,
+              gradedBy: "current-user",
+              gradedAt: new Date().toISOString(),
+            },
+          };
+        }
+        return sample;
+      }) || [],
+    }));
+
+    // Update completion state for UI indicators
+    setRecentlyCompletedSamples((prev) => ({
+      ...prev,
+      [deckId]: sampleIds,
+    }));
+    setCompletionSummaries((prev) => ({
+      ...prev,
+      [deckId]: {
+        totalGraded: sampleIds.length,
+        averageScore: avgScore,
+      },
+    }));
+  };
+
+  const clearCompletionStatus = (deckId: string) => {
+    setRecentlyCompletedSamples((prev) => {
+      const updated = { ...prev };
+      delete updated[deckId];
+      return updated;
+    });
+    setCompletionSummaries((prev) => {
+      const updated = { ...prev };
+      delete updated[deckId];
+      return updated;
+    });
+  };
+
+  // Samples management functions
+  const setSamplesForDeck = (deckId: string, samples: Array<GradingSample>) => {
+    setDeckSamples((prev) => ({
+      ...prev,
+      [deckId]: samples,
+    }));
+  };
+
+  const setSamplesLoading = (deckId: string, loading: boolean) => {
+    setSamplesLoadingState((prev) => ({
+      ...prev,
+      [deckId]: loading,
+    }));
+  };
+
+  const updateSampleGrade = (
+    deckId: string,
+    sampleId: string,
+    humanGrade: HumanGrade,
+  ) => {
+    setDeckSamples((prev) => ({
+      ...prev,
+      [deckId]:
+        prev[deckId]?.map((sample) =>
+          sample.id === sampleId ? { ...sample, humanGrade } : sample
+        ) || [],
+    }));
+  };
+
   return (
     <EvalContext.Provider
       value={{
@@ -124,6 +320,10 @@ export function EvalProvider({ children }: { children: ReactNode }) {
         chatBackTarget,
         gradingDeckId,
         gradingDeckName,
+        deckSamples,
+        samplesLoading,
+        recentlyCompletedSamples,
+        completionSummaries,
         setLeftSidebarOpen,
         setActiveMainContent,
         openRightSidebar,
@@ -132,6 +332,11 @@ export function EvalProvider({ children }: { children: ReactNode }) {
         exitChatMode,
         startGrading,
         exitGrading,
+        setSamplesForDeck,
+        setSamplesLoading,
+        updateSampleGrade,
+        markSamplesCompleted,
+        clearCompletionStatus,
       }}
     >
       {children}

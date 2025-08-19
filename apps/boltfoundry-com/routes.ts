@@ -2,9 +2,14 @@ import { Plinko } from "./components/plinko/Plinko.tsx";
 import { UIDemo } from "./components/UIDemo.tsx";
 import type { BfIsographEntrypoint } from "./lib/BfIsographEntrypoint.ts";
 import {
+  entrypointAnalyze,
+  entrypointChat,
   entrypointEval,
+  entrypointGrade,
+  entrypointGradeDecks,
   entrypointHome,
   entrypointLogin,
+  entrypointPg,
   entrypointRlhf,
 } from "./__generated__/builtRoutes.ts";
 
@@ -31,5 +36,16 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/", entrypointHome],
   ["/login", entrypointLogin],
   ["/rlhf", entrypointRlhf],
-  ["/eval", entrypointEval],
+
+  // V3 Simplified Eval System Routes
+  ["/pg", entrypointPg], // Redirects to /pg/grade
+  ["/pg/grade", entrypointGrade], // Redirects to /pg/grade/decks
+  ["/pg/grade/decks", entrypointGradeDecks], // Decks list (main content)
+  ["/pg/grade/decks/:deckId", entrypointGrade], // Deck detail view (redirects to samples tab)
+  ["/pg/grade/decks/:deckId/:tab", entrypointGrade], // Deck detail with tab (samples/graders/inbox)
+  ["/pg/grade/decks/:deckId/grade", entrypointGrade], // Grading interface for deck
+  ["/pg/grade/samples", entrypointGrade], // All samples list
+  ["/pg/grade/samples/:sampleId", entrypointGrade], // Sample detail view
+  ["/pg/analyze", entrypointAnalyze], // Analyze view
+  ["/pg/chat", entrypointChat], // Chat view
 ]);

@@ -38,13 +38,8 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     // First replace template variables
     let processedTemplate = templateContent;
 
-    // Determine which service we're configuring based on the template path
-    const isPromptGrade = templatePath.includes("promptgrade");
-
-    // Get server IP from environment or secrets based on the service
-    const serverIpKey = isPromptGrade
-      ? "PROMPTGRADE_AI_SERVER_IP"
-      : "BOLTFOUNDRY_COM_SERVER_IP";
+    // Get server IP from environment or secrets
+    const serverIpKey = "BOLTFOUNDRY_COM_SERVER_IP";
     const serverIp = getConfigurationVariable(serverIpKey) ||
       (await getSecretValue(serverIpKey));
 
@@ -60,10 +55,7 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
     // Replace other template variables with defaults
     processedTemplate = processedTemplate
       .replace(/\${github_username}/g, "bolt-foundry")
-      .replace(
-        /\${domain}/g,
-        isPromptGrade ? "promptgrade.ai" : "boltfoundry.com",
-      );
+      .replace(/\${domain}/g, "boltfoundry.com");
 
     // Parse template as YAML to preserve structure
     // Define a proper type for the Kamal config
@@ -96,8 +88,6 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       "TERRAFORM_BACKEND_ACCESS_KEY_ID", // CI infrastructure
       "TERRAFORM_BACKEND_SECRET_ACCESS_KEY", // CI infrastructure
       "TERRAFORM_BACKEND_ENDPOINT", // CI infrastructure
-      "AWS_ACCESS_KEY_ID", // Handled separately
-      "AWS_SECRET_ACCESS_KEY", // Handled separately
       "GITHUB_PERSONAL_ACCESS_TOKEN", // Not needed at runtime
       "SSH_PUBLIC_KEY", // Not needed at runtime
       "SSH_PRIVATE_KEY", // Not needed at runtime
@@ -107,6 +97,8 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       "CLOUDFLARE_API_TOKEN", // Infrastructure management only
       "CLOUDFLARE_ZONE_ID", // Infrastructure management only
       "CLOUDFLARE_ZONE_ID_PROMPTGRADE", // Infrastructure management only
+      "CLOUDFLARE_ZONE_ID_BLTCDN", // Infrastructure management only
+      "CLOUDFLARE_ACCOUNT_ID", // Infrastructure management only
       "HETZNER_PROJECT_ID", // Infrastructure management only
       "S3_ENDPOINT", // Infrastructure configuration
       "BOLTFOUNDRY_COM_SERVER_IP", // Handled separately as server config

@@ -9,7 +9,7 @@ export const EntrypointEval = iso(`
   }
 `)(function EntrypointEval({ data }) {
   const Body = data.Eval;
-  logger.debug("dataer", data);
+  logger.debug("EntrypointEval data with parameters:", data);
   const title = "Eval - Bolt Foundry";
   return { Body, title };
 });

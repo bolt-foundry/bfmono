@@ -6,6 +6,7 @@
 import type * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { BfDsIcon } from "./BfDsIcon.tsx";
+import { BfDsCheckbox } from "./BfDsCheckbox.tsx";
 import { useBfDsList } from "./BfDsList.tsx";
 
 /**
@@ -24,6 +25,10 @@ export type BfDsListItemProps = {
   className?: string;
   /** Content to display in the expandable section. When provided, makes the item expandable with toggle functionality */
   expandContents?: React.ReactNode;
+  /** Value for bulk selection (required when parent list has bulkSelect enabled) */
+  value?: string;
+  /** When true, excludes this item from bulk selection even when bulkSelect is enabled */
+  nonSelectable?: boolean;
 };
 
 /**
@@ -275,12 +280,17 @@ export function BfDsListItem({
   onClick,
   className,
   expandContents,
+  value,
+  nonSelectable = false,
 }: BfDsListItemProps) {
   const [localIsExpanded, setLocalIsExpanded] = useState(false);
   const listContext = useBfDsList();
   const itemRef = useRef<HTMLLIElement>(null);
   const [listIndex, setListIndex] = useState<number | null>(null);
   const isExpandable = !!expandContents;
+  const showBulkSelect = listContext?.bulkSelect && !nonSelectable && value;
+  const isSelected = showBulkSelect &&
+    listContext.selectedValues.includes(value);
 
   // Get the item index from the list context after mounting
   useEffect(() => {
@@ -289,6 +299,16 @@ export function BfDsListItem({
       setListIndex(index);
     }
   }, [listContext]);
+
+  // Register/unregister this item for bulk selection
+  useEffect(() => {
+    if (showBulkSelect && value && listContext) {
+      listContext.registerSelectableValue(value);
+      return () => {
+        listContext.unregisterSelectableValue(value);
+      };
+    }
+  }, [showBulkSelect, value]);
 
   // Use accordion state if available, otherwise use local state
   const isExpanded = listContext?.accordion && typeof listIndex === "number"
@@ -303,6 +323,8 @@ export function BfDsListItem({
     isExpandable && "bfds-list-item--expandable",
     isExpanded && "bfds-list-item--expanded",
     onClick && isExpandable && "bfds-list-item--has-separate-expand",
+    showBulkSelect && "bfds-list-item--selectable",
+    isSelected && "bfds-list-item--selected",
     className,
   ].filter(Boolean).join(" ");
 
@@ -322,6 +344,12 @@ export function BfDsListItem({
     if (disabled) return;
     if (onClick) {
       onClick();
+    }
+  };
+
+  const handleCheckboxChange = () => {
+    if (showBulkSelect && value && listContext) {
+      listContext.toggleSelection(value);
     }
   };
 
@@ -351,6 +379,15 @@ export function BfDsListItem({
   if (isExpandable) {
     return (
       <li ref={itemRef} className={itemClasses}>
+        {showBulkSelect && (
+          <div className="bfds-list-item__checkbox">
+            <BfDsCheckbox
+              checked={!!isSelected}
+              onChange={handleCheckboxChange}
+              className="bfds-list-item-checkbox"
+            />
+          </div>
+        )}
         <button
           type="button"
           className="bfds-list-item__button"
@@ -391,6 +428,15 @@ export function BfDsListItem({
   // For non-expandable items, always render as li with optional button child
   return (
     <li ref={itemRef} className={itemClasses}>
+      {showBulkSelect && (
+        <div className="bfds-list-item__checkbox">
+          <BfDsCheckbox
+            checked={!!isSelected}
+            onChange={handleCheckboxChange}
+            className="bfds-list-item-checkbox"
+          />
+        </div>
+      )}
       {onClick && !disabled
         ? (
           <button

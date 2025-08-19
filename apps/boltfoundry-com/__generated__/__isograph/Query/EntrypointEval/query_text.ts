@@ -10,16 +10,6 @@ export default 'query EntrypointEval  {\
       __typename,\
       organization {\
         id,\
-        decks____first___l_10: decks(first: 10) {\
-          edges {\
-            node {\
-              id,\
-              description,\
-              name,\
-              slug,\
-            },\
-          },\
-        },\
         domain,\
         name,\
       },\

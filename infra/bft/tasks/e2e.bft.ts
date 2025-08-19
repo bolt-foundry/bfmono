@@ -447,7 +447,6 @@ export async function e2eCommand(options: Array<string>): Promise<number> {
             const compilableApps = [
               "aibff-gui",
               "boltfoundry-com",
-              "promptgrade-ai",
             ];
             if (compilableApps.includes(server.name)) {
               const compileResult = await runShellCommand(

@@ -4,7 +4,7 @@ import {
 } from "../contexts/AppEnvironmentContext.tsx";
 import { AppRoot } from "../AppRoot.tsx";
 import { BfDsProvider } from "@bfmono/apps/bfDs/components/BfDsProvider.tsx";
-
+import { RefinementProvider } from "../contexts/RefinementContext.tsx";
 function App(props: Partial<ServerProps>) {
   return (
     <div className="app">
@@ -13,7 +13,9 @@ function App(props: Partial<ServerProps>) {
           IS_SERVER_RENDERING={false}
           {...props}
         >
-          <AppRoot />
+          <RefinementProvider>
+            <AppRoot />
+          </RefinementProvider>
         </AppEnvironmentProvider>
       </BfDsProvider>
     </div>

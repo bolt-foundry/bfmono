@@ -53,10 +53,6 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
-variable "cloudflare_zone_id_promptgrade" {
-  description = "Cloudflare Zone ID for promptgrade.ai"
-  type        = string
-}
 
 variable "cloudflare_zone_id_bltcdn" {
   description = "Cloudflare Zone ID for bltcdn.com"
@@ -66,18 +62,6 @@ variable "cloudflare_zone_id_bltcdn" {
 variable "cloudflare_account_id" {
   description = "Cloudflare Account ID"
   type        = string
-}
-
-variable "r2_access_key" {
-  description = "R2 Access Key ID (can reuse AWS_ACCESS_KEY_ID)"
-  type        = string
-  sensitive   = true
-}
-
-variable "r2_secret_key" {
-  description = "R2 Secret Access Key (can reuse AWS_SECRET_ACCESS_KEY)"
-  type        = string
-  sensitive   = true
 }
 
 variable "ssh_public_key" {
@@ -115,18 +99,10 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# AWS provider for R2 (Cloudflare R2 Object Storage)
-# This is for application assets, NOT Terraform state
-# Note: We still need AWS provider for Terraform state backend (Hetzner)
+# Default AWS provider for Terraform S3 backend (Hetzner Object Storage)
+# This is required even though backend config handles auth, due to provider requirements
 provider "aws" {
-  alias      = "r2"
-  access_key = var.r2_access_key
-  secret_key = var.r2_secret_key
-  region     = "auto"
-  
-  endpoints {
-    s3 = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com"
-  }
+  region = "us-east-1"  # Dummy region, not used by Hetzner S3
   
   skip_credentials_validation = true
   skip_metadata_api_check     = true
@@ -200,36 +176,6 @@ resource "cloudflare_record" "web" {
   proxied = true  # Enable Cloudflare proxy for SSL termination and protection
 }
 
-# Cloudflare DNS record for promptgrade.ai
-resource "cloudflare_record" "promptgrade" {
-  zone_id = var.cloudflare_zone_id_promptgrade
-  name    = "@"
-  value   = hcloud_floating_ip.web.ip_address
-  type    = "A"
-  ttl     = 1  # Auto TTL
-  proxied = true  # Enable Cloudflare proxy for SSL termination and protection
-}
-
-# Cloudflare R2 bucket for asset storage
-resource "cloudflare_r2_bucket" "assets" {
-  account_id = var.cloudflare_account_id
-  name       = "bft-assets"  # Simple name, no random suffix needed
-  location   = "ENAM"  # Eastern North America
-}
-
-# Custom domain for R2 bucket - automatic CDN setup!
-resource "cloudflare_r2_custom_domain" "bltcdn" {
-  zone_id    = var.cloudflare_zone_id_bltcdn
-  bucket     = cloudflare_r2_bucket.assets.name
-  domain     = "bltcdn.com"
-}
-
-# Note: R2 automatically handles:
-# - Public access (when accessing via custom domain)
-# - CDN integration
-# - SSL/TLS
-# - No Host header issues
-# - Zero egress fees!
 
 # Kamal config is now generated dynamically by bft generate-kamal-config
 # This avoids the need to commit generated files and prevents circular dependencies
@@ -249,19 +195,4 @@ output "domain" {
 
 output "volume_id" {
   value = hcloud_volume.database.id
-}
-
-output "r2_bucket_name" {
-  value = cloudflare_r2_bucket.assets.name
-  description = "R2 bucket name for asset storage"
-}
-
-output "r2_bucket_endpoint" {
-  value = "https://${var.cloudflare_account_id}.r2.cloudflarestorage.com/${cloudflare_r2_bucket.assets.name}"
-  description = "R2 bucket S3 API endpoint"
-}
-
-output "bltcdn_domain" {
-  value = "bltcdn.com"
-  description = "CDN domain for assets (automatically configured with R2)"
 }
