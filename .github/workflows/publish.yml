@@ -1,0 +1,159 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package to publish"
+        type: choice
+        required: true
+        options:
+          - bolt-foundry
+          - bff-eval
+          - all
+      target:
+        description: "Publishing target (currently disabled)"
+        type: choice
+        required: true
+        options:
+          - disabled  # Placeholder until publishing is fixed
+          # - npm-dev
+          # - npm-release
+          # - jsr-dev
+          # - jsr-release
+          # - flakehub
+      dry_run:
+        description: "Run without actually publishing"
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    # Publishing is currently disabled until fixed
+    if: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      - name: Setup environment
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+            source .env.config
+            source .env.secrets
+          "
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Validate inputs
+        run: |
+          if [ "${{ github.event.inputs.target }}" = "disabled" ]; then
+            echo "❌ Publishing is currently disabled"
+            echo "Please wait until package publishing is fixed"
+            exit 1
+          fi
+
+      # NPM Publishing
+      - name: Publish to NPM
+        if: contains(github.event.inputs.target, 'npm')
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Determine version type
+            if [[ '${{ github.event.inputs.target }}' == *'-dev' ]]; then
+              VERSION_TYPE='dev'
+            else
+              VERSION_TYPE='release'
+            fi
+
+            # Determine package scope
+            if [ '${{ github.event.inputs.package }}' = 'all' ]; then
+              PACKAGES='bolt-foundry bff-eval'
+            else
+              PACKAGES='${{ github.event.inputs.package }}'
+            fi
+
+            # Publish each package
+            for PKG in \$PACKAGES; do
+              echo \"Publishing \$PKG to NPM as \$VERSION_TYPE\"
+              
+              if [ '${{ github.event.inputs.dry_run }}' = 'true' ]; then
+                echo \"[DRY RUN] Would publish packages/\$PKG\"
+              else
+                cd packages/\$PKG
+                
+                # Set appropriate version
+                if [ \"\$VERSION_TYPE\" = 'dev' ]; then
+                  npm version prerelease --preid=dev
+                fi
+                
+                npm publish --access public
+                cd ../..
+              fi
+            done
+          "
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # JSR Publishing
+      - name: Publish to JSR
+        if: contains(github.event.inputs.target, 'jsr')
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Determine version type
+            if [[ '${{ github.event.inputs.target }}' == *'-dev' ]]; then
+              VERSION_TYPE='dev'
+            else
+              VERSION_TYPE='release'
+            fi
+
+            # Determine package scope
+            if [ '${{ github.event.inputs.package }}' = 'all' ]; then
+              PACKAGES='bolt-foundry bff-eval'
+            else
+              PACKAGES='${{ github.event.inputs.package }}'
+            fi
+
+            # Publish each package
+            for PKG in \$PACKAGES; do
+              echo \"Publishing \$PKG to JSR as \$VERSION_TYPE\"
+              
+              if [ '${{ github.event.inputs.dry_run }}' = 'true' ]; then
+                echo \"[DRY RUN] Would publish packages/\$PKG to JSR\"
+              else
+                cd packages/\$PKG
+                
+                # JSR publish command
+                deno publish --allow-slow-types
+                cd ../..
+              fi
+            done
+          "
+
+      # FlakeHub Publishing
+      - name: Publish to FlakeHub
+        if: github.event.inputs.target == 'flakehub'
+        uses: DeterminateSystems/flakehub-push@main
+        with:
+          visibility: public
+          tag: ${{ github.event.inputs.dry_run == 'true' && 'dry-run' || 'latest' }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Publishing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Package: ${{ github.event.inputs.package }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: ${{ github.event.inputs.target }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry Run: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event.inputs.target }}" = "disabled" ]; then
+            echo "⚠️ Publishing is currently disabled" >> $GITHUB_STEP_SUMMARY
+          fi

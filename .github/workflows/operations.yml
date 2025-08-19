@@ -1,0 +1,144 @@
+name: Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation to perform"
+        required: true
+        type: choice
+        options:
+          # Terraform core operations
+          - terraform-plan
+          - terraform-apply
+          - terraform-destroy
+          - terraform-refresh
+          # Kamal operations
+          - kamal-unlock
+          # Maintenance
+          - notify-internalbf
+      terraform_args:
+        description: "Additional arguments for the terraform command"
+        required: false
+        type: string
+      confirm_destroy:
+        description: 'Type "destroy-production" to confirm destruction'
+        required: false
+        type: string
+
+# Prevent concurrent Terraform operations
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
+jobs:
+  execute-operation:
+    runs-on: ubuntu-latest
+    environment: infrastructure
+
+    steps:
+      - name: Validate destroy operation
+        if: inputs.operation == 'terraform-destroy'
+        run: |
+          if [ "${{ inputs.confirm_destroy }}" != "destroy-production" ]; then
+            echo "❌ Destroy operation requires confirmation"
+            echo "Please type 'destroy-production' in the confirm field"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Execute Operation
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync all variables from 1Password
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+
+            # Source both config and secrets
+            source .env.config
+            source .env.secrets
+
+            # Map to Terraform variable names (required for TF to recognize them)
+            export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+            export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+            export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+            export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+            export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+            export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+            export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+            export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+            # Override AWS creds for backend (uses CI project, not production)
+            export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+            # Execute requested operation
+            case '${{ inputs.operation }}' in
+              terraform-plan)
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform plan ${{ inputs.terraform_args }}
+                ;;
+              terraform-apply)
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform apply -auto-approve ${{ inputs.terraform_args }}
+                ;;
+              terraform-destroy)
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform destroy -auto-approve ${{ inputs.terraform_args }}
+                ;;
+              terraform-refresh)
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform refresh ${{ inputs.terraform_args }}
+                ;;
+              kamal-unlock)
+                # Get server IP from Terraform state
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                FLOATING_IP=\$(terraform output -raw server_ip 2>/dev/null || echo '')
+                
+                if [ -z \"\$FLOATING_IP\" ]; then
+                  echo \"❌ Could not get server IP from Terraform state\"
+                  exit 1
+                fi
+                
+                # Setup SSH
+                mkdir -p ~/.ssh
+                echo \"\$SSH_PRIVATE_KEY\" > ~/.ssh/id_rsa
+                chmod 600 ~/.ssh/id_rsa
+                ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts 2>/dev/null || true
+                
+                # Go to app directory and unlock Kamal
+                cd \$GITHUB_WORKSPACE/apps/boltfoundry-com
+                kamal lock release --rolling
+                ;;
+              notify-internalbf)
+                # Trigger internalbf repository update
+                curl -X POST \
+                  -H \"Accept: application/vnd.github+json\" \
+                  -H \"Authorization: Bearer \$GITHUB_PERSONAL_ACCESS_TOKEN\" \
+                  -H \"X-GitHub-Api-Version: 2022-11-28\" \
+                  https://api.github.com/repos/boltfoundryinc/internalbf/dispatches \
+                  -d '{\"event_type\":\"submodule-update\",\"client_payload\":{\"repository\":\"bfmono\"}}'
+                echo \"✅ Triggered internalbf repository update\"
+                ;;
+              *)
+                echo 'Unknown operation: ${{ inputs.operation }}'
+                exit 1
+                ;;
+            esac
+          "
