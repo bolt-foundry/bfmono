@@ -79,9 +79,12 @@ export async function generate(input?: string, output?: string) {
 
   ui.info(`Processing ${records.length} stories...`);
 
-  // Load the fastpitch-curator deck
+  // Create BfClient for telemetry
+  const bfClient = BfClient.create({ apiKey: bfApiKey });
+
+  // Load the fastpitch-curator deck using instance method
   const deckPath = "infra/bft/tasks/fastpitch/decks/fastpitch-curator.deck.md";
-  const deck = await BfClient.readLocalDeck(deckPath, { apiKey: bfApiKey });
+  const deck = await bfClient.readLocalDeck(deckPath);
 
   // Render the deck with stories as context
   const completion = deck.render({
@@ -92,9 +95,6 @@ export async function generate(input?: string, output?: string) {
       date: new Date().toISOString().split("T")[0],
     },
   });
-
-  // Create BfClient for telemetry
-  const bfClient = BfClient.create({ apiKey: bfApiKey });
 
   // Create OpenAI client pointing to OpenRouter with BfClient's fetch for telemetry
   const openai = new OpenAI({
