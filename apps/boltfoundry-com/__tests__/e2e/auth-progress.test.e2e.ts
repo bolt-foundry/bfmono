@@ -4,7 +4,6 @@ import {
   navigateTo,
   teardownE2ETest,
 } from "@bfmono/infra/testing/e2e/setup.ts";
-import { smoothClick } from "@bfmono/infra/testing/video-recording/smooth-ui.ts";
 import { setupBoltFoundryComTest } from "../helpers.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
@@ -15,8 +14,10 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
   try {
     // Mock Google OAuth before any navigation
-    await context.page.setRequestInterception(true);
-    context.page.on("request", (req) => {
+    await context.__UNSAFE_page_useContextMethodsInstead.setRequestInterception(
+      true,
+    );
+    context.__UNSAFE_page_useContextMethodsInstead.on("request", (req) => {
       const url = req.url();
 
       // Block the real Google Identity Services JS and replace with mock
@@ -48,46 +49,48 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
     });
 
     // Inject complete Google OAuth mock
-    await context.page.evaluateOnNewDocument(() => {
-      let interceptedCallback:
-        | ((response: { credential: string; select_by: string }) => void)
-        | undefined;
+    await context.__UNSAFE_page_useContextMethodsInstead.evaluateOnNewDocument(
+      () => {
+        let interceptedCallback:
+          | ((response: { credential: string; select_by: string }) => void)
+          | undefined;
 
-      // Mock the entire google.accounts.id API
-      (globalThis as { google?: unknown }).google = {
-        accounts: {
-          id: {
-            initialize(
-              { callback }: {
-                callback: (
-                  response: { credential: string; select_by: string },
-                ) => void;
+        // Mock the entire google.accounts.id API
+        (globalThis as { google?: unknown }).google = {
+          accounts: {
+            id: {
+              initialize(
+                { callback }: {
+                  callback: (
+                    response: { credential: string; select_by: string },
+                  ) => void;
+                },
+              ) {
+                interceptedCallback = callback;
               },
-            ) {
-              interceptedCallback = callback;
-            },
-            renderButton(el: HTMLElement) {
-              el.innerHTML =
-                '<button id="mock-google-signin" style="padding: 12px 24px; border: 1px solid #dadce0; border-radius: 4px; background: white; cursor: pointer; font-size: 16px; font-weight: 500; font-family: system-ui, -apple-system, sans-serif; color: #3c4043; min-width: 200px; display: flex; align-items: center; justify-content: center; gap: 8px;">🔧 Mock Google Sign‑In</button>';
-              el.querySelector("button")?.addEventListener("click", () => {
-                // Simulate successful Google OAuth response
-                interceptedCallback?.({
-                  credential: "mock.jwt.token.for.testing",
-                  select_by: "btn",
+              renderButton(el: HTMLElement) {
+                el.innerHTML =
+                  '<button id="mock-google-signin" style="padding: 12px 24px; border: 1px solid #dadce0; border-radius: 4px; background: white; cursor: pointer; font-size: 16px; font-weight: 500; font-family: system-ui, -apple-system, sans-serif; color: #3c4043; min-width: 200px; display: flex; align-items: center; justify-content: center; gap: 8px;">🔧 Mock Google Sign‑In</button>';
+                el.querySelector("button")?.addEventListener("click", () => {
+                  // Simulate successful Google OAuth response
+                  interceptedCallback?.({
+                    credential: "mock.jwt.token.for.testing",
+                    select_by: "btn",
+                  });
                 });
-              });
+              },
+              // No-op helpers
+              prompt() {},
+              disableAutoSelect() {},
             },
-            // No-op helpers
-            prompt() {},
-            disableAutoSelect() {},
           },
-        },
-      };
-    });
+        };
+      },
+    );
 
-    // 🎬 Start annotated video recording for the entire authentication progress demo
+    // 🎬 Start video recording for the entire authentication progress demo
     const { stop, showSubtitle } = await context
-      .startAnnotatedVideoRecording(
+      .startRecording(
         "auth-implementation-progress",
         {
           quality: "high",
@@ -102,9 +105,11 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
       async () => {
         logger.info("📝 Testing access to /rlhf without authentication");
         await navigateTo(context, "/rlhf");
-        await context.page.waitForNetworkIdle({ timeout: 3000 });
+        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
+          { timeout: 3000 },
+        );
 
-        const currentUrl = context.page.url();
+        const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
         const wasRedirectedToLogin = currentUrl.includes("/login");
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
 
@@ -126,9 +131,12 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     await t.step("📍 Step 2: Check if /login route exists", async () => {
       await navigateTo(context, "/login");
-      await context.page.waitForNetworkIdle({ timeout: 3000 });
+      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+        timeout: 3000,
+      });
 
-      const pageContent = await context.page.content();
+      const pageContent = await context.__UNSAFE_page_useContextMethodsInstead
+        .content();
       const hasError = pageContent.includes("404") ||
         pageContent.includes("not found");
 
@@ -144,16 +152,17 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     await t.step("🔍 Step 3: Look for Google Sign-In button", async () => {
       // Try to stay on login page, or go to home if login failed
-      const currentUrl = context.page.url();
+      const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
       if (currentUrl.includes("404") || !currentUrl.includes("login")) {
         logger.info("📝 Checking home page since /login not available");
         await navigateTo(context, "/");
-        await context.page.waitForNetworkIdle({ timeout: 3000 });
+        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
+          { timeout: 3000 },
+        );
       }
 
-      const pageText = await context.page.evaluate(() =>
-        document.body.innerText.toLowerCase()
-      );
+      const pageText = await context.__UNSAFE_page_useContextMethodsInstead
+        .evaluate(() => document.body.innerText.toLowerCase());
       const hasGoogleText = pageText.includes("google") ||
         pageText.includes("sign in");
 
@@ -163,24 +172,28 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
         // Try to click the Google Sign-In button
         try {
           logger.info("🔧 Attempting to smooth click Google Sign-In button...");
-          await context.page.waitForSelector("button", { timeout: 2000 });
+          await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+            "button",
+            { timeout: 2000 },
+          );
 
           // Smooth click the first button (should be our Google Sign-In button)
-          await smoothClick(context, "button", {
-            before: "before-google-click",
-            after: "after-google-click",
-          });
+          await context.takeScreenshot("before-google-click");
+          await context.click("button");
+          await context.takeScreenshot("after-google-click");
           logger.info("✅ Successfully smooth clicked Google Sign-In button");
 
           // Wait a moment to see the authentication response
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Check if login was successful or if we got an error
-          const currentUrl = context.page.url();
+          const currentUrl = context.__UNSAFE_page_useContextMethodsInstead
+            .url();
           logger.info(`📍 Current URL after login attempt: ${currentUrl}`);
 
           // Verify authentication by checking cookies
-          const cookies = await context.page.cookies();
+          const cookies = await context.__UNSAFE_page_useContextMethodsInstead
+            .cookies();
           const authCookies = cookies.filter((cookie) =>
             cookie.name === "bf_access" || cookie.name === "bf_refresh"
           );
@@ -196,9 +209,10 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           }
 
           // Check if page content indicates we're logged in
-          const pageContentAfterAuth = await context.page.evaluate(() =>
-            document.body.innerText.toLowerCase()
-          );
+          const pageContentAfterAuth = await context
+            .__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
+              document.body.innerText.toLowerCase()
+            );
 
           const loggedInIndicators = [
             "welcome back",
@@ -237,9 +251,11 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
       async () => {
         logger.info("📝 Testing access to /rlhf after authentication");
         await navigateTo(context, "/rlhf");
-        await context.page.waitForNetworkIdle({ timeout: 3000 });
+        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
+          { timeout: 3000 },
+        );
 
-        const currentUrl = context.page.url();
+        const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
         const wasRedirectedToLogin = currentUrl.includes("/login");
 

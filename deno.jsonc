@@ -152,6 +152,7 @@
         "bolt-foundry/ts-expect-error-description",
         "bolt-foundry/no-parent-directory-traversal",
         "bolt-foundry/no-cornercased-imports",
+        "bolt-foundry/no-direct-page-methods-in-e2e",
         "no-slow-types",
         "no-console",
         "no-external-import",

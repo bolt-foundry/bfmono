@@ -25,7 +25,7 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
 
     // Inject persistent cursor overlay
     logger.info("Step 2: Injecting persistent cursor overlay");
-    await injectPersistentCursorOverlay(context.page);
+    await injectPersistentCursorOverlay(context.__UNSAFE_page_useContextMethodsInstead);
 
     // Give it a moment
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -35,7 +35,7 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
 
     // Set cursor position manually
     logger.info("Step 4: Setting cursor position to top-left");
-    await updatePersistentCursorPosition(context.page, 100, 100);
+    await updatePersistentCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 100, 100);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     logger.info("Step 5: Taking screenshot with cursor at top-left");
@@ -51,8 +51,8 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
 
     // Ensure cursor is visible after navigation
     logger.info("Step 8: Ensuring cursor is visible after navigation");
-    await ensureCursorVisible(context.page);
-    await updatePersistentCursorPosition(context.page, 400, 300);
+    await ensureCursorVisible(context.__UNSAFE_page_useContextMethodsInstead);
+    await updatePersistentCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 400, 300);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     logger.info("Step 9: Taking screenshot after ensuring cursor visibility");
@@ -60,25 +60,25 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
 
     // Test different cursor styles
     logger.info("Step 10: Testing hover style");
-    await setPersistentCursorStyle(context.page, "hover");
-    await updatePersistentCursorPosition(context.page, 300, 200);
+    await setPersistentCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "hover");
+    await updatePersistentCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 300, 200);
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("persistent-cursor-6-hover-style");
 
     logger.info("Step 11: Testing click style");
-    await setPersistentCursorStyle(context.page, "click");
-    await updatePersistentCursorPosition(context.page, 500, 400);
+    await setPersistentCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "click");
+    await updatePersistentCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 500, 400);
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("persistent-cursor-7-click-style");
 
     logger.info("Step 12: Back to default style");
-    await setPersistentCursorStyle(context.page, "default");
-    await updatePersistentCursorPosition(context.page, 640, 360);
+    await setPersistentCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "default");
+    await updatePersistentCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 640, 360);
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("persistent-cursor-8-default-style");
 
     // Check final cursor state
-    const finalCursorState = await context.page.evaluate(() => {
+    const finalCursorState = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
       const cursor = document.getElementById("e2e-cursor-overlay");
       if (cursor) {
         const rect = cursor.getBoundingClientRect();
@@ -107,7 +107,7 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
     logger.info("Final cursor state:", finalCursorState);
 
     // Get page title to verify test ran
-    const title = await context.page.title();
+    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
     logger.info(`Page title: ${title}`);
 
     // Basic assertions
@@ -121,7 +121,7 @@ Deno.test("Persistent cursor overlay test with screenshots", async () => {
     logger.info("Persistent cursor test completed successfully");
 
     // Clean up
-    await removePersistentCursorOverlay(context.page);
+    await removePersistentCursorOverlay(context.__UNSAFE_page_useContextMethodsInstead);
   } catch (error) {
     await context.takeScreenshot("persistent-cursor-error");
     logger.error("Test failed:", error);

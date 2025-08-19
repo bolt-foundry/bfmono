@@ -24,7 +24,7 @@ Deno.test.ignore(
       await context.takeScreenshot("aibff-gui-initial");
 
       // Wait for the loading to complete and UI to be ready
-      await context.page.waitForFunction(
+      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
         () => {
           const bodyText = document.body.textContent || "";
           // Wait for loading to complete (no "Loading conversation..." text)
@@ -34,7 +34,7 @@ Deno.test.ignore(
       );
 
       // Wait for content to load - look for the "New Conversation" header
-      await context.page.waitForFunction(
+      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
         () => {
           const elements = Array.from(document.querySelectorAll("*"));
           return elements.some((el) =>
@@ -47,12 +47,13 @@ Deno.test.ignore(
       // Wait a bit more for React to hydrate and all components to load
       await delay(2000);
 
-      const title = await context.page.title();
+      const title = await context.__UNSAFE_page_useContextMethodsInstead
+        .title();
       logger.info(`Page title: ${title}`);
       assertEquals(title, "aibff GUI");
 
       // Check that the "New Conversation" header exists
-      const hasNewConversationHeader = await context.page.evaluate(() => {
+      const hasNewConversationHeader = await context.evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) =>
           el.textContent?.trim() === "New Conversation"
@@ -61,7 +62,7 @@ Deno.test.ignore(
       assert(hasNewConversationHeader, "Should show 'New Conversation' header");
 
       // Check that the WorkflowPanel with correct tabs exists
-      const hasWorkflowPanel = await context.page.evaluate(() => {
+      const hasWorkflowPanel = await context.evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) =>
           el.textContent?.includes("Input Variables") ||
@@ -72,14 +73,14 @@ Deno.test.ignore(
       assert(hasWorkflowPanel, "Should show workflow panel with correct tabs");
 
       // Check for the chat interface elements - look for Assistant message div
-      const hasAssistantMessage = await context.page.evaluate(() => {
+      const hasAssistantMessage = await context.evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) => el.textContent?.trim() === "Assistant");
       });
       assert(hasAssistantMessage, "Should show Assistant message area");
 
       // Check for input textarea
-      const hasTextarea = await context.page.evaluate(() => {
+      const hasTextarea = await context.evaluate(() => {
         const textarea = document.querySelector(
           'textarea[placeholder="Type a message..."]',
         );
@@ -88,7 +89,7 @@ Deno.test.ignore(
       assert(hasTextarea, "Should have message input textarea");
 
       // Check for send button
-      const hasSendButton = await context.page.evaluate(() => {
+      const hasSendButton = await context.evaluate(() => {
         const buttons = Array.from(document.querySelectorAll("button"));
         return buttons.some((button) => button.textContent === "Send");
       });
@@ -100,17 +101,17 @@ Deno.test.ignore(
       // Type a message that should trigger updateInputSamples tool
       const testMessage =
         "Please update the input samples to include: 'test sample 1' and 'test sample 2'";
-      await context.page.focus('textarea[placeholder="Type a message..."]');
-      await context.page.type(
+      await context.type(
         'textarea[placeholder="Type a message..."]',
         testMessage,
+        { clickFirst: true },
       );
 
       // Take screenshot before sending
       await context.takeScreenshot("aibff-gui-before-send");
 
       // Click send button
-      await context.page.evaluate(() => {
+      await context.evaluate(() => {
         const buttons = Array.from(document.querySelectorAll("button"));
         const sendButton = buttons.find((button) =>
           button.textContent === "Send"
@@ -121,7 +122,7 @@ Deno.test.ignore(
       logger.info("Message sent, waiting for AI response with tool call...");
 
       // Wait for AI response (look for assistant message that isn't the initial one)
-      await context.page.waitForFunction(
+      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
         () => {
           const messages = Array.from(document.querySelectorAll("*"));
           const assistantMessages = messages.filter((el) =>
@@ -138,7 +139,7 @@ Deno.test.ignore(
       await context.takeScreenshot("aibff-gui-after-response");
 
       // Verify tool call was made
-      const toolCallMade = await context.page.evaluate(() => {
+      const toolCallMade = await context.evaluate(() => {
         const allText = document.body.textContent || "";
         return allText.includes("updateInputSamples") ||
           allText.includes("input samples") ||

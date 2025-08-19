@@ -18,7 +18,7 @@ export interface VideoRecordingSession {
   cdpSession?: CDPSession; // Store CDP session for cleanup
 }
 
-export async function startScreencastRecording(
+export async function _startScreencastRecordingInternal(
   page: Page,
   name: string,
   outputDir = "/tmp/videos",
@@ -103,7 +103,7 @@ export async function startScreencastRecording(
   return session;
 }
 
-export async function stopScreencastRecording(
+export async function _stopScreencastRecordingInternal(
   page: Page,
   session: VideoRecordingSession,
   videoOptions: VideoConversionOptions = {},
@@ -114,10 +114,14 @@ export async function stopScreencastRecording(
     ...videoOptions,
   };
 
-  return await stopScreencastRecordingWithVideo(page, session, defaultOptions);
+  return await _stopScreencastRecordingWithVideoInternal(
+    page,
+    session,
+    defaultOptions,
+  );
 }
 
-export async function stopScreencastRecordingFramesOnly(
+export async function _stopScreencastRecordingFramesOnlyInternal(
   page: Page,
   session: VideoRecordingSession,
 ): Promise<string> {
@@ -162,13 +166,16 @@ export async function stopScreencastRecordingFramesOnly(
   return frameDir;
 }
 
-export async function stopScreencastRecordingWithVideo(
+export async function _stopScreencastRecordingWithVideoInternal(
   page: Page,
   session: VideoRecordingSession,
   videoOptions: VideoConversionOptions = {},
 ): Promise<VideoConversionResult> {
   // First stop recording and save frames
-  const frameDir = await stopScreencastRecordingFramesOnly(page, session);
+  const frameDir = await _stopScreencastRecordingFramesOnlyInternal(
+    page,
+    session,
+  );
 
   // Then convert frames to video
   const videoResult = await convertFramesToVideo(frameDir, videoOptions);
