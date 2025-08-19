@@ -1,9 +1,10 @@
 import type {ComponentReaderArtifact, ExtractSecondParam, ReaderAst } from '@isograph/react';
-import { Query__Eval__param } from './param_type.ts';
-import { Eval as resolver } from '../../../../components/Eval.tsx';
+import { Query__Grade__param } from './param_type.ts';
+import { Grade as resolver } from '../../../../components/Grade.tsx';
+import BfOrganization__DecksView__resolver_reader from '../../BfOrganization/DecksView/resolver_reader.ts';
 import CurrentViewerLoggedIn__asCurrentViewerLoggedIn__resolver_reader from '../../CurrentViewerLoggedIn/asCurrentViewerLoggedIn/resolver_reader.ts';
 
-const readerAst: ReaderAst<Query__Eval__param> = [
+const readerAst: ReaderAst<Query__Grade__param> = [
   {
     kind: "Linked",
     fieldName: "currentViewer",
@@ -70,6 +71,13 @@ const readerAst: ReaderAst<Query__Eval__param> = [
                 arguments: null,
                 isUpdatable: false,
               },
+              {
+                kind: "Resolver",
+                alias: "DecksView",
+                arguments: null,
+                readerArtifact: BfOrganization__DecksView__resolver_reader,
+                usedRefetchQueries: [],
+              },
             ],
           },
         ],
@@ -79,11 +87,11 @@ const readerAst: ReaderAst<Query__Eval__param> = [
 ];
 
 const artifact: ComponentReaderArtifact<
-  Query__Eval__param,
+  Query__Grade__param,
   ExtractSecondParam<typeof resolver>
 > = {
   kind: "ComponentReaderArtifact",
-  fieldName: "Query.Eval",
+  fieldName: "Query.Grade",
   resolver,
   readerAst,
   hasUpdatable: false,

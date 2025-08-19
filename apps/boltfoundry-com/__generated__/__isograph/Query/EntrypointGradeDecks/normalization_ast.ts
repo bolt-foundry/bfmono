@@ -59,6 +59,55 @@ const normalizationAst: NormalizationAst = {
                   arguments: null,
                 },
                 {
+                  kind: "Linked",
+                  fieldName: "decks",
+                  arguments: [
+                    [
+                      "first",
+                      { kind: "Literal", value: 100 },
+                    ],
+                  ],
+                  concreteType: "BfOrganizationDecksConnection",
+                  selections: [
+                    {
+                      kind: "Linked",
+                      fieldName: "edges",
+                      arguments: null,
+                      concreteType: "BfOrganizationDecksConnectionEdge",
+                      selections: [
+                        {
+                          kind: "Linked",
+                          fieldName: "node",
+                          arguments: null,
+                          concreteType: "BfDeck",
+                          selections: [
+                            {
+                              kind: "Scalar",
+                              fieldName: "id",
+                              arguments: null,
+                            },
+                            {
+                              kind: "Scalar",
+                              fieldName: "description",
+                              arguments: null,
+                            },
+                            {
+                              kind: "Scalar",
+                              fieldName: "name",
+                              arguments: null,
+                            },
+                            {
+                              kind: "Scalar",
+                              fieldName: "slug",
+                              arguments: null,
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
                   kind: "Scalar",
                   fieldName: "domain",
                   arguments: null,
