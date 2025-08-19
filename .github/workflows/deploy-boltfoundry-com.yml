@@ -263,7 +263,7 @@ jobs:
             for var in $(grep "^[A-Z_]*=" .env.secrets | cut -d= -f1); do
               # Skip infrastructure and deployment secrets
               case "$var" in
-                SSH_PRIVATE_KEY|SSH_PUBLIC_KEY|HETZNER_API_TOKEN|CLOUDFLARE_*|TERRAFORM_*|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|GITHUB_PERSONAL_ACCESS_TOKEN|HETZNER_PROJECT_ID|S3_ENDPOINT|*_SERVER_IP)
+                SSH_PRIVATE_KEY|SSH_PUBLIC_KEY|HETZNER_API_TOKEN|CLOUDFLARE_*|TERRAFORM_*|GITHUB_PERSONAL_ACCESS_TOKEN|HETZNER_PROJECT_ID|S3_ENDPOINT|*_SERVER_IP)
                   # Skip these - not needed at runtime
                   ;;
                 *)
