@@ -18,6 +18,8 @@ export type BfDsListBarProps = {
   center?: React.ReactNode;
   /** Optional content for the right section, commonly used for actions, status indicators, or controls */
   right?: React.ReactNode;
+  /** Optional content that spans the full width underneath the left/center/right row */
+  after?: React.ReactNode;
   /** When true, applies active/selected state styling to highlight the current or selected item */
   active?: boolean;
   /** When true, enables hover interactions and makes the entire bar clickable with proper accessibility */
@@ -201,15 +203,54 @@ export type BfDsListBarProps = {
  *   />
  * ))}
  *
+ * @example
+ * // List bar with progress display underneath using 'after' prop
+ * <BfDsListBar
+ *   left={
+ *     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+ *       <BfDsIcon name="cpu" size="small" />
+ *       <div>
+ *         <div style={{ fontWeight: "600" }}>Accuracy Grader</div>
+ *         <div style={{ fontSize: "13px", color: "var(--bfds-text-secondary)" }}>
+ *           Evaluates response accuracy against expected outputs
+ *         </div>
+ *       </div>
+ *     </div>
+ *   }
+ *   right={
+ *     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+ *       <div style={{ textAlign: "right" }}>
+ *         <div style={{ fontWeight: "600" }}>92.5%</div>
+ *         <div style={{ fontSize: "13px", color: "var(--bfds-text-secondary)" }}>
+ *           Accuracy
+ *         </div>
+ *       </div>
+ *       <BfDsBadge variant="warning">Refining</BfDsBadge>
+ *     </div>
+ *   }
+ *   after={
+ *     <BfDsProgressBar
+ *       label="Analyzing samples..."
+ *       value={67}
+ *       size="small"
+ *       showValue
+ *       helpText="Examining training samples and identifying patterns"
+ *     />
+ *   }
+ *   clickable
+ *   onClick={() => openGraderDetails()}
+ * />
+ *
  * @param props - The list bar props
  * @param props.left - Content for the left section (required)
  * @param props.center - Optional content for the center section
  * @param props.right - Optional content for the right section
+ * @param props.after - Optional content that spans full width underneath the main row
  * @param props.active - Apply active/selected styling (default: false)
  * @param props.clickable - Enable click interactions (default: false)
  * @param props.onClick - Click handler function
  * @param props.className - Additional CSS classes
- * @returns A horizontal layout bar with three content sections
+ * @returns A layout bar with left/center/right sections and optional full-width content underneath
  *
  * @accessibility
  * - Uses appropriate ARIA roles when interactive (role="button")
@@ -222,6 +263,7 @@ export function BfDsListBar({
   left,
   center,
   right,
+  after,
   active = false,
   clickable = false,
   onClick,
@@ -274,33 +316,40 @@ export function BfDsListBar({
       tabIndex={clickable ? 0 : undefined}
       role={clickable ? "button" : undefined}
     >
-      {showBulkSelect && (
-        <div
-          className="bfds-list-bar__checkbox"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <BfDsCheckbox
-            checked={!!isSelected}
-            onChange={() => {
-              if (showBulkSelect && value && listContext) {
-                listContext.toggleSelection(value);
-              }
-            }}
-            className="bfds-list-bar-checkbox"
-          />
+      <div className="bfds-list-bar__main">
+        {showBulkSelect && (
+          <div
+            className="bfds-list-bar__checkbox"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <BfDsCheckbox
+              checked={!!isSelected}
+              onChange={() => {
+                if (showBulkSelect && value && listContext) {
+                  listContext.toggleSelection(value);
+                }
+              }}
+              className="bfds-list-bar-checkbox"
+            />
+          </div>
+        )}
+        <div className="bfds-list-bar__left">
+          {left}
         </div>
-      )}
-      <div className="bfds-list-bar__left">
-        {left}
+        {(center || right) && (
+          <div className="bfds-list-bar__center">
+            {center}
+          </div>
+        )}
+        {right && (
+          <div className="bfds-list-bar__right">
+            {right}
+          </div>
+        )}
       </div>
-      {(center || right) && (
-        <div className="bfds-list-bar__center">
-          {center}
-        </div>
-      )}
-      {right && (
-        <div className="bfds-list-bar__right">
-          {right}
+      {after && (
+        <div className="bfds-list-bar__after">
+          {after}
         </div>
       )}
     </div>
