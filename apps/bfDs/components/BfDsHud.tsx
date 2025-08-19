@@ -3,7 +3,10 @@
  * @author Justin Carter <justin@boltfoundry.com>
  * @since 2.0.0
  */
-import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import {
+  type HudPosition,
+  useHud,
+} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { useLocalStorage } from "@bfmono/apps/bfDs/hooks/useLocalStorage.ts";
@@ -226,6 +229,8 @@ export function BfDsHud() {
     clearMessages,
     isVisible,
     hideHud,
+    requestedPosition,
+    clearRequestedPosition,
     input1,
     input2,
     setInput1,
@@ -235,8 +240,8 @@ export function BfDsHud() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useLocalStorage("bfds-hud-position", {
-    x: 20,
-    y: 20,
+    x: -1, // Use -1 as a flag to indicate no position has been set yet
+    y: -1,
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -270,9 +275,78 @@ export function BfDsHud() {
     return { x, y };
   };
 
-  // Check position on mount and window resize
+  // Function to calculate position based on named positions
+  const calculatePosition = (positionName: HudPosition) => {
+    if (!hudRef.current) return { x: 20, y: 20 };
+
+    const hud = hudRef.current;
+    const rect = hud.getBoundingClientRect();
+    const viewportWidth = globalThis.innerWidth;
+    const viewportHeight = globalThis.innerHeight;
+    const margin = 20;
+
+    switch (positionName) {
+      case "top-left":
+        return { x: margin, y: margin };
+      case "top-right":
+        return { x: viewportWidth - rect.width - margin, y: margin };
+      case "bottom-left":
+        return { x: margin, y: viewportHeight - rect.height - margin };
+      case "bottom-right":
+        return {
+          x: viewportWidth - rect.width - margin,
+          y: viewportHeight - rect.height - margin,
+        };
+      case "center":
+        return {
+          x: (viewportWidth - rect.width) / 2,
+          y: (viewportHeight - rect.height) / 2,
+        };
+      default:
+        return { x: 20, y: 20 };
+    }
+  };
+
+  // Handle position requests from context
+  useEffect(() => {
+    if (!requestedPosition || !isVisible || !hudRef.current) return;
+
+    const newPosition = calculatePosition(requestedPosition as HudPosition);
+    const constrainedPosition = constrainToScreen(newPosition);
+    setPosition(constrainedPosition);
+
+    // Clear the request after using it
+    clearRequestedPosition();
+  }, [requestedPosition, isVisible, clearRequestedPosition]);
+
+  // Handle initial position setup when HUD becomes visible
+  useEffect(() => {
+    if (!isVisible) return;
+
+    // Only set center position if this is truly the first time (position is -1, -1)
+    if (position.x === -1 && position.y === -1) {
+      // Use a slight delay to ensure the HUD is rendered
+      const timer = setTimeout(() => {
+        if (hudRef.current) {
+          const centerPosition = calculatePosition("center");
+          const constrainedPosition = constrainToScreen(centerPosition);
+          setPosition(constrainedPosition);
+        } else {
+          // Fallback if hudRef is not ready
+          setPosition({ x: 100, y: 100 });
+        }
+      }, 10);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, position.x, position.y]);
+
+  // Check position on mount and window resize (but skip initial -1, -1 position)
   useEffect(() => {
     if (!isVisible || !hudRef.current) return;
+
+    // Skip constraining if this is the initial -1, -1 position
+    if (position.x === -1 && position.y === -1) return;
 
     const constrainedPosition = constrainToScreen(position);
     if (
@@ -286,6 +360,9 @@ export function BfDsHud() {
   useEffect(() => {
     const handleResize = () => {
       if (!isVisible) return;
+      // Skip constraining if this is the initial -1, -1 position
+      if (position.x === -1 && position.y === -1) return;
+
       const constrainedPosition = constrainToScreen(position);
       if (
         constrainedPosition.x !== position.x ||
