@@ -11,8 +11,31 @@
  * @see {@link BfDsProvider} - Main provider that includes HUD functionality
  */
 
-import { createContext, useCallback, useContext, useState } from "react";
-import type { ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import type { MouseEvent, ReactNode } from "react";
+
+/**
+ * @typedef {"top-left" | "top-right" | "bottom-left" | "bottom-right" | "center"} HudPosition
+ * @description Valid position values for placing the HUD on screen
+ */
+export type HudPosition =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "center";
+
+/**
+ * @typedef {HudPosition | MouseEvent} HudPositionHandler
+ * @description Type for HUD position handlers that can accept position strings or mouse events
+ */
+export type HudPositionHandler = HudPosition | MouseEvent<HTMLElement>;
 
 /**
  * @typedef {Object} BfDsHudButton
@@ -120,12 +143,15 @@ interface BfDsHudContextType {
   /** Current HUD visibility state */
   isVisible: boolean;
   /** Make the HUD visible */
-  showHud: () => void;
+  showHud: (position?: HudPositionHandler) => void;
   /** Hide the HUD */
   hideHud: () => void;
   /** Toggle HUD visibility */
-  toggleHud: () => void;
+  toggleHud: (position?: HudPositionHandler) => void;
 
+  // Position state for HUD component
+  /** Current requested position for next show */
+  pendingPosition: HudPosition | null;
   // Input management
   /** Value of first input field */
   input1: string;
@@ -219,6 +245,9 @@ export function BfDsHudProvider(
   const [isVisible, setIsVisible] = useState(false);
   const [input1, setInput1] = useState("");
   const [input2, setInput2] = useState("");
+  const [pendingPosition, setPendingPosition] = useState<HudPosition | null>(
+    null,
+  );
 
   const addButton = useCallback((button: BfDsHudButton) => {
     setButtons((prev) => {
@@ -279,9 +308,50 @@ export function BfDsHudProvider(
     });
   }, [messages.length]);
 
-  const showHud = useCallback(() => setIsVisible(true), []);
+  const showHud = useCallback((position?: HudPositionHandler) => {
+    // Set position first if it's a valid string (not a click event)
+    if (typeof position === "string") {
+      setPendingPosition(position);
+    } else {
+      setPendingPosition(null);
+    }
+    setIsVisible(true);
+  }, []);
+
   const hideHud = useCallback(() => setIsVisible(false), []);
-  const toggleHud = useCallback(() => setIsVisible((prev) => !prev), []);
+
+  const toggleHud = useCallback((position?: HudPositionHandler) => {
+    if (isVisible) {
+      hideHud();
+    } else {
+      // Set position first if it's a valid string (not a click event)
+      if (typeof position === "string") {
+        setPendingPosition(position);
+      } else {
+        setPendingPosition(null);
+      }
+      setIsVisible(true);
+    }
+  }, [isVisible, hideHud]);
+
+  // Expose HUD functions to globalThis for easy console access
+  useEffect(() => {
+    // @ts-expect-error - Adding to globalThis for console access
+    globalThis.showHud = showHud;
+    // @ts-expect-error - Adding to globalThis for console access
+    globalThis.hideHud = hideHud;
+    // @ts-expect-error - Adding to globalThis for console access
+    globalThis.toggleHud = toggleHud;
+
+    return () => {
+      // @ts-expect-error - Deleting from globalThis
+      delete globalThis.showHud;
+      // @ts-expect-error - Deleting from globalThis
+      delete globalThis.hideHud;
+      // @ts-expect-error - Deleting from globalThis
+      delete globalThis.toggleHud;
+    };
+  }, [showHud, hideHud, toggleHud]);
 
   const getInputs = useCallback(() => ({ input1, input2 }), [input1, input2]);
 
@@ -300,6 +370,7 @@ export function BfDsHudProvider(
         showHud,
         hideHud,
         toggleHud,
+        pendingPosition,
         input1,
         input2,
         setInput1,

@@ -3,11 +3,14 @@
  * @author Justin Carter <justin@boltfoundry.com>
  * @since 2.0.0
  */
-import { useHud } from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
+import {
+  type HudPosition,
+  useHud,
+} from "@bfmono/apps/bfDs/contexts/BfDsHudContext.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { useLocalStorage } from "@bfmono/apps/bfDs/hooks/useLocalStorage.ts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * A floating heads-up display (HUD) component for development tools, debugging,
@@ -226,6 +229,7 @@ export function BfDsHud() {
     clearMessages,
     isVisible,
     hideHud,
+    pendingPosition,
     input1,
     input2,
     setInput1,
@@ -235,8 +239,8 @@ export function BfDsHud() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hudRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useLocalStorage("bfds-hud-position", {
-    x: 20,
-    y: 20,
+    x: -1, // Use -1 as a flag to indicate no position has been set yet
+    y: -1,
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -248,7 +252,7 @@ export function BfDsHud() {
   const hasNextMessage = currentMessageIndex < messages.length - 1;
 
   // Function to constrain position to screen bounds
-  const constrainToScreen = (pos: { x: number; y: number }) => {
+  const constrainToScreen = useCallback((pos: { x: number; y: number }) => {
     if (!hudRef.current) return pos;
 
     const hud = hudRef.current;
@@ -268,36 +272,98 @@ export function BfDsHud() {
     if (y + rect.height > viewportHeight) y = viewportHeight - rect.height;
 
     return { x, y };
-  };
+  }, []);
 
-  // Check position on mount and window resize
-  useEffect(() => {
-    if (!isVisible || !hudRef.current) return;
+  // Function to calculate position based on named positions
+  const calculatePosition = useCallback((positionName: HudPosition) => {
+    const viewportWidth = globalThis.innerWidth;
+    const viewportHeight = globalThis.innerHeight;
+    const margin = 20;
 
-    const constrainedPosition = constrainToScreen(position);
-    if (
-      constrainedPosition.x !== position.x ||
-      constrainedPosition.y !== position.y
-    ) {
-      setPosition(constrainedPosition);
+    // Estimate HUD dimensions when not rendered yet
+    const estimatedWidth = 400;
+    const estimatedHeight = 500;
+
+    // Get actual dimensions if available
+    let hudWidth = estimatedWidth;
+    let hudHeight = estimatedHeight;
+
+    if (hudRef.current) {
+      const rect = hudRef.current.getBoundingClientRect();
+      hudWidth = rect.width;
+      hudHeight = rect.height;
     }
-  }, [isVisible, position, setPosition]);
 
+    switch (positionName) {
+      case "top-left":
+        return { x: margin, y: margin };
+      case "top-right":
+        return { x: viewportWidth - hudWidth - margin, y: margin };
+      case "bottom-left":
+        return { x: margin, y: viewportHeight - hudHeight - margin };
+      case "bottom-right":
+        return {
+          x: viewportWidth - hudWidth - margin,
+          y: viewportHeight - hudHeight - margin,
+        };
+      case "center":
+        return {
+          x: (viewportWidth - hudWidth) / 2,
+          y: (viewportHeight - hudHeight) / 2,
+        };
+      default:
+        return { x: 20, y: 20 };
+    }
+  }, []);
+
+  // Function to handle positioning with the simplified logic
+  const handlePositioning = useCallback(() => {
+    let newPosition: { x: number; y: number };
+
+    if (pendingPosition) {
+      // Use the specific requested position
+      newPosition = calculatePosition(pendingPosition);
+    } else if (position.x === -1 && position.y === -1) {
+      // No localStorage, use center
+      newPosition = calculatePosition("center");
+    } else {
+      // Use localStorage position but constrain to screen (only if HUD is rendered)
+      newPosition = hudRef.current ? constrainToScreen(position) : position;
+    }
+
+    const constrainedPosition = hudRef.current
+      ? constrainToScreen(newPosition)
+      : newPosition;
+    setPosition(constrainedPosition);
+  }, [
+    pendingPosition,
+    position.x,
+    position.y,
+    calculatePosition,
+    constrainToScreen,
+  ]);
+
+  // Handle initial positioning when HUD becomes visible
+  useEffect(() => {
+    if (!isVisible) return;
+
+    // Calculate position immediately when becoming visible
+    handlePositioning();
+  }, [isVisible, handlePositioning]);
+
+  // Handle window resize to keep HUD on screen
   useEffect(() => {
     const handleResize = () => {
-      if (!isVisible) return;
-      const constrainedPosition = constrainToScreen(position);
       if (
-        constrainedPosition.x !== position.x ||
-        constrainedPosition.y !== position.y
-      ) {
-        setPosition(constrainedPosition);
-      }
+        !isVisible ||
+        (position.x === -1 && position.y === -1 && !pendingPosition)
+      ) return;
+      handlePositioning();
     };
 
     globalThis.addEventListener("resize", handleResize);
     return () => globalThis.removeEventListener("resize", handleResize);
-  }, [isVisible, position, setPosition]);
+  }, [isVisible, position.x, position.y, pendingPosition, handlePositioning]);
 
   // Auto-scroll to current message
   useEffect(() => {
