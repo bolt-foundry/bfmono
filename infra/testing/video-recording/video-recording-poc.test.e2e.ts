@@ -8,9 +8,9 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
-Deno.test.ignore("Video recording proof of concept", async () => {
+Deno.test("Video recording proof of concept", async () => {
   const context = await setupE2ETest({
-    baseUrl: "https://example.com",
+    baseUrl: "https://boltfoundry.com",
   });
 
   try {
@@ -18,7 +18,7 @@ Deno.test.ignore("Video recording proof of concept", async () => {
     const { stop, showSubtitle } = await context
       .startRecording("poc-test");
 
-    // Navigate to a simple page
+    // Navigate to Bolt Foundry homepage
     await context.navigateTo("/");
 
     // Show initial subtitle

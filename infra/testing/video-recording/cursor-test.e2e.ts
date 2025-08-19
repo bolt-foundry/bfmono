@@ -17,15 +17,7 @@ Deno.test.ignore("Cursor overlay test with video recording", async () => {
   try {
     // Start video recording with cursor overlay
     const { stop, showSubtitle } = await context
-      .startRecording(
-        "cursor-test",
-        {
-          outputFormat: "mp4",
-          quality: "medium",
-          framerate: 15,
-          deleteFrames: true,
-        },
-      );
+      .startRecording("cursor-test");
 
     await showSubtitle("Cursor overlay demonstration");
 
