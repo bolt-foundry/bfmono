@@ -242,6 +242,7 @@ ENV PATH="$BF_ROOT/infra/bin:$PATH"
 ENV HOME=/home/codebot
 ENV DENO_DIR="${HOME}/.cache/deno"
 ENV GH_REPO="bolt-foundry/bfmono"
+ENV BF_E2E_LATEST_DIR="$BF_ROOT/shared/latest-e2e"
 
 # Create .bash_profile with initialization
 COPY <<EOF /home/codebot/.bash_profile

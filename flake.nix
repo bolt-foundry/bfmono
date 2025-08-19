@@ -131,6 +131,9 @@
           export PATH="$BF_ROOT/bin:$BF_ROOT/infra/bin:$INTERNALBF_ROOT/infra/bin:$PATH"
           export DENO_DIR="''${HOME}/.cache/deno"
           export GH_REPO="bolt-foundry/bfmono"
+          
+          # Set default E2E test artifact location for stable test results
+          export BF_E2E_LATEST_DIR="$BF_ROOT/shared/latest-e2e"
 
           # Auto-sync sitevars from 1Password if enabled
           ${if autoSyncSitevars then syncSitevarsIfNeeded { inherit pkgs; bfRoot = "$BF_ROOT"; } else ""}
