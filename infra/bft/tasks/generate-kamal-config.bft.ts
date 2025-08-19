@@ -88,8 +88,6 @@ async function generateKamalConfig(args: Array<string>): Promise<number> {
       "TERRAFORM_BACKEND_ACCESS_KEY_ID", // CI infrastructure
       "TERRAFORM_BACKEND_SECRET_ACCESS_KEY", // CI infrastructure
       "TERRAFORM_BACKEND_ENDPOINT", // CI infrastructure
-      "AWS_ACCESS_KEY_ID", // Handled separately
-      "AWS_SECRET_ACCESS_KEY", // Handled separately
       "GITHUB_PERSONAL_ACCESS_TOKEN", // Not needed at runtime
       "SSH_PUBLIC_KEY", // Not needed at runtime
       "SSH_PRIVATE_KEY", // Not needed at runtime
