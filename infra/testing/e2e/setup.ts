@@ -2,7 +2,7 @@ import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import { type Browser, launch, type Page } from "puppeteer-core";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { ensureDir } from "@std/fs";
-import { join } from "@std/path";
+import { basename, join } from "@std/path";
 import {
   injectRecordingThrobberOnAllPages,
   removeRecordingThrobber,
@@ -250,6 +250,13 @@ export async function setupE2ETest(options: {
     await ensureDir(screenshotsDir);
     logger.info(`Screenshots will be saved to: ${screenshotsDir}`);
 
+    // Set up latest directory for stable artifact location
+    const latestDir = getConfigurationVariable("BF_E2E_LATEST_DIR");
+    if (latestDir) {
+      await ensureDir(latestDir);
+      logger.info(`Latest test artifacts will be copied to: ${latestDir}`);
+    }
+
     // Launch browser using puppeteer-core
     const browser = await launch({
       headless,
@@ -347,6 +354,25 @@ export async function setupE2ETest(options: {
             showAnnotations ? " (with annotations)" : " (clean)"
           }`,
         );
+
+        // Copy to latest directory if configured
+        if (latestDir) {
+          try {
+            const latestPath = join(
+              latestDir,
+              `${name.replace(/\s+/g, "-")}.png`,
+            );
+            await Deno.copyFile(filePath, latestPath);
+            logger.debug(`Screenshot copied to latest: ${latestPath}`);
+          } catch (error) {
+            logger.warn(
+              `Failed to copy screenshot to latest: ${
+                (error as Error).message
+              }`,
+            );
+          }
+        }
+
         return filePath;
       } catch (error) {
         logger.error(`Failed to take screenshot: ${(error as Error).message}`);
@@ -451,6 +477,31 @@ export async function setupE2ETest(options: {
               logger.info(
                 `Video recording completed: ${videoResult.videoPath} (${videoResult.fileSize} bytes)`,
               );
+
+              // Copy to latest directory if configured
+              if (latestDir) {
+                try {
+                  const videoFilename = basename(videoResult.videoPath);
+                  // Use a stable name for the latest video
+                  const testNameClean = name.replace(/\s+/g, "-");
+                  const extension = videoFilename.substring(
+                    videoFilename.lastIndexOf("."),
+                  );
+                  const latestVideoPath = join(
+                    latestDir,
+                    `${testNameClean}${extension}`,
+                  );
+                  await Deno.copyFile(videoResult.videoPath, latestVideoPath);
+                  logger.info(`Video copied to latest: ${latestVideoPath}`);
+                } catch (error) {
+                  logger.warn(
+                    `Failed to copy video to latest: ${
+                      (error as Error).message
+                    }`,
+                  );
+                }
+              }
+
               return videoResult;
             } catch (error) {
               logger.error(
