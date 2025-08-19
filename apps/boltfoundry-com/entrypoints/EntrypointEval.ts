@@ -4,8 +4,8 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 const logger = getLogger(import.meta);
 
 export const EntrypointEval = iso(`
-  field Query.EntrypointEval($deckId: String, $sampleId: String) {
-    Eval(deckId: $deckId, sampleId: $sampleId)
+  field Query.EntrypointEval {
+    Eval
   }
 `)(function EntrypointEval({ data }) {
   const Body = data.Eval;
