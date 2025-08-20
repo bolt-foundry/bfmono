@@ -1,7 +1,7 @@
 import React from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
-import { DecksView } from "../Decks/DecksView.tsx";
+// DecksView type import not needed
 import { DeckDetailView } from "../Decks/DeckDetailView.tsx";
 import { AnalyzeView } from "../Analyze/AnalyzeView.tsx";
 import { ChatView } from "../Chat/ChatView.tsx";
@@ -196,11 +196,13 @@ export function MainContent() {
 
     // Default: show decks list for /pg/grade/decks
     if (isDecksListPage) {
-      return <DecksView />;
+      // DecksView is now rendered via Grade component's organization.DecksView
+      // This shouldn't be reached since we're using entrypoints now
+      return <div>Loading decks...</div>;
     }
 
     // Fallback for unknown routes
-    return <DecksView />;
+    return <div>Loading...</div>;
   };
 
   return (

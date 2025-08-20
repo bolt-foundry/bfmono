@@ -1,41 +1,18 @@
-import { useState } from "react";
-import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
-import { DeckList } from "./DeckList.tsx";
-import { DeckConfigModal } from "./DeckConfigModal.tsx";
+import { iso } from "@iso-bfc";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
-export function DecksView() {
-  const { navigate } = useRouter();
-  const [selectedDeck, _setSelectedDeck] = useState<
-    { id: string; name: string } | null
-  >(null);
-  const [showConfigModal, setShowConfigModal] = useState(false);
+// DecksView as an Isograph client field on BfOrganization
+export const DecksView = iso(`
+  field BfOrganization.DecksView @component {
+    DeckList
+  }
+`)(function DecksView({ data }) {
+  logger.debug("DecksView rendering, data:", data);
 
-  // Mock deck data for config modal
-  const mockDeck = {
-    id: "1",
-    name: "Customer Support Quality",
-    description:
-      "Evaluates helpfulness, accuracy, and tone of customer support responses",
-    systemPrompt: "You are evaluating customer support AI responses...",
-    status: "active",
-    graderCount: 5,
-    graders: [],
-  };
-
-  const handleDeckSelect = (deckId: string) => {
-    logger.debug("Selected deck:", deckId);
-    // V3 routing: Navigate to deck detail page with samples tab
-    navigate(`/pg/grade/decks/${deckId}/samples`);
-  };
-
-  const handleDeckConfig = (updates: Record<string, unknown>) => {
-    logger.debug("Updating deck config:", updates);
-    // TODO: Update deck via GraphQL mutation
-    setShowConfigModal(false);
-  };
+  // Get the DeckList component from the data
+  const DeckList = data.DeckList;
 
   return (
     <div className="decks-view">
@@ -46,15 +23,7 @@ export function DecksView() {
         </p>
       </div>
 
-      <DeckList onDeckSelect={handleDeckSelect} />
-
-      {showConfigModal && selectedDeck && (
-        <DeckConfigModal
-          deck={mockDeck}
-          onClose={() => setShowConfigModal(false)}
-          onSave={handleDeckConfig}
-        />
-      )}
+      {DeckList ? <DeckList /> : <div>Loading decks...</div>}
     </div>
   );
-}
+});
