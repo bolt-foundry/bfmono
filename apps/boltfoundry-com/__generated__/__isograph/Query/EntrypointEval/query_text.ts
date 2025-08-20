@@ -10,12 +10,22 @@ export default 'query EntrypointEval  {\
       __typename,\
       organization {\
         id,\
-        decks____first___l_10: decks(first: 10) {\
+        decks____first___l_100: decks(first: 100) {\
           edges {\
             node {\
               id,\
               description,\
               name,\
+              samples____first___l_100: samples(first: 100) {\
+                edges {\
+                  node {\
+                    id,\
+                    collectionMethod,\
+                    completionData,\
+                    name,\
+                  },\
+                },\
+              },\
               slug,\
             },\
           },\

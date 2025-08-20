@@ -82,7 +82,13 @@ const isMobile = () => {
   return globalThis.innerWidth <= 768;
 };
 
-export function EvalProvider({ children }: { children: ReactNode }) {
+export function EvalProvider({
+  children,
+  initialDecks,
+}: {
+  children: ReactNode;
+  initialDecks?: any; // GraphQL decks data from Isograph query
+}) {
   const [leftSidebarOpen, setLeftSidebarOpenState] = useState(() =>
     !isMobile()
   );
@@ -104,9 +110,43 @@ export function EvalProvider({ children }: { children: ReactNode }) {
   const [gradingDeckName, setGradingDeckName] = useState<string | null>(null);
 
   // Samples state - central storage
+  // Initialize with GraphQL data if available
   const [deckSamples, setDeckSamples] = useState<
     Record<string, Array<GradingSample>>
-  >({});
+  >(() => {
+    const initialSamples: Record<string, Array<GradingSample>> = {};
+
+    // Process GraphQL decks data if available
+    if (initialDecks?.edges) {
+      initialDecks.edges.forEach((edge: any) => {
+        const deck = edge.node;
+        if (deck.samples?.edges) {
+          // Transform GraphQL samples to GradingSample format
+          initialSamples[deck.slug || deck.id] = deck.samples.edges.map(
+            (sampleEdge: any) => {
+              const sample = sampleEdge.node;
+              return {
+                id: sample.id,
+                prompt: sample.completionData?.request?.body?.prompt || "",
+                modelResponse: sample.completionData?.response?.body?.content ||
+                  "",
+                metadata: {
+                  model: sample.completionData?.provider || "unknown",
+                  timestamp: new Date().toISOString(),
+                  source: sample.collectionMethod || "telemetry",
+                },
+                humanGrade: null,
+                aiGrades: [],
+              };
+            },
+          );
+        }
+      });
+    }
+
+    return initialSamples;
+  });
+
   const [samplesLoading, setSamplesLoadingState] = useState<
     Record<string, boolean>
   >({});

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
@@ -7,7 +7,7 @@ const logger = getLogger(import.meta);
 
 /**
  * Hook to manage deck samples through EvalContext
- * Loads samples into context on first use, then returns context state
+ * Uses GraphQL data from context or falls back to mock data
  */
 export function useDeckSamples(deckId: string) {
   const {
@@ -33,24 +33,38 @@ export function useDeckSamples(deckId: string) {
     logger.debug("Loading samples for deck into context", { deckId });
     setSamplesLoading(deckId, true);
 
-    // Simulate async loading (same as useGradingSamples)
+    // For now, still load mock data until we fully integrate GraphQL
+    // TODO: Remove mock data loading once GraphQL integration is complete
     setTimeout(async () => {
       try {
         let samples: Array<GradingSample>;
 
-        if (deckId === "fastpitch") {
-          const { fastpitchGradingSamples } = await import(
-            "@bfmono/apps/boltfoundry-com/mocks/fastpitchSamples.ts"
-          );
-          samples = fastpitchGradingSamples;
-        } else if (deckId === "1") {
-          // Customer Support Quality deck - empty for demo
-          samples = [];
+        // Check if we can get samples from GraphQL data in context
+        // This will be populated by the EvalProvider when it processes initialDecks
+        const graphqlSamples = deckSamples[deckId];
+        if (graphqlSamples) {
+          samples = graphqlSamples;
+          logger.debug("Using GraphQL samples", {
+            deckId,
+            count: samples.length,
+          });
         } else {
-          const { mockGradingSamples } = await import(
-            "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
-          );
-          samples = mockGradingSamples;
+          // Fall back to mock data for now
+          if (deckId === "fastpitch") {
+            const { fastpitchGradingSamples } = await import(
+              "@bfmono/apps/boltfoundry-com/mocks/fastpitchSamples.ts"
+            );
+            samples = fastpitchGradingSamples;
+          } else if (deckId === "1") {
+            // Customer Support Quality deck - empty for demo
+            samples = [];
+          } else {
+            const { mockGradingSamples } = await import(
+              "@bfmono/apps/boltfoundry-com/mocks/gradingSamples.ts"
+            );
+            samples = mockGradingSamples;
+          }
+          logger.debug("Using mock samples", { deckId, count: samples.length });
         }
 
         setSamplesForDeck(deckId, samples);

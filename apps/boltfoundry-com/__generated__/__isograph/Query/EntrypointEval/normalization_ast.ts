@@ -64,7 +64,7 @@ const normalizationAst: NormalizationAst = {
                   arguments: [
                     [
                       "first",
-                      { kind: "Literal", value: 10 },
+                      { kind: "Literal", value: 100 },
                     ],
                   ],
                   concreteType: "BfOrganizationDecksConnection",
@@ -95,6 +95,55 @@ const normalizationAst: NormalizationAst = {
                               kind: "Scalar",
                               fieldName: "name",
                               arguments: null,
+                            },
+                            {
+                              kind: "Linked",
+                              fieldName: "samples",
+                              arguments: [
+                                [
+                                  "first",
+                                  { kind: "Literal", value: 100 },
+                                ],
+                              ],
+                              concreteType: "BfDeckSamplesConnection",
+                              selections: [
+                                {
+                                  kind: "Linked",
+                                  fieldName: "edges",
+                                  arguments: null,
+                                  concreteType: "BfDeckSamplesConnectionEdge",
+                                  selections: [
+                                    {
+                                      kind: "Linked",
+                                      fieldName: "node",
+                                      arguments: null,
+                                      concreteType: "BfSample",
+                                      selections: [
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "id",
+                                          arguments: null,
+                                        },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "collectionMethod",
+                                          arguments: null,
+                                        },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "completionData",
+                                          arguments: null,
+                                        },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "name",
+                                          arguments: null,
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               kind: "Scalar",

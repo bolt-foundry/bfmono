@@ -77,7 +77,7 @@ const readerAst: ReaderAst<Query__Eval__param> = [
                 arguments: [
                   [
                     "first",
-                    { kind: "Literal", value: 10 },
+                    { kind: "Literal", value: 100 },
                   ],
                 ],
                 condition: null,
@@ -126,6 +126,69 @@ const readerAst: ReaderAst<Query__Eval__param> = [
                             alias: null,
                             arguments: null,
                             isUpdatable: false,
+                          },
+                          {
+                            kind: "Linked",
+                            fieldName: "samples",
+                            alias: null,
+                            arguments: [
+                              [
+                                "first",
+                                { kind: "Literal", value: 100 },
+                              ],
+                            ],
+                            condition: null,
+                            isUpdatable: false,
+                            selections: [
+                              {
+                                kind: "Linked",
+                                fieldName: "edges",
+                                alias: null,
+                                arguments: null,
+                                condition: null,
+                                isUpdatable: false,
+                                selections: [
+                                  {
+                                    kind: "Linked",
+                                    fieldName: "node",
+                                    alias: null,
+                                    arguments: null,
+                                    condition: null,
+                                    isUpdatable: false,
+                                    selections: [
+                                      {
+                                        kind: "Scalar",
+                                        fieldName: "id",
+                                        alias: null,
+                                        arguments: null,
+                                        isUpdatable: false,
+                                      },
+                                      {
+                                        kind: "Scalar",
+                                        fieldName: "name",
+                                        alias: null,
+                                        arguments: null,
+                                        isUpdatable: false,
+                                      },
+                                      {
+                                        kind: "Scalar",
+                                        fieldName: "completionData",
+                                        alias: null,
+                                        arguments: null,
+                                        isUpdatable: false,
+                                      },
+                                      {
+                                        kind: "Scalar",
+                                        fieldName: "collectionMethod",
+                                        alias: null,
+                                        arguments: null,
+                                        isUpdatable: false,
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            ],
                           },
                         ],
                       },
