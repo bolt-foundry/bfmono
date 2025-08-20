@@ -31,7 +31,7 @@ export function registerDefaultAdapter() {
 
   const env = (getConfigurationVariable("FORCE_DB_BACKEND")?.toLowerCase() ||
     getConfigurationVariable("DB_BACKEND_TYPE")?.toLowerCase()) ??
-    "memory";
+    "sqlite";
   logger.info(`registerDefaultAdapter → selecting '${env}' backend`);
 
   switch (env) {
@@ -48,16 +48,17 @@ export function registerDefaultAdapter() {
       AdapterRegistry.register(pg);
       break;
     }
-    case "sqlite": {
-      const sqlite = new DatabaseBackendSqlite();
-      sqlite.initialize();
-      AdapterRegistry.register(sqlite);
-      break;
-    }
-    default: {
+    case "memory": {
       const mem = new InMemoryAdapter();
       mem.initialize();
       AdapterRegistry.register(mem);
+      break;
+    }
+    case "sqlite":
+    default: {
+      const sqlite = new DatabaseBackendSqlite();
+      sqlite.initialize();
+      AdapterRegistry.register(sqlite);
     }
   }
 
