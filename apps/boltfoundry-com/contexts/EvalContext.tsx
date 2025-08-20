@@ -17,6 +17,9 @@ type ChatMode = null | "createDeck";
 type SidebarMode = "normal" | "grading";
 
 interface EvalContextType {
+  // Organization data from Isograph
+  organization?: unknown;
+
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;
   activeMainContent: MainView;
@@ -82,7 +85,13 @@ const isMobile = () => {
   return globalThis.innerWidth <= 768;
 };
 
-export function EvalProvider({ children }: { children: ReactNode }) {
+export function EvalProvider({
+  children,
+  organization,
+}: {
+  children: ReactNode;
+  organization?: unknown; // Organization data from Isograph query with DecksView component
+}) {
   const [leftSidebarOpen, setLeftSidebarOpenState] = useState(() =>
     !isMobile()
   );
@@ -104,9 +113,46 @@ export function EvalProvider({ children }: { children: ReactNode }) {
   const [gradingDeckName, setGradingDeckName] = useState<string | null>(null);
 
   // Samples state - central storage
+  // Initialize with GraphQL data if available
   const [deckSamples, setDeckSamples] = useState<
     Record<string, Array<GradingSample>>
-  >({});
+  >(() => {
+    const initialSamples: Record<string, Array<GradingSample>> = {};
+
+    // Process GraphQL decks data if available
+    // deno-lint-ignore no-explicit-any
+    if ((organization as any)?.decks?.edges) {
+      // deno-lint-ignore no-explicit-any
+      (organization as any).decks.edges.forEach((edge: any) => {
+        const deck = edge.node;
+        if (deck.samples?.edges) {
+          // Transform GraphQL samples to GradingSample format
+          initialSamples[deck.slug || deck.id] = deck.samples.edges.map(
+            // deno-lint-ignore no-explicit-any
+            (sampleEdge: any) => {
+              const sample = sampleEdge.node;
+              return {
+                id: sample.id,
+                prompt: sample.completionData?.request?.body?.prompt || "",
+                modelResponse: sample.completionData?.response?.body?.content ||
+                  "",
+                metadata: {
+                  model: sample.completionData?.provider || "unknown",
+                  timestamp: new Date().toISOString(),
+                  source: sample.collectionMethod || "telemetry",
+                },
+                humanGrade: null,
+                aiGrades: [],
+              };
+            },
+          );
+        }
+      });
+    }
+
+    return initialSamples;
+  });
+
   const [samplesLoading, setSamplesLoadingState] = useState<
     Record<string, boolean>
   >({});

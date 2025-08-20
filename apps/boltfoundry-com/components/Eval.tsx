@@ -27,7 +27,7 @@ function EvalContent() {
 }
 
 export const Eval = iso(`
-  field Query.Eval($deckId: String, $sampleId: String) @component {
+  field Query.Eval @component {
     currentViewer {
       id
       personBfGid
@@ -37,33 +37,11 @@ export const Eval = iso(`
           id
           name
           domain
-          decks(first: 10) {
-            edges {
-              node {
-                id
-                name
-                description
-                slug
-              }
-            }
-          }
         }
       }
     }
-    # Conditionally load deck data when deckId is provided
-    deck(id: $deckId) @loadable {
-      id
-      name
-      description
-      slug
-    }
-    # Conditionally load sample data when sampleId is provided  
-    sample(id: $sampleId) @loadable {
-      id
-      # Add sample fields as they become available
-    }
   }
-`)(function Eval({ data: _data }) {
+`)(function Eval({ data }) {
   const { sendMessage: _sendMessage } = useHud();
   const { currentPath, routeParams } = useRouter();
 
@@ -91,8 +69,12 @@ export const Eval = iso(`
     logger.debug("V2 Eval Route Info:", routeInfo);
   }, [currentPath, deckId, sampleId]); // Only trigger when path or key params change
 
+  // Get the DeckList component from organization
+  const organization = data?.currentViewer?.asCurrentViewerLoggedIn
+    ?.organization;
+
   return (
-    <EvalProvider>
+    <EvalProvider organization={organization}>
       <EvalContent />
     </EvalProvider>
   );

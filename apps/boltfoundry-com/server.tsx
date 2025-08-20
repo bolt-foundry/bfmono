@@ -246,7 +246,9 @@ const handler = async (request: Request): Promise<Response> => {
         logger.info(`[${requestId}] Checking for redirect on ${url.pathname}`);
         try {
           // Get the resolver from the entrypoint's reader artifact
-          const entrypointModule = matchedEntrypoint as any;
+          const entrypointModule = matchedEntrypoint as unknown as {
+            readerWithRefetchQueries?: unknown;
+          };
           const readerArtifact = entrypointModule.readerWithRefetchQueries
             ?.readerArtifact;
           const resolver = readerArtifact?.resolver;
