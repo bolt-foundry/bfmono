@@ -196,11 +196,13 @@ export function MainContent() {
 
     // Default: show decks list for /pg/grade/decks
     if (isDecksListPage) {
-      return <DecksView />;
+      // DecksView is now rendered via Grade component's organization.DecksView
+      // This shouldn't be reached since we're using entrypoints now
+      return <div>Loading decks...</div>;
     }
 
     // Fallback for unknown routes
-    return <DecksView />;
+    return <div>Loading...</div>;
   };
 
   return (

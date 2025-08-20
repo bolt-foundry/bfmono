@@ -25,10 +25,22 @@ export function BfIsographFragmentReader<
     additionalProps?: Record<string, unknown>;
   },
 ): React.ReactNode {
-  const { Body } = useResult(
+  const result = useResult(
     props.fragmentReference,
     props.networkRequestOptions,
   );
+
+  // Check if this is a redirect response
+  if (result.status === 302 && result.headers?.Location) {
+    // Handle client-side redirect
+    if (typeof window !== "undefined") {
+      window.location.replace(result.headers.Location);
+    }
+    // Return null while redirecting
+    return null;
+  }
+
+  const { Body } = result;
 
   if (!Body) {
     throw new BfError("Couldn't load a valid component");

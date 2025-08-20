@@ -1,0 +1,171 @@
+name: Debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Debug operation to perform"
+        required: true
+        type: choice
+        options:
+          # Terraform state debugging
+          - terraform-state-list
+          - terraform-state-show
+          - terraform-state-rm
+          # Environment debugging
+          - debug-sitevar
+      args:
+        description: "Additional arguments for the operation (e.g., resource name for state-rm)"
+        required: false
+        type: string
+
+# Prevent concurrent Terraform state operations
+concurrency:
+  group: terraform-state
+  cancel-in-progress: false
+
+jobs:
+  debug-operation:
+    runs-on: ubuntu-latest
+    environment: infrastructure
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/nix-installer-action@main
+        with: { determinate: true }
+
+      # - uses: DeterminateSystems/flakehub-cache-action@main  # Disabled FlakeHub caching
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        if: startsWith(inputs.operation, 'terraform-')
+
+      - name: Execute Debug Operation
+        run: |
+          nix develop --accept-flake-config --command bash -euc "
+            # Sync all variables from 1Password
+            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            bft sitevar sync --force
+
+            # Source both config and secrets
+            source .env.config
+            source .env.secrets
+
+            # Execute requested operation
+            case '${{ inputs.operation }}' in
+              terraform-state-list)
+                # Map to Terraform variable names
+                export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+                export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+                export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+                export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+                export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+                export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+                export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+                export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+                # Override AWS creds for backend
+                export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform state list ${{ inputs.args }}
+                ;;
+
+              terraform-state-show)
+                if [ -z \"${{ inputs.args }}\" ]; then
+                  echo \"❌ Resource name required for terraform-state-show\"
+                  echo \"Please provide a resource name in the 'args' field\"
+                  exit 1
+                fi
+
+                # Map to Terraform variable names
+                export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+                export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+                export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+                export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+                export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+                export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+                export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+                export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+                # Override AWS creds for backend
+                export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform state show ${{ inputs.args }}
+                ;;
+
+              terraform-state-rm)
+                if [ -z \"${{ inputs.args }}\" ]; then
+                  echo \"❌ Resource name required for terraform-state-rm\"
+                  echo \"Please provide a resource name in the 'args' field\"
+                  exit 1
+                fi
+
+                # Confirm destructive operation
+                echo \"⚠️  WARNING: About to remove '${{ inputs.args }}' from Terraform state\"
+                echo \"This will NOT destroy the actual resource, only remove it from state tracking\"
+
+                # Map to Terraform variable names
+                export TF_VAR_hcloud_token=\$HETZNER_API_TOKEN
+                export TF_VAR_cloudflare_api_token=\$CLOUDFLARE_API_TOKEN
+                export TF_VAR_cloudflare_zone_id=\$CLOUDFLARE_ZONE_ID
+                export TF_VAR_cloudflare_zone_id_bltcdn=\$CLOUDFLARE_ZONE_ID_BLTCDN
+                export TF_VAR_cloudflare_account_id=\$CLOUDFLARE_ACCOUNT_ID
+                export TF_VAR_ssh_public_key=\$SSH_PUBLIC_KEY
+                export TF_VAR_hyperdx_api_key=\$HYPERDX_API_KEY
+                export TF_VAR_hetzner_project_id=\$HETZNER_PROJECT_ID
+
+                # Override AWS creds for backend
+                export AWS_ACCESS_KEY_ID=\$TERRAFORM_BACKEND_ACCESS_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
+
+                cd infra/terraform/hetzner
+                terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
+                terraform state rm ${{ inputs.args }}
+                echo \"✅ Removed '${{ inputs.args }}' from Terraform state\"
+                ;;
+
+              debug-sitevar)
+                echo \"=== Debug: Sitevar Sync ===\"
+                echo \"OP_SERVICE_ACCOUNT_TOKEN is set: \$([ -n \"\$OP_SERVICE_ACCOUNT_TOKEN\" ] && echo 'Yes' || echo 'No')\"
+
+                # Run sync with verbose output
+                bft sitevar sync --force --verbose || true
+
+                echo \"\"
+                echo \"=== .env.config contents (non-secrets) ===\"
+                if [ -f .env.config ]; then
+                  grep -v -E '(SECRET|TOKEN|KEY|PASSWORD)' .env.config || echo \"No non-secret config found\"
+                else
+                  echo \"File .env.config not found\"
+                fi
+
+                echo \"\"
+                echo \"=== .env.secrets check ===\"
+                if [ -f .env.secrets ]; then
+                  echo \"File exists with \$(wc -l < .env.secrets) lines\"
+                  echo \"Secret variables found:\"
+                  grep -E '^[A-Z_]+=' .env.secrets | cut -d= -f1 | sort
+                else
+                  echo \"File .env.secrets not found\"
+                fi
+
+                echo \"\"
+                echo \"=== Environment variables check ===\"
+                env | grep -E '^(HETZNER|CLOUDFLARE|AWS|TERRAFORM|S3|GITHUB)' | cut -d= -f1 | sort | uniq
+                ;;
+
+              *)
+                echo \"Unknown operation: ${{ inputs.operation }}\"
+                exit 1
+                ;;
+            esac
+          "
