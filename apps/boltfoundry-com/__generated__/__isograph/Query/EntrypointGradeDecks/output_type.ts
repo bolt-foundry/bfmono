@@ -1,3 +1,3 @@
 import type React from 'react';
-import { EntrypointGradeDecks as resolver } from '../../../../entrypoints/EntrypointGradeDecks.ts';
+import { EntrypointGradeDecks as resolver } from '../../../../isograph/entrypoints/EntrypointGradeDecks.ts';
 export type Query__EntrypointGradeDecks__output_type = ReturnType<typeof resolver>;

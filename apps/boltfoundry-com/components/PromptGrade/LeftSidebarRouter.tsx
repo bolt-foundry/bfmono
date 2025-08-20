@@ -1,14 +1,14 @@
 import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
 import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
 import { useEffect, useRef } from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
 export function LeftSidebar() {
   const {
     leftSidebarOpen,
     rightSidebarOpen,
-  } = useEvalContext();
+  } = usePromptGradeContext();
   const { currentPath, navigate } = useRouter();
   const hasAnimated = useRef(false);
 

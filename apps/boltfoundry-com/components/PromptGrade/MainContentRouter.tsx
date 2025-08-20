@@ -1,11 +1,11 @@
 import React from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
-import { DecksView } from "../Decks/DecksView.tsx";
-import { DeckDetailView } from "../Decks/DeckDetailView.tsx";
-import { AnalyzeView } from "../Analyze/AnalyzeView.tsx";
-import { ChatView } from "../Chat/ChatView.tsx";
-import { GradingContainer } from "../Grading/GradingContainer.tsx";
+import { DecksView } from "../Evals/Decks/DecksView.tsx";
+import { DeckDetailView } from "../Evals/Decks/DeckDetailView.tsx";
+import { AnalyzeView } from "../Evals/Analyze/AnalyzeView.tsx";
+import { ChatView } from "../Evals/Chat/ChatView.tsx";
+import { GradingContainer } from "../Evals/Grading/GradingContainer.tsx";
 import { useDeckSamples } from "@bfmono/apps/boltfoundry-com/hooks/useDeckSamples.ts";
 import {
   type DeckTab,
@@ -18,7 +18,7 @@ const logger = getLogger(import.meta);
 
 export function MainContent() {
   const { rightSidebarMode, recentlyCompletedSamples, completionSummaries } =
-    useEvalContext();
+    usePromptGradeContext();
   const { currentPath, routeParams, navigate } = useRouter();
 
   const deckId = routeParams.deckId;

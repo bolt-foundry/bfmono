@@ -1,7 +1,7 @@
 import type { EagerReaderArtifact, ReaderAst } from '@isograph/react';
 import { Query__EntrypointDeckDetailRedirect__param } from './param_type.ts';
 import { Query__EntrypointDeckDetailRedirect__output_type } from './output_type.ts';
-import { EntrypointDeckDetailRedirect as resolver } from '../../../../entrypoints/EntrypointDeckDetailRedirect.ts';
+import { EntrypointDeckDetailRedirect as resolver } from '../../../../isograph/entrypoints/EntrypointDeckDetailRedirect.ts';
 
 const readerAst: ReaderAst<Query__EntrypointDeckDetailRedirect__param> = [
   {

@@ -1,4 +1,6 @@
 import type { IsographEntrypoint } from '@isograph/react';
+import { type BfDeck__DecksListItem__param } from './BfDeck/DecksListItem/param_type.ts';
+import { type BfOrganization__DecksList__param } from './BfOrganization/DecksList/param_type.ts';
 import { type CurrentViewer__LoginPage__param } from './CurrentViewer/LoginPage/param_type.ts';
 import { type CurrentViewer__RlhfHome__param } from './CurrentViewer/RlhfHome/param_type.ts';
 import { type CurrentViewerLoggedIn__Grade__param } from './CurrentViewerLoggedIn/Grade/param_type.ts';
@@ -12,6 +14,7 @@ import { type Query__EntrypointPg__param } from './Query/EntrypointPg/param_type
 import { type Query__EntrypointRlhf__param } from './Query/EntrypointRlhf/param_type.ts';
 import { type Query__Eval__param } from './Query/Eval/param_type.ts';
 import { type Query__Home__param } from './Query/Home/param_type.ts';
+import { type Query__PromptGrade__param } from './Query/PromptGrade/param_type.ts';
 import { type Query__RlhfInterface__param } from './Query/RlhfInterface/param_type.ts';
 import entrypoint_Mutation__JoinWaitlist from '../__isograph/Mutation/JoinWaitlist/entrypoint.ts';
 import entrypoint_Query__EntrypointDeckDetailRedirect from '../__isograph/Query/EntrypointDeckDetailRedirect/entrypoint.ts';
@@ -71,6 +74,14 @@ type MatchesWhitespaceAndString<
 > = Whitespace<T> extends `${TString}${string}` ? T : never;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DecksListItem', T>
+): IdentityWithParamComponent<BfDeck__DecksListItem__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfOrganization.DecksList', T>
+): IdentityWithParamComponent<BfOrganization__DecksList__param>;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field CurrentViewer.LoginPage', T>
 ): IdentityWithParamComponent<CurrentViewer__LoginPage__param>;
 
@@ -121,6 +132,10 @@ export function iso<T>(
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.Home', T>
 ): IdentityWithParamComponent<Query__Home__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field Query.PromptGrade', T>
+): IdentityWithParamComponent<Query__PromptGrade__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.RlhfInterface', T>
