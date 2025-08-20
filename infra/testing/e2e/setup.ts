@@ -34,7 +34,14 @@ const logger = getLogger(import.meta);
 
 export interface VideoRecordingControls {
   stop: () => Promise<VideoConversionResult | null>;
-  showSubtitle: (text: string) => Promise<void>;
+  showSubtitle: (text: string, duration?: number) => Promise<void>;
+  showTitleCard: (
+    title: string,
+    subtitle?: string,
+    duration?: number,
+    options?: { noOpeningAnimation?: boolean },
+  ) => Promise<void>;
+  clearSubtitle: () => Promise<void>;
   highlightElement: (selector: string, text: string) => Promise<void>;
 }
 
@@ -340,9 +347,11 @@ export async function setupE2ETest(options: {
           // Hide all e2e annotations for clean screenshot
           await page.evaluate(() => {
             const subtitle = document.getElementById("e2e-subtitle");
+            const titleCard = document.getElementById("e2e-title-card");
             const highlights = document.querySelectorAll(".e2e-highlight");
 
             if (subtitle) subtitle.style.display = "none";
+            if (titleCard) titleCard.style.display = "none";
             highlights.forEach((highlight) => {
               (highlight as HTMLElement).style.display = "none";
             });
@@ -358,9 +367,11 @@ export async function setupE2ETest(options: {
           // Restore annotations after screenshot
           await page.evaluate(() => {
             const subtitle = document.getElementById("e2e-subtitle");
+            const titleCard = document.getElementById("e2e-title-card");
             const highlights = document.querySelectorAll(".e2e-highlight");
 
             if (subtitle) subtitle.style.display = "";
+            if (titleCard) titleCard.style.display = "";
             highlights.forEach((highlight) => {
               (highlight as HTMLElement).style.display = "";
             });
@@ -425,6 +436,8 @@ export async function setupE2ETest(options: {
           return {
             stop: () => Promise.resolve(null),
             showSubtitle: async () => {},
+            showTitleCard: async () => {},
+            clearSubtitle: async () => {},
             highlightElement: async () => {},
           };
         }
@@ -528,65 +541,255 @@ export async function setupE2ETest(options: {
               return null;
             }
           },
-          showSubtitle: async (text: string): Promise<void> => {
-            await page.evaluate((subtitleText) => {
-              // Get or create E2E overlay container
-              let container = document.getElementById("e2e-overlay-container");
-              if (!container) {
-                container = document.createElement("div");
-                container.id = "e2e-overlay-container";
-                container.style.cssText = `
+          showSubtitle: async (
+            text: string,
+            duration = 3000,
+          ): Promise<void> => {
+            await page.evaluate(
+              (subtitleText, displayDuration) => {
+                // Get or create E2E overlay container
+                let container = document.getElementById(
+                  "e2e-overlay-container",
+                );
+                if (!container) {
+                  container = document.createElement("div");
+                  container.id = "e2e-overlay-container";
+                  container.style.cssText = `
                   position: fixed;
                   top: 0;
                   left: 0;
                   width: 100%;
                   height: 100%;
                   pointer-events: none;
-                  z-index: 2147483647;
+                  z-index: 2147483646;
                 `;
-                document.body.appendChild(container);
-              }
+                  document.body.appendChild(container);
+                }
 
-              // Remove existing subtitle if present
-              const existing = document.getElementById("e2e-subtitle");
-              if (existing) existing.remove();
+                // Remove existing subtitle if present
+                const existing = document.getElementById("e2e-subtitle");
+                if (existing) existing.remove();
 
-              // Create subtitle element
-              const subtitle = document.createElement("div");
-              subtitle.id = "e2e-subtitle";
-              subtitle.textContent = subtitleText;
-              subtitle.style.cssText = `
+                // Create subtitle element
+                const subtitle = document.createElement("div");
+                subtitle.id = "e2e-subtitle";
+                subtitle.textContent = subtitleText;
+                subtitle.style.cssText = `
                 position: fixed;
                 bottom: 60px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.85);
                 color: white;
-                padding: 12px 24px;
+                padding: 14px 28px;
                 border-radius: 8px;
-                font-size: 16px;
+                font-size: 18px;
                 font-family: system-ui, -apple-system, sans-serif;
                 font-weight: 500;
                 z-index: 5;
                 pointer-events: none;
-                max-width: 80vw;
+                max-width: 85vw;
                 text-align: center;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+                transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
                 opacity: 0;
-                transform: translateX(-50%) translateY(10px);
+                transform: translateX(-50%) translateY(15px);
+                line-height: 1.4;
               `;
 
-              container.appendChild(subtitle);
+                container.appendChild(subtitle);
 
-              // Trigger animation
-              requestAnimationFrame(() => {
-                subtitle.style.opacity = "1";
-                subtitle.style.transform = "translateX(-50%) translateY(0)";
-              });
-            }, text);
+                // Trigger fade-in animation
+                requestAnimationFrame(() => {
+                  subtitle.style.opacity = "1";
+                  subtitle.style.transform = "translateX(-50%) translateY(0)";
+                });
 
-            logger.info(`Subtitle displayed: "${text}"`);
+                // Auto-hide after duration (only if duration > 0)
+                if (displayDuration > 0) {
+                  setTimeout(() => {
+                    if (subtitle && subtitle.parentElement) {
+                      subtitle.style.opacity = "0";
+                      subtitle.style.transform =
+                        "translateX(-50%) translateY(15px)";
+                      setTimeout(() => {
+                        if (subtitle && subtitle.parentElement) {
+                          subtitle.remove();
+                        }
+                      }, 400); // Wait for fade-out animation
+                    }
+                  }, displayDuration);
+                }
+              },
+              text,
+              duration,
+            );
+
+            logger.info(
+              `Subtitle displayed: "${text}" (duration: ${duration}ms)`,
+            );
+          },
+          showTitleCard: async (
+            title: string,
+            subtitle?: string,
+            duration = 4000,
+            options?: { noOpeningAnimation?: boolean },
+          ): Promise<void> => {
+            await page.evaluate(
+              (
+                titleText,
+                subtitleText,
+                displayDuration,
+                noOpeningAnimation,
+              ) => {
+                // Get or create E2E overlay container
+                let container = document.getElementById(
+                  "e2e-overlay-container",
+                );
+                if (!container) {
+                  container = document.createElement("div");
+                  container.id = "e2e-overlay-container";
+                  container.style.cssText = `
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+                  z-index: 2147483646;
+                `;
+                  document.body.appendChild(container);
+                }
+
+                // Remove existing title card if present
+                const existing = document.getElementById("e2e-title-card");
+                if (existing) existing.remove();
+
+                // Create title card element
+                const titleCard = document.createElement("div");
+                titleCard.id = "e2e-title-card";
+                titleCard.style.cssText = `
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
+                  color: white;
+                  padding: 40px 60px;
+                  border-radius: 16px;
+                  text-align: center;
+                  z-index: 2147483647 !important;
+                  pointer-events: none;
+                  max-width: 70vw;
+                  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+                  border: 1px solid rgba(255, 255, 255, 0.1);
+                  backdrop-filter: blur(10px);
+                  transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+                  opacity: ${noOpeningAnimation ? "1" : "0"};
+                  transform: translate(-50%, -50%) scale(${
+                  noOpeningAnimation ? "1" : "0.9"
+                });
+                `;
+
+                // Create title element
+                const titleElement = document.createElement("h1");
+                titleElement.textContent = titleText;
+                titleElement.style.cssText = `
+                  font-size: 2.5rem;
+                  font-weight: 700;
+                  margin: 0 0 ${subtitleText ? "20px" : "0"} 0;
+                  font-family: system-ui, -apple-system, sans-serif;
+                  line-height: 1.2;
+                  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+                  -webkit-background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  background-clip: text;
+                `;
+
+                titleCard.appendChild(titleElement);
+
+                // Add subtitle if provided
+                if (subtitleText) {
+                  const subtitleElement = document.createElement("p");
+                  subtitleElement.textContent = subtitleText;
+                  subtitleElement.style.cssText = `
+                    font-size: 1.25rem;
+                    font-weight: 400;
+                    margin: 0;
+                    opacity: 0.85;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    line-height: 1.4;
+                  `;
+                  titleCard.appendChild(subtitleElement);
+                }
+
+                container.appendChild(titleCard);
+
+                // Trigger fade-in animation only if opening animation is not disabled
+                if (!noOpeningAnimation) {
+                  requestAnimationFrame(() => {
+                    titleCard.style.opacity = "1";
+                    titleCard.style.transform =
+                      "translate(-50%, -50%) scale(1)";
+                  });
+                }
+
+                // Auto-hide after duration (only if duration > 0)
+                if (displayDuration > 0) {
+                  setTimeout(() => {
+                    if (titleCard && titleCard.parentElement) {
+                      titleCard.style.opacity = "0";
+                      titleCard.style.transform =
+                        "translate(-50%, -50%) scale(0.9)";
+                      setTimeout(() => {
+                        if (titleCard && titleCard.parentElement) {
+                          titleCard.remove();
+                        }
+                      }, 600); // Wait for fade-out animation
+                    }
+                  }, displayDuration);
+                }
+              },
+              title,
+              subtitle,
+              duration,
+              options?.noOpeningAnimation || false,
+            );
+
+            logger.info(
+              `Title card displayed: "${title}"${
+                subtitle ? ` - "${subtitle}"` : ""
+              } (duration: ${duration}ms)`,
+            );
+          },
+          clearSubtitle: async (): Promise<void> => {
+            await page.evaluate(() => {
+              // Remove subtitle
+              const subtitle = document.getElementById("e2e-subtitle");
+              if (subtitle) {
+                subtitle.style.opacity = "0";
+                subtitle.style.transform = "translateX(-50%) translateY(15px)";
+                setTimeout(() => {
+                  if (subtitle && subtitle.parentElement) {
+                    subtitle.remove();
+                  }
+                }, 400); // Wait for fade-out animation
+              }
+
+              // Remove title card
+              const titleCard = document.getElementById("e2e-title-card");
+              if (titleCard) {
+                titleCard.style.opacity = "0";
+                titleCard.style.transform = "translate(-50%, -50%) scale(0.9)";
+                setTimeout(() => {
+                  if (titleCard && titleCard.parentElement) {
+                    titleCard.remove();
+                  }
+                }, 600); // Wait for fade-out animation
+              }
+            });
+
+            logger.info("Subtitles and title cards cleared");
           },
           highlightElement: async (
             selector: string,
@@ -624,7 +827,7 @@ export async function setupE2ETest(options: {
                     width: 100%;
                     height: 100%;
                     pointer-events: none;
-                    z-index: 2147483647;
+                    z-index: 2147483646;
                   `;
                   document.body.appendChild(container);
                 }

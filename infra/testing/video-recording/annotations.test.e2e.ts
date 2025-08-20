@@ -16,8 +16,8 @@ Deno.test("Basic annotation API test", async () => {
       { timeout: 5000 },
     );
 
-    // Show welcome subtitle
-    await showSubtitle("Welcome to our annotation demo! 🎉");
+    // Show welcome subtitle with longer duration for readability
+    await showSubtitle("Welcome to our annotation demo! 🎉", 4000);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Highlight the login button
@@ -28,8 +28,8 @@ Deno.test("Basic annotation API test", async () => {
     await context.click("#login");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Change subtitle
-    await showSubtitle("Now let's look at the input field");
+    // Change subtitle with better timing
+    await showSubtitle("Now let's look at the input field", 3500);
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Highlight input field
@@ -40,8 +40,8 @@ Deno.test("Basic annotation API test", async () => {
     await context.type("#username", "demo-user");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Final highlight
-    await showSubtitle("And here's the submit button");
+    // Final highlight with readable timing
+    await showSubtitle("And here's the submit button", 3000);
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     await highlightElement("#submit", "Click to submit! 🚀");
@@ -57,8 +57,8 @@ Deno.test("Basic annotation API test", async () => {
       showAnnotations: true,
     }); // Should show annotations
 
-    // Final subtitle
-    await showSubtitle("Demo complete! Thanks for watching 👋");
+    // Final subtitle with extended duration
+    await showSubtitle("Demo complete! Thanks for watching 👋", 4000);
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await stop();
