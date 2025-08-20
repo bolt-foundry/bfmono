@@ -57,6 +57,7 @@
           pkgs.fd
           pkgs.lsof
           pkgs.bind.dnsutils  # Provides nslookup and dig
+          pkgs.ruby_3_3  # Ruby for kamal deployment tool
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
           # containerTool
