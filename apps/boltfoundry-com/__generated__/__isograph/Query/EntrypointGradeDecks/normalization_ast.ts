@@ -59,7 +59,7 @@ const normalizationAst: NormalizationAst = {
                   arguments: [
                     [
                       "first",
-                      { kind: "Literal", value: 50 },
+                      { kind: "Literal", value: 100 },
                     ],
                   ],
                   concreteType: "BfOrganizationDecksConnection",
@@ -87,9 +87,77 @@ const normalizationAst: NormalizationAst = {
                               arguments: null,
                             },
                             {
+                              kind: "Linked",
+                              fieldName: "graders",
+                              arguments: [
+                                [
+                                  "first",
+                                  { kind: "Literal", value: 100 },
+                                ],
+                              ],
+                              concreteType: "BfDeckGradersConnection",
+                              selections: [
+                                {
+                                  kind: "Linked",
+                                  fieldName: "edges",
+                                  arguments: null,
+                                  concreteType: "BfDeckGradersConnectionEdge",
+                                  selections: [
+                                    {
+                                      kind: "Linked",
+                                      fieldName: "node",
+                                      arguments: null,
+                                      concreteType: "BfGrader",
+                                      selections: [
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "id",
+                                          arguments: null,
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                            {
                               kind: "Scalar",
                               fieldName: "name",
                               arguments: null,
+                            },
+                            {
+                              kind: "Linked",
+                              fieldName: "samples",
+                              arguments: [
+                                [
+                                  "first",
+                                  { kind: "Literal", value: 100 },
+                                ],
+                              ],
+                              concreteType: "BfDeckSamplesConnection",
+                              selections: [
+                                {
+                                  kind: "Linked",
+                                  fieldName: "edges",
+                                  arguments: null,
+                                  concreteType: "BfDeckSamplesConnectionEdge",
+                                  selections: [
+                                    {
+                                      kind: "Linked",
+                                      fieldName: "node",
+                                      arguments: null,
+                                      concreteType: "BfSample",
+                                      selections: [
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "id",
+                                          arguments: null,
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              ],
                             },
                             {
                               kind: "Scalar",

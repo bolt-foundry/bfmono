@@ -1,7 +1,7 @@
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useEffect, useRef } from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
-import { GradingContainer } from "../Grading/GradingContainer.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
+import { GradingContainer } from "../Evals/Grading/GradingContainer.tsx";
 
 export function RightSidebar() {
   const {
@@ -13,7 +13,7 @@ export function RightSidebar() {
     gradingDeckId,
     gradingDeckName,
     exitGrading,
-  } = useEvalContext();
+  } = usePromptGradeContext();
   const hasAnimated = useRef(false);
 
   useEffect(() => {

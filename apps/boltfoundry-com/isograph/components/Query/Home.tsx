@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { iso } from "@iso-bfc";
 import { BfDsButton } from "@bfmono/apps/bfDs/index.ts";
-import { Nav } from "./Nav.tsx";
-import { WaitlistSection } from "./WaitlistSection.tsx";
+import { Nav } from "@bfmono/apps/boltfoundry-com/components/Nav.tsx";
+import { WaitlistSection } from "@bfmono/apps/boltfoundry-com/components/WaitlistSection.tsx";
 
 export const Home = iso(`
   field Query.Home @component {
