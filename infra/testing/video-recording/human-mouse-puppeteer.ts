@@ -6,7 +6,9 @@
 import type { Page } from "puppeteer-core";
 import type { CursorGlobals } from "./cursor-types.ts";
 import {
+  getLastKnownPosition,
   setCursorStyle,
+  setLastKnownPosition,
   updateCursorPosition,
 } from "./cursor-overlay-page-injection.ts";
 
@@ -100,11 +102,11 @@ export async function humanMoveTo(
 ): Promise<void> {
   const { speedFactor = 1.0, humanLike = true } = options;
 
-  // Get current mouse position
+  // Get current mouse position with enhanced persistence
   const currentPos = await page.evaluate(() => {
     const stored = (globalThis as CursorGlobals).__mousePosition;
-    return stored || { x: 640, y: 360 };
-  });
+    return stored;
+  }) || getLastKnownPosition() || { x: 640, y: 360 };
 
   // Calculate distance
   const distance = Math.sqrt(
@@ -115,6 +117,7 @@ export async function humanMoveTo(
     // Very small movement, just move directly
     await page.mouse.move(targetX, targetY);
     await updateCursorPosition(page, targetX, targetY);
+    setLastKnownPosition(targetX, targetY); // Persist position for page changes
     return;
   }
 
@@ -138,6 +141,7 @@ export async function humanMoveTo(
 
       await page.mouse.move(x, y);
       await updateCursorPosition(page, x, y);
+      setLastKnownPosition(x, y); // Persist position for page changes
       await new Promise((resolve) => setTimeout(resolve, stepDelay));
     }
     return;
@@ -166,6 +170,10 @@ export async function humanMoveTo(
   const frameTime = 1000 / 60;
   const totalFrames = Math.max(10, Math.floor(duration / frameTime));
   const frameDelay = duration / totalFrames;
+
+  // Track hover state - mirrors what the browser shows, persisting between checks
+  let currentHoverState = false;
+  let lastDetectedCursor = "default";
 
   // Move along the spline path
   for (let frame = 0; frame <= totalFrames; frame++) {
@@ -202,53 +210,67 @@ export async function humanMoveTo(
 
     await page.mouse.move(x, y);
 
-    // Update cursor overlay and handle interactive elements
+    // Update cursor overlay position and persist the position
     try {
       await updateCursorPosition(page, x, y);
+      setLastKnownPosition(x, y); // Ensure position persists across page changes
+    } catch {
+      // Cursor overlay might not be available
+    }
 
-      // Check for interactive elements and update cursor style
-      const isOverInteractive = await page.evaluate(
+    // Check hover state every frame during movement to catch all boundary crossings
+    try {
+      const browserCursor = await page.evaluate(
         (mouseX, mouseY) => {
+          // Just ask the browser: what cursor should be shown at this position?
           const element = document.elementFromPoint(mouseX, mouseY);
-          if (!element) return false;
+          if (!element) return "default";
 
-          let current: Element | null = element;
-          while (current) {
-            const tagName = current.tagName?.toLowerCase();
-            const role = current.getAttribute("role");
-            const hasClickHandler = (current as HTMLElement).onclick !== null;
-            const cursorStyle = (current as HTMLElement).style?.cursor;
+          // Get the browser's computed cursor - this is what the browser would naturally show
+          const computedStyle = globalThis.getComputedStyle(element);
+          const cursor = computedStyle.cursor || "default";
 
-            if (
-              tagName === "a" ||
-              tagName === "button" ||
-              tagName === "input" ||
-              tagName === "select" ||
-              tagName === "textarea" ||
-              role === "button" ||
-              role === "link" ||
-              hasClickHandler ||
-              cursorStyle === "pointer"
-            ) {
-              return true;
-            }
-            current = current.parentElement;
-          }
-          return false;
+          return cursor;
         },
         x,
         y,
       );
 
-      await setCursorStyle(page, isOverInteractive ? "hover" : "default");
+      // Update our last detected cursor state
+      lastDetectedCursor = browserCursor;
     } catch {
-      // Cursor overlay might not be available
+      // Cursor overlay might not be available - keep using last detected cursor
+    }
+
+    // Always use the last detected cursor state to determine overlay style
+    let overlayStyle: "default" | "hover" | "click";
+    if (
+      lastDetectedCursor === "pointer" || lastDetectedCursor === "grab" ||
+      lastDetectedCursor === "grabbing"
+    ) {
+      overlayStyle = "hover";
+    } else if (lastDetectedCursor === "text") {
+      overlayStyle = "hover"; // Could be a different style if needed
+    } else {
+      overlayStyle = "default";
+    }
+
+    // Update cursor style if it changed
+    if ((overlayStyle === "hover") !== currentHoverState) {
+      currentHoverState = overlayStyle === "hover";
+      try {
+        await setCursorStyle(page, overlayStyle);
+      } catch {
+        // Cursor overlay might not be available
+      }
     }
 
     // Variable timing between frames to simulate human inconsistency
     const variableDelay = frameDelay * randomBetween(0.8, 1.2);
     await new Promise((resolve) => setTimeout(resolve, variableDelay));
   }
+
+  // Final cursor state is already set during the last frame of movement loop
 }
 
 /**
@@ -264,14 +286,14 @@ export async function humanClick(
     doubleClick?: boolean;
   } = {},
 ): Promise<void> {
-  const { button = "left", clickDelay, doubleClick = false } = options;
+  const { button = "left", clickDelay: _clickDelay, doubleClick = false } =
+    options;
 
   // Move to position first
   await humanMoveTo(page, x, y);
 
-  // Pause before click (human reaction time)
-  const preClickDelay = clickDelay ?? randomBetween(50, 150);
-  await new Promise((resolve) => setTimeout(resolve, preClickDelay));
+  // Extra pause after movement to let hover state settle and be visible
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   // Show click animation
   try {
@@ -280,27 +302,42 @@ export async function humanClick(
     // Cursor overlay might not be available
   }
 
+  // Brief pause before actual click for visual feedback (like original smooth-ui)
+  await new Promise((resolve) => setTimeout(resolve, 150));
+
   // Small random offset for imperfect clicking
   const offsetX = x + randomBetween(-1, 1);
   const offsetY = y + randomBetween(-1, 1);
 
   await page.mouse.click(offsetX, offsetY, { button });
 
+  // Pause after click to show the click effect
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
   if (doubleClick) {
+    // Show click animation again for double click
+    try {
+      await setCursorStyle(page, "click");
+    } catch {
+      // Cursor overlay might not be available
+    }
+
     // Random delay between clicks for double-click
     const doubleClickDelay = randomBetween(80, 150);
     await new Promise((resolve) => setTimeout(resolve, doubleClickDelay));
     await page.mouse.click(offsetX, offsetY, { button });
+
+    // Pause after second click
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
-  // Post-click pause
-  const postClickDelay = randomBetween(100, 200);
-  await new Promise((resolve) => setTimeout(resolve, postClickDelay));
-
-  // Reset cursor style
+  // Reset cursor style after click
   try {
     await setCursorStyle(page, "default");
   } catch {
     // Cursor overlay might not be available
   }
+
+  // Final pause to let UI state settle after click (like original smooth-ui)
+  await new Promise((resolve) => setTimeout(resolve, 200));
 }
