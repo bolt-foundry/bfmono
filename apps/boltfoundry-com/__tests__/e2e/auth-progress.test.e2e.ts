@@ -160,7 +160,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
         // Try to click the Google Sign-In button
         try {
           logger.info("🔧 Attempting to smooth click Google Sign-In button...");
-          await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+          await context.waitForSelector(
             "button",
             { timeout: 2000 },
           );
@@ -179,8 +179,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           logger.info(`📍 Current URL after login attempt: ${currentUrl}`);
 
           // Verify authentication by checking cookies
-          const cookies = await context.__UNSAFE_page_useContextMethodsInstead
-            .cookies();
+          const cookies = await context.getPageCookies();
           const authCookies = cookies.filter((cookie) =>
             cookie.name === "bf_access" || cookie.name === "bf_refresh"
           );
@@ -196,10 +195,9 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           }
 
           // Check if page content indicates we're logged in
-          const pageContentAfterAuth = await context
-            .__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-              document.body.innerText.toLowerCase()
-            );
+          const pageContentAfterAuth = await context.evaluate(() =>
+            document.body.innerText.toLowerCase()
+          );
 
           const loggedInIndicators = [
             "welcome back",

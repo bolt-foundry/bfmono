@@ -23,13 +23,14 @@ Deno.test("Eval page functionality", async (t) => {
       // Navigate to homepage
       logger.debug("Navigating to homepage...");
       await navigateTo(context, "/");
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      await context.waitForNetworkIdle({
         timeout: 3000,
       });
 
       // Verify homepage loaded
-      const pageContent = await context.__UNSAFE_page_useContextMethodsInstead
-        .evaluate(() => document.body.textContent);
+      const pageContent = await context.evaluate(() =>
+        document.body.textContent
+      );
       assert(
         pageContent?.includes("Bolt Foundry"),
         "Homepage should load with Bolt Foundry content",
@@ -43,7 +44,7 @@ Deno.test("Eval page functionality", async (t) => {
       logger.debug("Looking for login link...");
 
       // Wait for the login link to be visible
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      await context.waitForSelector(
         'a[href="/login"]',
         {
           visible: true,
@@ -69,10 +70,9 @@ Deno.test("Eval page functionality", async (t) => {
         `Should be on login page, but URL is ${currentUrl}`,
       );
 
-      const loginPageContent = await context
-        .__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-          document.body.textContent
-        );
+      const loginPageContent = await context.evaluate(() =>
+        document.body.textContent
+      );
       assert(
         loginPageContent?.includes("Sign In"),
         "Login page should display Sign In text",
@@ -88,7 +88,7 @@ Deno.test("Eval page functionality", async (t) => {
       logger.debug("Waiting for Google Sign-In button to be ready...");
 
       // Wait for the Google button to be rendered
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      await context.waitForSelector(
         "#google-signin-button",
         {
           visible: true,
@@ -110,8 +110,7 @@ Deno.test("Eval page functionality", async (t) => {
       const currentUrl = context.getPageUrl();
       logger.debug(`Current URL after auth: ${currentUrl}`);
 
-      const cookies = await context.__UNSAFE_page_useContextMethodsInstead
-        .cookies();
+      const cookies = await context.getPageCookies();
       const authCookies = cookies.filter((cookie) =>
         cookie.name === "bf_access" || cookie.name === "bf_refresh"
       );
@@ -138,10 +137,10 @@ Deno.test("Eval page functionality", async (t) => {
       await showSubtitle("📊 Navigating to eval page...");
 
       // Should already be on /pg after auth
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle();
+      await context.waitForNetworkIdle();
 
       // Wait for DeckList component to mount
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      await context.waitForSelector(
         ".decks-list, .decks-header",
         {
           visible: true,
@@ -152,18 +151,17 @@ Deno.test("Eval page functionality", async (t) => {
       await context.takeScreenshot("eval-test-decks-page");
 
       // Check if HUD is visible and contains our debug messages
-      const hudVisible =
-        await context.__UNSAFE_page_useContextMethodsInstead.$(".bfds-hud") !==
-          null;
+      const hudVisible = await context.evaluate(() =>
+        document.querySelector(".bfds-hud") !== null
+      );
       if (hudVisible) {
         logger.info("✅ HUD is visible");
 
         // Get HUD messages
-        const hudMessages = await context.__UNSAFE_page_useContextMethodsInstead
-          .evaluate(() => {
-            const messages = document.querySelectorAll(".hud-message-content");
-            return Array.from(messages).map((el) => el.textContent);
-          });
+        const hudMessages = await context.evaluate(() => {
+          const messages = document.querySelectorAll(".hud-message-content");
+          return Array.from(messages).map((el) => el.textContent);
+        });
 
         logger.info("HUD Messages:", hudMessages);
 
@@ -188,8 +186,8 @@ Deno.test("Eval page functionality", async (t) => {
       }
 
       // Verify deck items are displayed
-      const deckItems = await context.__UNSAFE_page_useContextMethodsInstead.$$(
-        ".deck-item",
+      const deckItems = await context.evaluate(() =>
+        document.querySelectorAll(".deck-item").length
       );
       logger.info(`Found ${deckItems.length} deck items`);
       // TODO: Fix mock data loading for decks

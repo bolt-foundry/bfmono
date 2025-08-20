@@ -18,12 +18,12 @@ Deno.test("Login page does not show development warnings in production mode", as
 
     // Navigate to login page
     await navigateTo(context, "/login");
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+    await context.waitForNetworkIdle({
       timeout: 3000,
     });
 
     // Get page content
-    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead
+    const bodyText = await context
       .evaluate(() => document.body.textContent);
 
     // Verify login page loaded

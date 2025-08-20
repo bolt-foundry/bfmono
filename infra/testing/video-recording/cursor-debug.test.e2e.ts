@@ -57,7 +57,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
     await context.takeScreenshot("cursor-debug-4-after-page-load");
 
     // Check if cursor element still exists
-    const cursorExists = await context.__UNSAFE_page_useContextMethodsInstead
+    const cursorExists = await context
       .evaluate(() => {
         const cursor = document.getElementById("e2e-cursor-overlay");
         if (cursor) {
@@ -144,7 +144,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
 
     // Final cursor state check
     const finalCursorState = await context
-      .__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
+      .evaluate(() => {
         const cursor = document.getElementById("e2e-cursor-overlay");
         if (cursor) {
           const rect = cursor.getBoundingClientRect();
@@ -174,7 +174,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
     logger.info("Final cursor state:", finalCursorState);
 
     // Get page title to verify test ran
-    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
+    const title = await context.getPageTitle();
     logger.info(`Page title: ${title}`);
 
     // Basic assertions

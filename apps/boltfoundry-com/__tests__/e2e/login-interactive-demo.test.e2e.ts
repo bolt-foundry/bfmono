@@ -132,7 +132,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     // Navigate to login page
     logger.info("Navigating to login page...");
     await navigateTo(context, "/login");
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+    await context.waitForNetworkIdle({
       timeout: 3000,
     });
 
@@ -145,7 +145,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await context.takeScreenshot("login-page-before-click");
 
     // Check page content
-    const pageText = await context.__UNSAFE_page_useContextMethodsInstead
+    const pageText = await context
       .evaluate(() => document.body.innerText);
 
     assert(
@@ -161,7 +161,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await showSubtitle("👆 Clicking Google Sign-In button...");
 
     // Wait for button to be ready
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+    await context.waitForSelector(
       "#google-signin-button",
       {
         timeout: 5000,
@@ -183,8 +183,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     const currentUrl = context.getPageUrl();
     logger.info(`Current URL after auth: ${currentUrl}`);
 
-    const cookies = await context.__UNSAFE_page_useContextMethodsInstead
-      .cookies();
+    const cookies = await context.getPageCookies();
     const authCookies = cookies.filter((cookie) =>
       cookie.name === "bf_access" || cookie.name === "bf_refresh"
     );

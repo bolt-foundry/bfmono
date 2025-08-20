@@ -23,7 +23,7 @@ Deno.test("HUD functionality", async (t) => {
       // Navigate to homepage
       logger.debug("Navigating to homepage...");
       await navigateTo(context, "/");
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      await context.waitForNetworkIdle({
         timeout: 3000,
       });
 
