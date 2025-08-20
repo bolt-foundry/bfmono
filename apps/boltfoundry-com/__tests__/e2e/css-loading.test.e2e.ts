@@ -19,41 +19,42 @@ Deno.test("CSS loading - inline and external CSS on home page", async () => {
     await context.takeScreenshot("css-test-home-page");
 
     // Verify professional CSS styling is loaded correctly
-    const cssLoadingStatus = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      // Check for landing page wrapper with proper class
-      const landingPage = document.querySelector(".landing-page");
-      const hasLandingPageClass = landingPage !== null;
+    const cssLoadingStatus = await context
+      .__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
+        // Check for landing page wrapper with proper class
+        const landingPage = document.querySelector(".landing-page");
+        const hasLandingPageClass = landingPage !== null;
 
-      // Check for hero section with professional styling
-      const heroSection = document.querySelector(".hero-section");
-      const hasHeroSection = heroSection !== null;
-      let heroSectionStyled = false;
-      if (heroSection) {
-        const styles = globalThis.getComputedStyle(heroSection);
-        // Check for flexbox display which is set by .flexColumn class
-        heroSectionStyled = styles.display === "flex";
-      }
+        // Check for hero section with professional styling
+        const heroSection = document.querySelector(".hero-section");
+        const hasHeroSection = heroSection !== null;
+        let heroSectionStyled = false;
+        if (heroSection) {
+          const styles = globalThis.getComputedStyle(heroSection);
+          // Check for flexbox display which is set by .flexColumn class
+          heroSectionStyled = styles.display === "flex";
+        }
 
-      // Check for professional typography classes
-      const mainHeading = document.querySelector("h1.main");
-      const hasMainHeading = mainHeading !== null;
-      let mainHeadingStyled = false;
-      if (mainHeading) {
-        const styles = globalThis.getComputedStyle(mainHeading);
-        // Should have large font size from landingStyle.css
-        mainHeadingStyled = parseFloat(styles.fontSize) > 40; // 4em should be > 40px
-      }
+        // Check for professional typography classes
+        const mainHeading = document.querySelector("h1.main");
+        const hasMainHeading = mainHeading !== null;
+        let mainHeadingStyled = false;
+        if (mainHeading) {
+          const styles = globalThis.getComputedStyle(mainHeading);
+          // Should have large font size from landingStyle.css
+          mainHeadingStyled = parseFloat(styles.fontSize) > 40; // 4em should be > 40px
+        }
 
-      return {
-        landingPageClass: hasLandingPageClass,
-        heroSectionPresent: hasHeroSection,
-        heroSectionStyled: heroSectionStyled,
-        mainHeadingPresent: hasMainHeading,
-        mainHeadingStyled: mainHeadingStyled,
-        allDivs: Array.from(document.querySelectorAll("div")).length,
-        pageText: document.body.textContent?.substring(0, 200),
-      };
-    });
+        return {
+          landingPageClass: hasLandingPageClass,
+          heroSectionPresent: hasHeroSection,
+          heroSectionStyled: heroSectionStyled,
+          mainHeadingPresent: hasMainHeading,
+          mainHeadingStyled: mainHeadingStyled,
+          allDivs: Array.from(document.querySelectorAll("div")).length,
+          pageText: document.body.textContent?.substring(0, 200),
+        };
+      });
 
     logger.info(`CSS loading status:`, cssLoadingStatus);
 
@@ -88,20 +89,21 @@ Deno.test("CSS loading - inline and external CSS on home page", async () => {
     );
 
     // Check that the bundled CSS file is loaded correctly
-    const cssInfo = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const cssLinks = Array.from(
-        document.querySelectorAll('link[rel="stylesheet"]'),
-      );
-      return {
-        cssLinksCount: cssLinks.length,
-        cssHrefs: cssLinks.map((link) => link.getAttribute("href")),
-        hasBundledCSS: cssLinks.some((link) => {
-          const href = link.getAttribute("href");
-          return href && href.includes("/static/build/assets/") &&
-            href.includes(".css");
-        }),
-      };
-    });
+    const cssInfo = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        const cssLinks = Array.from(
+          document.querySelectorAll('link[rel="stylesheet"]'),
+        );
+        return {
+          cssLinksCount: cssLinks.length,
+          cssHrefs: cssLinks.map((link) => link.getAttribute("href")),
+          hasBundledCSS: cssLinks.some((link) => {
+            const href = link.getAttribute("href");
+            return href && href.includes("/static/build/assets/") &&
+              href.includes(".css");
+          }),
+        };
+      });
 
     logger.info("CSS loading info:", cssInfo);
 

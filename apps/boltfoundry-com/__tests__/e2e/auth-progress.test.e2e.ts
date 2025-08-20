@@ -90,13 +90,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     // 🎬 Start video recording for the entire authentication progress demo
     const { stop, showSubtitle } = await context
-      .startRecording(
-        "auth-implementation-progress",
-        {
-          quality: "high",
-          framerate: 30,
-        },
-      );
+      .startRecording("auth-implementation-progress");
 
     await showSubtitle("Frontend Authentication Implementation Progress Demo");
 

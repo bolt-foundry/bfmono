@@ -21,7 +21,9 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     await navigateTo(context, "/rlhf");
 
     // Wait for page to load completely
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({ timeout: 5000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      timeout: 5000,
+    });
 
     // Wait for React hydration to complete - look for auth-aware content
     await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(() => {
@@ -34,23 +36,31 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     }, { timeout: 5000 });
 
     // Check that page loaded successfully (no 404)
-    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(context.__UNSAFE_page_useContextMethodsInstead.url());
+    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(
+      context.__UNSAFE_page_useContextMethodsInstead.url(),
+    );
     const statusCode = response?.status();
     logger.info("HTTP Status Code:", statusCode);
 
-    logger.info("Page title:", await context.__UNSAFE_page_useContextMethodsInstead.title());
-    logger.info("Page URL:", context.__UNSAFE_page_useContextMethodsInstead.url());
+    logger.info(
+      "Page title:",
+      await context.__UNSAFE_page_useContextMethodsInstead.title(),
+    );
+    logger.info(
+      "Page URL:",
+      context.__UNSAFE_page_useContextMethodsInstead.url(),
+    );
 
     // Extract just the body content for debugging
-    const bodyContent = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-      document.body.innerText
-    );
+    const bodyContent = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => document.body.innerText);
     logger.info("Body content:", bodyContent.substring(0, 500));
 
     // Check for JavaScript errors
-    const errors = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      return globalThis.console?.error || [];
-    });
+    const errors = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        return globalThis.console?.error || [];
+      });
     logger.info("JavaScript errors:", errors);
 
     // Check for actual 404 errors in the response status, not just text content

@@ -405,7 +405,7 @@ export async function setupE2ETest(options: {
           logger.debug("Video recording disabled by BF_E2E_NO_VIDEO");
           // Return no-op controls
           return {
-            stop: async () => null,
+            stop: () => Promise.resolve(null),
             showSubtitle: async () => {},
             highlightElement: async () => {},
           };

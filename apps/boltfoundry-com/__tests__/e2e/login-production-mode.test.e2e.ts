@@ -12,22 +12,19 @@ Deno.test("Login page does not show development warnings in production mode", as
     // Start video recording
     const { stop, showSubtitle } = await context.startRecording(
       "login-production-mode-fix",
-      {
-        quality: "high",
-        framerate: 30,
-      },
     );
 
     await showSubtitle("Production Login Page - No Development Warnings");
 
     // Navigate to login page
     await navigateTo(context, "/login");
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({ timeout: 3000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      timeout: 3000,
+    });
 
     // Get page content
-    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-      document.body.textContent
-    );
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => document.body.textContent);
 
     // Verify login page loaded
     assert(

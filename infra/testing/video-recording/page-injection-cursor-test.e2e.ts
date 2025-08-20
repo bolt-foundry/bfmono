@@ -25,7 +25,9 @@ Deno.test("Page injection cursor overlay test with screenshots", async () => {
 
     // Inject cursor overlay that persists across page navigations
     logger.info("Step 2: Injecting page injection cursor overlay");
-    await injectCursorOverlayOnAllPages(context.__UNSAFE_page_useContextMethodsInstead);
+    await injectCursorOverlayOnAllPages(
+      context.__UNSAFE_page_useContextMethodsInstead,
+    );
 
     // Give it a moment
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -35,7 +37,11 @@ Deno.test("Page injection cursor overlay test with screenshots", async () => {
 
     // Set cursor position manually
     logger.info("Step 4: Setting cursor position to top-left");
-    await updateCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 100, 100);
+    await updateCursorPosition(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      100,
+      100,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     logger.info("Step 5: Taking screenshot with cursor at top-left");
@@ -52,7 +58,11 @@ Deno.test("Page injection cursor overlay test with screenshots", async () => {
     // Ensure cursor is visible after navigation
     logger.info("Step 8: Ensuring cursor is visible after navigation");
     await ensureCursorVisible(context.__UNSAFE_page_useContextMethodsInstead);
-    await updateCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 400, 300);
+    await updateCursorPosition(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      400,
+      300,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     logger.info("Step 9: Taking screenshot after ensuring cursor visibility");
@@ -60,49 +70,71 @@ Deno.test("Page injection cursor overlay test with screenshots", async () => {
 
     // Test different cursor styles
     logger.info("Step 10: Testing hover style");
-    await setCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "hover");
-    await updateCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 300, 200);
+    await setCursorStyle(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      "hover",
+    );
+    await updateCursorPosition(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      300,
+      200,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("page-injection-cursor-6-hover-style");
 
     logger.info("Step 11: Testing click style");
-    await setCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "click");
-    await updateCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 500, 400);
+    await setCursorStyle(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      "click",
+    );
+    await updateCursorPosition(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      500,
+      400,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("page-injection-cursor-7-click-style");
 
     logger.info("Step 12: Back to default style");
-    await setCursorStyle(context.__UNSAFE_page_useContextMethodsInstead, "default");
-    await updateCursorPosition(context.__UNSAFE_page_useContextMethodsInstead, 640, 360);
+    await setCursorStyle(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      "default",
+    );
+    await updateCursorPosition(
+      context.__UNSAFE_page_useContextMethodsInstead,
+      640,
+      360,
+    );
     await new Promise((resolve) => setTimeout(resolve, 500));
     await context.takeScreenshot("page-injection-cursor-8-default-style");
 
     // Check final cursor state
-    const finalCursorState = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const cursor = document.getElementById("e2e-cursor-overlay");
-      if (cursor) {
-        const rect = cursor.getBoundingClientRect();
-        const computed = getComputedStyle(cursor);
-        return {
-          exists: true,
-          boundingRect: {
-            left: rect.left,
-            top: rect.top,
-            width: rect.width,
-            height: rect.height,
-          },
-          styles: {
-            display: cursor.style.display,
-            visibility: computed.visibility,
-            opacity: computed.opacity,
-            zIndex: computed.zIndex,
-            position: computed.position,
-            background: cursor.style.background,
-          },
-        };
-      }
-      return { exists: false };
-    });
+    const finalCursorState = await context
+      .__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
+        const cursor = document.getElementById("e2e-cursor-overlay");
+        if (cursor) {
+          const rect = cursor.getBoundingClientRect();
+          const computed = getComputedStyle(cursor);
+          return {
+            exists: true,
+            boundingRect: {
+              left: rect.left,
+              top: rect.top,
+              width: rect.width,
+              height: rect.height,
+            },
+            styles: {
+              display: cursor.style.display,
+              visibility: computed.visibility,
+              opacity: computed.opacity,
+              zIndex: computed.zIndex,
+              position: computed.position,
+              background: cursor.style.background,
+            },
+          };
+        }
+        return { exists: false };
+      });
 
     logger.info("Final cursor state:", finalCursorState);
 
