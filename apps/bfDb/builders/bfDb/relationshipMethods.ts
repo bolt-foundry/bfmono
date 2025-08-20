@@ -39,18 +39,18 @@ type OneRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
     [K in RelationNames<T>]: RelationCardinality<T, K> extends "one" ?
         & {
           [P in K as `find${Capitalize<P>}`]: () => Promise<
-            InstanceType<RelationTarget<T, P>> | null
+            WithRelationships<RelationTarget<T, P>> | null
           >;
         }
         & {
           [P in K as `findX${Capitalize<P>}`]: () => Promise<
-            InstanceType<RelationTarget<T, P>>
+            WithRelationships<RelationTarget<T, P>>
           >;
         }
         & {
           [P in K as `create${Capitalize<P>}`]: (
             props: InferProps<RelationTarget<T, P>>,
-          ) => Promise<InstanceType<RelationTarget<T, P>>>;
+          ) => Promise<WithRelationships<RelationTarget<T, P>>>;
         }
         & {
           [P in K as `unlink${Capitalize<P>}`]: () => Promise<void>;
@@ -68,8 +68,18 @@ type ManyRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
     [K in RelationNames<T>]: RelationCardinality<T, K> extends "many" ?
         & {
           [P in K as `findAll${Capitalize<P>}`]: () => Promise<
-            Array<InstanceType<RelationTarget<T, P>>>
+            Array<WithRelationships<RelationTarget<T, P>>>
           >;
+        }
+        & {
+          [P in K as `query${Capitalize<P>}`]: (
+            where?: Partial<InferProps<RelationTarget<T, P>>>,
+          ) => Promise<Array<WithRelationships<RelationTarget<T, P>>>>;
+        }
+        & {
+          [P in K as `create${Capitalize<P>}Item`]: (
+            props: InferProps<RelationTarget<T, P>>,
+          ) => Promise<WithRelationships<RelationTarget<T, P>>>;
         }
         & {
           [P in K as `connectionFor${Capitalize<P>}`]: (
@@ -300,6 +310,35 @@ function generateManyRelationshipMethods(
         targetClass,
         {}, // no filtering
         { role: relationName }, // filter by relationship name
+      );
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+
+  // query{RelationName}(where) - Query related nodes with filtering
+  Object.defineProperty(node, `query${capitalizedName}`, {
+    value: async function (where: Record<string, JSONValue> = {}) {
+      return await node.queryTargetInstances(
+        targetClass,
+        where, // Apply where filtering
+        { role: relationName }, // filter by relationship name
+      );
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+
+  // create{RelationName}Item(props) - Create and link a new item in the .many() relationship
+  Object.defineProperty(node, `create${capitalizedName}Item`, {
+    value: async function (props: Record<string, unknown>) {
+      // Use createTargetNode which handles both node creation and edge linking
+      return await node.createTargetNode(
+        targetClass,
+        props as PropsBase, // Cast to PropsBase for type compatibility
+        { role: relationName }, // Pass relationship name as the edge role
       );
     },
     writable: false,
