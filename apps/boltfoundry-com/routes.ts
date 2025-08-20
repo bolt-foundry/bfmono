@@ -2,9 +2,11 @@ import { Plinko } from "./components/plinko/Plinko.tsx";
 import { UIDemo } from "./components/UIDemo.tsx";
 import type { BfIsographEntrypoint } from "./lib/BfIsographEntrypoint.ts";
 import {
-  entrypointEval,
+  entrypointGrade,
+  entrypointGradeDecks,
   entrypointHome,
   entrypointLogin,
+  entrypointPg,
   entrypointRlhf,
 } from "./__generated__/builtRoutes.ts";
 
@@ -32,15 +34,17 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/login", entrypointLogin],
   ["/rlhf", entrypointRlhf],
 
-  // V3 Simplified Eval System Routes
-  ["/pg", entrypointEval], // Redirects to /pg/grade/decks
-  ["/pg/grade", entrypointEval], // Redirects to /pg/grade/decks
-  ["/pg/grade/decks", entrypointEval], // Decks list (main content)
-  ["/pg/grade/decks/:deckId", entrypointEval], // Deck detail view (redirects to samples tab)
-  ["/pg/grade/decks/:deckId/:tab", entrypointEval], // Deck detail with tab (samples/graders/inbox)
-  ["/pg/grade/decks/:deckId/grade", entrypointEval], // Grading interface for deck
-  ["/pg/grade/samples", entrypointEval], // All samples list
-  ["/pg/grade/samples/:sampleId", entrypointEval], // Sample detail view
-  ["/pg/analyze", entrypointEval], // Analyze view
-  ["/pg/chat", entrypointEval], // Chat view
+  // V3 Simplified Eval System Routes - Redirects
+  ["/pg", entrypointPg], // Redirects to /pg/grade/decks
+  ["/pg/grade", entrypointGrade], // Redirects to /pg/grade/decks
+
+  // V3 Component Routes
+  ["/pg/grade/decks", entrypointGradeDecks], // Decks list (main content)
+  // ["/pg/grade/decks/:deckId", entrypointDeckDetail], // Deck detail view
+  // ["/pg/grade/decks/:deckId/:tab", entrypointDeckDetail], // Deck detail with tab (samples/graders/inbox)
+  // ["/pg/grade/decks/:deckId/grade", entrypointGrading], // Grading interface for deck
+  // ["/pg/grade/samples", entrypointSamples], // All samples list
+  // ["/pg/grade/samples/:sampleId", entrypointSampleDetail], // Sample detail view
+  // ["/pg/analyze", entrypointAnalyze], // Analyze view
+  // ["/pg/chat", entrypointChat], // Chat view
 ]);

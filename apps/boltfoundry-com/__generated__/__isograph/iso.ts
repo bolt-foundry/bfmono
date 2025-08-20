@@ -1,18 +1,25 @@
 import type { IsographEntrypoint } from '@isograph/react';
 import { type CurrentViewer__LoginPage__param } from './CurrentViewer/LoginPage/param_type.ts';
 import { type CurrentViewer__RlhfHome__param } from './CurrentViewer/RlhfHome/param_type.ts';
+import { type CurrentViewerLoggedIn__Grade__param } from './CurrentViewerLoggedIn/Grade/param_type.ts';
 import { type Mutation__JoinWaitlist__param } from './Mutation/JoinWaitlist/param_type.ts';
-import { type Query__EntrypointEval__param } from './Query/EntrypointEval/param_type.ts';
+import { type Query__EntrypointDeckDetailRedirect__param } from './Query/EntrypointDeckDetailRedirect/param_type.ts';
+import { type Query__EntrypointGradeDecks__param } from './Query/EntrypointGradeDecks/param_type.ts';
+import { type Query__EntrypointGrade__param } from './Query/EntrypointGrade/param_type.ts';
 import { type Query__EntrypointHome__param } from './Query/EntrypointHome/param_type.ts';
 import { type Query__EntrypointLogin__param } from './Query/EntrypointLogin/param_type.ts';
+import { type Query__EntrypointPg__param } from './Query/EntrypointPg/param_type.ts';
 import { type Query__EntrypointRlhf__param } from './Query/EntrypointRlhf/param_type.ts';
 import { type Query__Eval__param } from './Query/Eval/param_type.ts';
 import { type Query__Home__param } from './Query/Home/param_type.ts';
 import { type Query__RlhfInterface__param } from './Query/RlhfInterface/param_type.ts';
 import entrypoint_Mutation__JoinWaitlist from '../__isograph/Mutation/JoinWaitlist/entrypoint.ts';
-import entrypoint_Query__EntrypointEval from '../__isograph/Query/EntrypointEval/entrypoint.ts';
+import entrypoint_Query__EntrypointDeckDetailRedirect from '../__isograph/Query/EntrypointDeckDetailRedirect/entrypoint.ts';
+import entrypoint_Query__EntrypointGradeDecks from '../__isograph/Query/EntrypointGradeDecks/entrypoint.ts';
+import entrypoint_Query__EntrypointGrade from '../__isograph/Query/EntrypointGrade/entrypoint.ts';
 import entrypoint_Query__EntrypointHome from '../__isograph/Query/EntrypointHome/entrypoint.ts';
 import entrypoint_Query__EntrypointLogin from '../__isograph/Query/EntrypointLogin/entrypoint.ts';
+import entrypoint_Query__EntrypointPg from '../__isograph/Query/EntrypointPg/entrypoint.ts';
 import entrypoint_Query__EntrypointRlhf from '../__isograph/Query/EntrypointRlhf/entrypoint.ts';
 
 // This is the type given to regular client fields.
@@ -72,12 +79,24 @@ export function iso<T>(
 ): IdentityWithParamComponent<CurrentViewer__RlhfHome__param>;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field CurrentViewerLoggedIn.Grade', T>
+): IdentityWithParamComponent<CurrentViewerLoggedIn__Grade__param>;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Mutation.JoinWaitlist', T>
 ): IdentityWithParam<Mutation__JoinWaitlist__param>;
 
 export function iso<T>(
-  param: T & MatchesWhitespaceAndString<'field Query.EntrypointEval', T>
-): IdentityWithParam<Query__EntrypointEval__param>;
+  param: T & MatchesWhitespaceAndString<'field Query.EntrypointDeckDetailRedirect', T>
+): IdentityWithParam<Query__EntrypointDeckDetailRedirect__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field Query.EntrypointGradeDecks', T>
+): IdentityWithParam<Query__EntrypointGradeDecks__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field Query.EntrypointGrade', T>
+): IdentityWithParam<Query__EntrypointGrade__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.EntrypointHome', T>
@@ -86,6 +105,10 @@ export function iso<T>(
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.EntrypointLogin', T>
 ): IdentityWithParam<Query__EntrypointLogin__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field Query.EntrypointPg', T>
+): IdentityWithParam<Query__EntrypointPg__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.EntrypointRlhf', T>
@@ -108,8 +131,16 @@ export function iso<T>(
 ): typeof entrypoint_Mutation__JoinWaitlist;
 
 export function iso<T>(
-  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointEval', T>
-): typeof entrypoint_Query__EntrypointEval;
+  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointDeckDetailRedirect', T>
+): typeof entrypoint_Query__EntrypointDeckDetailRedirect;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointGradeDecks', T>
+): typeof entrypoint_Query__EntrypointGradeDecks;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointGrade', T>
+): typeof entrypoint_Query__EntrypointGrade;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointHome', T>
@@ -118,6 +149,10 @@ export function iso<T>(
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointLogin', T>
 ): typeof entrypoint_Query__EntrypointLogin;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointPg', T>
+): typeof entrypoint_Query__EntrypointPg;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointRlhf', T>
@@ -131,12 +166,18 @@ export function iso(isographLiteralText: string):
   switch (isographLiteralText) {
     case 'entrypoint Mutation.JoinWaitlist':
       return entrypoint_Mutation__JoinWaitlist;
-    case 'entrypoint Query.EntrypointEval':
-      return entrypoint_Query__EntrypointEval;
+    case 'entrypoint Query.EntrypointDeckDetailRedirect':
+      return entrypoint_Query__EntrypointDeckDetailRedirect;
+    case 'entrypoint Query.EntrypointGradeDecks':
+      return entrypoint_Query__EntrypointGradeDecks;
+    case 'entrypoint Query.EntrypointGrade':
+      return entrypoint_Query__EntrypointGrade;
     case 'entrypoint Query.EntrypointHome':
       return entrypoint_Query__EntrypointHome;
     case 'entrypoint Query.EntrypointLogin':
       return entrypoint_Query__EntrypointLogin;
+    case 'entrypoint Query.EntrypointPg':
+      return entrypoint_Query__EntrypointPg;
     case 'entrypoint Query.EntrypointRlhf':
       return entrypoint_Query__EntrypointRlhf;
   } 

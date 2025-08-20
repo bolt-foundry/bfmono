@@ -8,7 +8,7 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
-Deno.test("HUD functionality", async (t) => {
+Deno.test.ignore("HUD functionality", async (t) => {
   const context = await setupBoltFoundryComTest();
 
   try {

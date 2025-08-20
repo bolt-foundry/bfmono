@@ -1,11 +1,9 @@
 // ---------------------------------------------------------------------------
 // Unified storage façade that delegates **all** operations to the active
-// backend adapter retrieved from `AdapterRegistry`.  A default adapter is
-// auto‑registered (via `registerDefaultAdapter`) if nothing is present.
+// backend adapter retrieved from `AdapterRegistry`.
 // ---------------------------------------------------------------------------
 
 import { AdapterRegistry } from "./AdapterRegistry.ts";
-import { registerDefaultAdapter } from "./registerDefaultAdapter.ts";
 
 import type { BfGid } from "@bfmono/lib/types.ts";
 import type { DbItem, Props } from "@bfmono/apps/bfDb/bfDb.ts";
@@ -17,55 +15,53 @@ import type {
 
 /**
  * Ensures an adapter is available and returns it.
- * `registerDefaultAdapter()` is idempotent and fast, so calling on every
- * access keeps the API simple while retaining testability.
+ * AdapterRegistry.get() handles lazy registration internally.
  */
-function adapter() {
-  registerDefaultAdapter();
-  return AdapterRegistry.get();
+async function adapter() {
+  return await AdapterRegistry.get();
 }
 
 export const storage = {
   // ---- lifecycle -------------------------------------------------------
-  initialize() {
-    return Promise.resolve(adapter().initialize());
+  async initialize() {
+    return (await adapter()).initialize();
   },
 
-  close() {
-    return Promise.resolve(adapter().close());
+  async close() {
+    return (await adapter()).close();
   },
 
   // ---- CRUD ------------------------------------------------------------
-  get<T extends Props>(bfOid: BfGid, bfGid: BfGid) {
-    return adapter().getItem<T>(bfOid, bfGid);
+  async get<T extends Props>(bfOid: BfGid, bfGid: BfGid) {
+    return (await adapter()).getItem<T>(bfOid, bfGid);
   },
 
-  getByBfGid<T extends Props>(
+  async getByBfGid<T extends Props>(
     bfGid: BfGid,
     nodeClass?: AnyBfNodeCtor,
   ): Promise<DbItem<T> | null> {
     const className = nodeClass?.name;
-    return adapter().getItemByBfGid<T>(bfGid, className);
+    return (await adapter()).getItemByBfGid<T>(bfGid, className);
   },
 
-  getByBfGids<T extends Props>(
+  async getByBfGids<T extends Props>(
     bfGids: Array<BfGid>,
     nodeClassOrClassName?: AnyBfNodeCtor | string,
   ) {
     const className = typeof nodeClassOrClassName === "string"
       ? nodeClassOrClassName
       : nodeClassOrClassName?.name;
-    return adapter().getItemsByBfGid<T>(bfGids.map(String), className);
+    return (await adapter()).getItemsByBfGid<T>(bfGids.map(String), className);
   },
 
   async put<T extends Props, M extends BfNodeMetadata | BfEdgeMetadata>(
     props: T,
     metadata: M,
   ) {
-    await adapter().putItem<T>(props, metadata);
+    await (await adapter()).putItem<T>(props, metadata);
   },
 
-  query<T extends Props>(
+  async query<T extends Props>(
     metadata: Record<string, unknown>,
     props: Partial<T> = {},
     bfGids?: Array<BfGid>,
@@ -76,7 +72,7 @@ export const storage = {
   ): Promise<Array<DbItem<T>>> {
     // Current DatabaseBackend interface ignores order/orderBy; we pass them so
     // the signature is future‑proof once those params are respected.
-    return adapter().queryItems<T>(
+    return (await adapter()).queryItems<T>(
       metadata,
       props,
       bfGids?.map(String),
@@ -85,7 +81,7 @@ export const storage = {
     );
   },
 
-  queryWithSizeLimit<T extends Props>(
+  async queryWithSizeLimit<T extends Props>(
     metadata: Record<string, unknown>,
     props: Partial<T> = {},
     bfGids?: Array<string>,
@@ -95,7 +91,7 @@ export const storage = {
     maxSizeBytes?: number,
     batchSize?: number,
   ): Promise<Array<DbItem<T>>> {
-    return adapter().queryItemsWithSizeLimit<T>(
+    return (await adapter()).queryItemsWithSizeLimit<T>(
       metadata,
       props,
       bfGids,
@@ -108,17 +104,17 @@ export const storage = {
   },
 
   async delete(bfOid: BfGid, bfGid: BfGid) {
-    await adapter().deleteItem(bfOid, bfGid);
+    await (await adapter()).deleteItem(bfOid, bfGid);
   },
 
   // ---- Graph traversal -------------------------------------------------
-  queryAncestorsByClassName<T extends Props>(
+  async queryAncestorsByClassName<T extends Props>(
     bfOid: string,
     targetBfGid: string,
     sourceBfClassName: string,
     depth: number = 10,
   ): Promise<Array<DbItem<T>>> {
-    return adapter().queryAncestorsByClassName<T>(
+    return (await adapter()).queryAncestorsByClassName<T>(
       bfOid,
       targetBfGid,
       sourceBfClassName,
@@ -126,13 +122,13 @@ export const storage = {
     );
   },
 
-  queryDescendantsByClassName<T extends Props>(
+  async queryDescendantsByClassName<T extends Props>(
     bfOid: string,
     sourceBfGid: string,
     targetBfClassName: string,
     depth: number = 10,
   ): Promise<Array<DbItem<T>>> {
-    return adapter().queryDescendantsByClassName<T>(
+    return (await adapter()).queryDescendantsByClassName<T>(
       bfOid,
       sourceBfGid,
       targetBfClassName,
