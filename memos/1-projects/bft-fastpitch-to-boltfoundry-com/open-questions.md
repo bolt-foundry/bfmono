@@ -20,7 +20,11 @@ Questions we need to answer as we build the integration.
 - Are there any performance metrics that matter for internal testing?
   - **Best guess:** Token usage and cost primary, latency secondary
 
-## Phase 3: Feedback Loop
+## Phase 3: UI/UX Implementation
+
+_All Phase 3 questions have been answered - see answered-questions.md_
+
+## Phase 5: Feedback Loop
 
 - How do we measure if feedback is actually improving outputs?
 

@@ -4,7 +4,7 @@ import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx"
 import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
 import { DeckItem } from "./DeckItem.tsx";
 import { DeckCreateModal, type DeckFormData } from "./DeckCreateModal.tsx";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { mockDecks } from "@bfmono/apps/boltfoundry-com/mocks/deckData.ts";
 
@@ -15,7 +15,7 @@ interface DeckListProps {
 }
 
 export function DeckList({ onDeckSelect }: DeckListProps) {
-  const { startDeckCreation } = useEvalContext();
+  const { startDeckCreation } = usePromptGradeContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [decks] = useState(mockDecks);

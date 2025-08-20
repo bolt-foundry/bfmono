@@ -37,5 +37,7 @@ export const EntrypointGradeDecks = iso(`
   // User is logged in, show the Grade component
   const Body = data.currentViewer?.asCurrentViewerLoggedIn?.Grade;
   const title = "Decks - Bolt Foundry";
+
+  // For now, just return the Body without fallback (it will be handled in the Grade component itself)
   return { Body, title };
 });
