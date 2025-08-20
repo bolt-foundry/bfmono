@@ -1,4 +1,4 @@
-# Phase 1: Telemetry Visibility
+# Phase 1: Telemetry Visibility ✅ COMPLETED
 
 ## Objective
 
@@ -126,8 +126,9 @@ data
 - [x] Can run `bft fastpitch` ✅
 - [x] GraphQL endpoint successfully queries deck samples ✅
 - [x] Dashboard can fetch real telemetry data via GraphQL ✅
-- [ ] Telemetry appears in dashboard (pending fastpitch data generation)
-- [ ] Can see basic run information (timestamp, status, outputs)
+- [x] Telemetry appears in dashboard ✅ (Completed in PR #190)
+- [x] Can see basic run information (timestamp, status, outputs) ✅ (Completed
+      in PR #190)
 
 ## Next Phase
 
