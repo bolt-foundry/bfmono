@@ -186,12 +186,12 @@ Deno.test("Eval page functionality", async (t) => {
       }
 
       // Verify deck items are displayed
-      const deckItems = await context.evaluate(() =>
+      const deckItemCount = await context.evaluate(() =>
         document.querySelectorAll(".deck-item").length
       );
-      logger.info(`Found ${deckItems.length} deck items`);
+      logger.info(`Found ${deckItemCount} deck items`);
       // TODO: Fix mock data loading for decks
-      // assert(deckItems.length > 0, "Should have at least one deck displayed");
+      // assert(deckItemCount > 0, "Should have at least one deck displayed");
     });
 
     await t.step("Click on a deck and verify grading inbox", async () => {
