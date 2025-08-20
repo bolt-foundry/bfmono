@@ -1,7 +1,7 @@
 import type { EagerReaderArtifact, ReaderAst } from '@isograph/react';
 import { Query__EntrypointGrade__param } from './param_type.ts';
 import { Query__EntrypointGrade__output_type } from './output_type.ts';
-import { EntrypointGrade as resolver } from '../../../../entrypoints/EntrypointGrade.ts';
+import { EntrypointGrade as resolver } from '../../../../isograph/entrypoints/EntrypointGrade.ts';
 
 const readerAst: ReaderAst<Query__EntrypointGrade__param> = [
   {

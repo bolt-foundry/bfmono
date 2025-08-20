@@ -13,7 +13,8 @@ async function generateBuiltRoutes() {
 
 async function generateBuiltRoutesForApp(appPath: string) {
   const entrypointDirs = [
-    join(Deno.cwd(), `${appPath}/entrypoints`),
+    join(Deno.cwd(), `${appPath}/isograph/entrypoints`),
+    join(Deno.cwd(), `${appPath}/entrypoints`), // fallback for old structure
     join(Deno.cwd(), `${appPath}/mutations`),
   ];
   const outputPath = join(

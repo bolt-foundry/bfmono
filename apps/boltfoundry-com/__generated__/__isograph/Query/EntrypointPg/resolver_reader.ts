@@ -1,7 +1,7 @@
 import type { EagerReaderArtifact, ReaderAst } from '@isograph/react';
 import { Query__EntrypointPg__param } from './param_type.ts';
 import { Query__EntrypointPg__output_type } from './output_type.ts';
-import { EntrypointPg as resolver } from '../../../../entrypoints/EntrypointPg.ts';
+import { EntrypointPg as resolver } from '../../../../isograph/entrypoints/EntrypointPg.ts';
 
 const readerAst: ReaderAst<Query__EntrypointPg__param> = [
   {

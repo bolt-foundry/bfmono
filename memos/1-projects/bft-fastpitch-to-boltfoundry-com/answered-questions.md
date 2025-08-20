@@ -144,3 +144,56 @@ Business news, minor updates, opinion pieces
 **Q:** What's the minimum viable "it's working"?\
 **A:** Raw JSON with 5 valid stories showing in dashboard proves core AI
 curation is functional
+
+## Phase 3: UI/UX Implementation Decisions
+
+**Q:** Where should Isograph components be stored in the file system?\
+**A:** There are three directories with different purposes:
+
+- `apps/boltfoundry-com/components/` - Regular React "dumb" components that can
+  be imported directly (layout components, UI components, etc.)
+- `apps/boltfoundry-com/isograph/components/[GraphQLType]/ComponentName.tsx` -
+  Isograph components organized by the GraphQL type they attach to. For example:
+  `isograph/components/Query/PromptGrade.tsx` for a component that's a field on
+  Query
+- `apps/boltfoundry-com/isograph/entrypoints/` - Isograph entrypoints that
+  handle routing and top-level data fetching
+
+**Q:** Is there already an existing nav component we need to convert to
+Isograph, or are we creating a new one?\
+**A:** There is an existing Nav component at
+`/apps/boltfoundry-com/components/Nav.tsx` that needs to be converted to
+Isograph. It currently has logo, external links, login button, and mobile menu
+functionality.
+
+**Q:** Which GraphQL type should the navigation component attach to - Query,
+Organization, or CurrentViewer?\
+**A:** **Query** is most appropriate because the nav component will be used in
+many different contexts throughout the app. It can still access currentViewer
+through the Query type for authentication state and organization data.
+
+**Q:** Should we maintain the CurrentViewerLoggedIn/LoggedOut pattern exactly as
+is, or is there a preferred Isograph way?\
+**A:** **Maintain the existing pattern** - this IS the preferred Isograph way.
+It provides GraphQL-level security, type safety, and follows best practices. The
+pattern uses type-safe conditional access with `asCurrentViewerLoggedIn` and
+`asCurrentViewerLoggedOut`.
+
+**Q:** Are we keeping the same routes (`/pg/grade/*`, `/pg/analyze`, `/pg/chat`)
+or changing anything?\
+**A:** Keep the same routes. `/pg/grade/*` is working. `/pg/analyze` and
+`/pg/chat` have components built but need their route entrypoints created and
+uncommented in routes.ts.
+
+**Q:** Where do the E2E tests live? Should we update existing ones or create new
+test files?\
+**A:** E2E tests live in `/apps/boltfoundry-com/__tests__/e2e/`. **Update
+existing tests**, particularly `fastpitch-telemetry.test.e2e.ts` for dashboard
+integration and `eval.test.e2e.ts` for deck UI testing.
+
+**Q:** When PromptGrade needs to reference other components (like the nav),
+should it follow the pattern from the Isograph docs where components reference
+each other as fields?\
+**A:** **Yes, absolutely.** PromptGrade should reference Nav as a field in its
+Isograph query (e.g., `field Query.PromptGrade @component { Nav }`), not import
+it directly. This follows the "resolvers all the way down" philosophy.
