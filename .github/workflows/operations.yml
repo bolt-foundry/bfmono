@@ -1,6 +1,9 @@
 name: Operations
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       operation:
@@ -37,8 +40,16 @@ jobs:
     environment: infrastructure
 
     steps:
+      - name: Set operation for push events
+        if: github.event_name == 'push'
+        run: echo "OPERATION=notify-internalbf" >> $GITHUB_ENV
+
+      - name: Set operation for workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "OPERATION=${{ inputs.operation }}" >> $GITHUB_ENV
+
       - name: Validate destroy operation
-        if: inputs.operation == 'terraform-destroy'
+        if: env.OPERATION == 'terraform-destroy'
         run: |
           if [ "${{ inputs.confirm_destroy }}" != "destroy-production" ]; then
             echo "❌ Destroy operation requires confirmation"
@@ -84,7 +95,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=\$TERRAFORM_BACKEND_SECRET_ACCESS_KEY
 
             # Execute requested operation
-            case '${{ inputs.operation }}' in
+            case '${{ env.OPERATION }}' in
               terraform-plan)
                 cd infra/terraform/hetzner
                 terraform init -backend-config=\"endpoint=\${TERRAFORM_BACKEND_ENDPOINT:-\$S3_ENDPOINT}\"
@@ -132,12 +143,12 @@ jobs:
                   -H \"Accept: application/vnd.github+json\" \
                   -H \"Authorization: Bearer \$GITHUB_PERSONAL_ACCESS_TOKEN\" \
                   -H \"X-GitHub-Api-Version: 2022-11-28\" \
-                  https://api.github.com/repos/boltfoundryinc/internalbf/dispatches \
-                  -d '{\"event_type\":\"submodule-update\",\"client_payload\":{\"repository\":\"bfmono\"}}'
+                  https://api.github.com/repos/bolt-foundry/internalbf/dispatches \
+                  -d '{\"event_type\":\"update-bfmono-submodule\",\"client_payload\":{\"target_branch\":\"main\"}}'
                 echo \"✅ Triggered internalbf repository update\"
                 ;;
               *)
-                echo 'Unknown operation: ${{ inputs.operation }}'
+                echo "Unknown operation: ${{ env.OPERATION }}"
                 exit 1
                 ;;
             esac

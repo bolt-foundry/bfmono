@@ -183,6 +183,12 @@ jobs:
             # Go back to root for Kamal deployment
             cd \$GITHUB_WORKSPACE
 
+            # Install kamal gem if not already installed
+            if ! command -v kamal &> /dev/null; then
+              echo \"Installing kamal gem...\"
+              gem install kamal
+            fi
+
             # Deploy with Kamal
             cd apps/boltfoundry-com
             kamal deploy --skip-push
