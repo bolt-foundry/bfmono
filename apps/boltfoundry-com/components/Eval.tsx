@@ -37,26 +37,6 @@ export const Eval = iso(`
           id
           name
           domain
-          decks(first: 100) {
-            edges {
-              node {
-                id
-                name
-                description
-                slug
-                samples(first: 100) {
-                  edges {
-                    node {
-                      id
-                      name
-                      completionData
-                      collectionMethod
-                    }
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }
@@ -89,12 +69,12 @@ export const Eval = iso(`
     logger.debug("V2 Eval Route Info:", routeInfo);
   }, [currentPath, deckId, sampleId]); // Only trigger when path or key params change
 
-  // Extract decks data from GraphQL response
-  const decks = data?.currentViewer?.asCurrentViewerLoggedIn?.organization
-    ?.decks;
+  // Get the DeckList component from organization
+  const organization = data?.currentViewer?.asCurrentViewerLoggedIn
+    ?.organization;
 
   return (
-    <EvalProvider initialDecks={decks}>
+    <EvalProvider organization={organization}>
       <EvalContent />
     </EvalProvider>
   );
