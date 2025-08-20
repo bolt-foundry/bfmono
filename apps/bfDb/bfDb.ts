@@ -610,17 +610,10 @@ export async function withIsolatedDb<T>(
 
     // Clear adapter registry to force re-registration with new settings
     const { AdapterRegistry } = await import("./storage/AdapterRegistry.ts");
-    const { resetRegistration, registerDefaultAdapter } = await import(
-      "./storage/registerDefaultAdapter.ts"
-    );
+    // Clear the registry to force re-initialization with new environment
     AdapterRegistry.clear();
-    resetRegistration();
 
-    // Register the adapter after setting environment variables
-    // so that registerDefaultAdapter picks up the new backend type
-    registerDefaultAdapter();
-
-    // Additional safety: ensure the adapter is properly initialized
+    // AdapterRegistry.get() will lazily initialize with the new backend type
     const adapter = await AdapterRegistry.get();
     await adapter.initialize();
     logger.debug(`Initialized adapter: ${adapter.constructor.name}`);

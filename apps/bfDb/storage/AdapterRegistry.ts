@@ -4,9 +4,16 @@
 
 import { BfError } from "@bfmono/lib/BfError.ts";
 import type { DatabaseBackend } from "../backend/DatabaseBackend.ts";
-import { registerDefaultAdapter } from "./registerDefaultAdapter.ts";
+import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
+import { InMemoryAdapter } from "./InMemoryAdapter.ts";
+import { DatabaseBackendPg } from "../backend/DatabaseBackendPg.ts";
+import { DatabaseBackendSqlite } from "../backend/DatabaseBackendSqlite.ts";
+import { DatabaseBackendNeon } from "../backend/DatabaseBackendNeon.ts";
+import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
-// Alias: moving forward we’ll refer to all adapters through this name.
+const logger = getLogger(import.meta);
+
+// Alias: moving forward we'll refer to all adapters through this name.
 export type IBackendAdapter = DatabaseBackend;
 
 /**
@@ -43,8 +50,40 @@ export class AdapterRegistry {
    */
   static async get(): Promise<IBackendAdapter> {
     if (!this._active) {
-      // Lazy registration - register default adapter if not already registered
-      registerDefaultAdapter();
+      // Lazy registration - register default adapter based on environment
+      const env =
+        (getConfigurationVariable("FORCE_DB_BACKEND")?.toLowerCase() ||
+          getConfigurationVariable("DB_BACKEND_TYPE")?.toLowerCase()) ??
+          "sqlite";
+      logger.info(`AdapterRegistry: lazily registering '${env}' backend`);
+
+      switch (env) {
+        case "neon": {
+          const neon = new DatabaseBackendNeon();
+          neon.initialize();
+          this.register(neon);
+          break;
+        }
+        case "pg":
+        case "postgres": {
+          const pg = new DatabaseBackendPg();
+          pg.initialize();
+          this.register(pg);
+          break;
+        }
+        case "memory": {
+          const mem = new InMemoryAdapter();
+          mem.initialize();
+          this.register(mem);
+          break;
+        }
+        case "sqlite":
+        default: {
+          const sqlite = new DatabaseBackendSqlite();
+          sqlite.initialize();
+          this.register(sqlite);
+        }
+      }
 
       // If still no adapter after registration attempt, throw
       if (!this._active) {
