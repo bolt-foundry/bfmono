@@ -30,7 +30,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Check current URL after navigation
-    const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
+    const currentUrl = context.url();
     logger.info(`Current URL after button click: ${currentUrl}`);
 
     // Remove manual screenshot - let video recording capture naturally
