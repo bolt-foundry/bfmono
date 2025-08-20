@@ -61,10 +61,23 @@ const CURSOR_SCRIPT = `
   let mouseX = window.__mousePosition ? window.__mousePosition.x : window.innerWidth / 2;
   let mouseY = window.__mousePosition ? window.__mousePosition.y : window.innerHeight / 2;
 
+  // Use requestAnimationFrame for smoother updates
+  let animationFrameId = null;
+  
   document.addEventListener("mousemove", (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    updateCursorPosition();
+    
+    // Cancel any pending animation frame
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+    }
+    
+    // Schedule update on next animation frame for smoother rendering
+    animationFrameId = requestAnimationFrame(() => {
+      updateCursorPosition();
+      animationFrameId = null;
+    });
   });
 
   function updateCursorPosition() {
