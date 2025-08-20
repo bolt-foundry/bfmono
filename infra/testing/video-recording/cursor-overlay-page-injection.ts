@@ -126,8 +126,17 @@ const CURSOR_SCRIPT = `
 })();
 `;
 
-// Store last known mouse position in page context
+// Store last known mouse position in page context - this persists across page navigations
 let lastKnownMousePosition: { x: number; y: number } | null = null;
+
+// Enhanced position tracking that survives page changes
+export function getLastKnownPosition(): { x: number; y: number } | null {
+  return lastKnownMousePosition;
+}
+
+export function setLastKnownPosition(x: number, y: number): void {
+  lastKnownMousePosition = { x, y };
+}
 
 export async function injectCursorOverlayOnAllPages(page: Page): Promise<void> {
   // Initialize with center position if not set
@@ -162,28 +171,23 @@ export async function injectCursorOverlayOnAllPages(page: Page): Promise<void> {
       // Small delay to let the page settle, then inject cursor
       setTimeout(async () => {
         try {
-          // Get current mouse position before navigation completes
-          try {
-            const currentPos = await page.evaluate(() => {
-              return (globalThis as CursorGlobals).__mousePosition;
-            });
-            if (currentPos) {
-              lastKnownMousePosition = currentPos;
-            }
-          } catch {
-            // Page might be navigating, use last known position
-          }
-
-          // Re-inject with updated position
+          // Re-inject with preserved position (lastKnownMousePosition is maintained across navigation)
           const updatedScript = `
-            // Set initial mouse position from last known position
+            // Set initial mouse position from preserved position
             window.__mousePosition = ${JSON.stringify(lastKnownMousePosition)};
             ${CURSOR_SCRIPT}
           `;
           await page.evaluate(updatedScript);
-          // Cursor re-injected after navigation
+
+          // Also set the actual Puppeteer mouse position to match
+          if (lastKnownMousePosition) {
+            await page.mouse.move(
+              lastKnownMousePosition.x,
+              lastKnownMousePosition.y,
+            );
+          }
         } catch (_error) {
-          // Failed to re-inject cursor after navigation
+          // Failed to preserve cursor position after navigation
         }
       }, 100);
     }
@@ -199,17 +203,20 @@ export async function updateCursorPosition(
   lastKnownMousePosition = { x, y };
 
   await page.evaluate((coords) => {
-    // First ensure cursor exists
-    if (typeof (globalThis as CursorGlobals).__recreateCursor === "function") {
+    // Only recreate cursor if it doesn't exist - don't override existing styling
+    let cursor = document.getElementById("e2e-cursor-overlay");
+    if (
+      !cursor &&
+      typeof (globalThis as CursorGlobals).__recreateCursor === "function"
+    ) {
       (globalThis as CursorGlobals).__recreateCursor!();
+      cursor = document.getElementById("e2e-cursor-overlay");
     }
 
-    const cursor = document.getElementById("e2e-cursor-overlay");
     if (cursor) {
       cursor.style.left = coords.x + "px";
       cursor.style.top = coords.y + "px";
       cursor.style.display = "block";
-      // Cursor moved to position
     }
     // Update global mouse position
     (globalThis as CursorGlobals).__mousePosition = {
@@ -224,13 +231,19 @@ export async function setCursorStyle(
   style: "default" | "click" | "hover",
 ): Promise<void> {
   await page.evaluate((cursorStyle) => {
-    // First ensure cursor exists
-    if (typeof (globalThis as CursorGlobals).__recreateCursor === "function") {
+    // Only recreate cursor if it doesn't exist - don't destroy existing cursor
+    let cursor = document.getElementById("e2e-cursor-overlay");
+    if (
+      !cursor &&
+      typeof (globalThis as CursorGlobals).__recreateCursor === "function"
+    ) {
       (globalThis as CursorGlobals).__recreateCursor!();
+      cursor = document.getElementById("e2e-cursor-overlay");
     }
 
-    const cursor = document.getElementById("e2e-cursor-overlay");
-    if (!cursor) return;
+    if (!cursor) {
+      return;
+    }
 
     switch (cursorStyle) {
       case "click":
