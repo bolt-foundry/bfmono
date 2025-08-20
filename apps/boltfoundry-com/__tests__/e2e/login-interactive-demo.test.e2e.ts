@@ -146,7 +146,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
 
     // Check page content
     const pageText = await context
-      .evaluate(() => document.body.innerText);
+      .__UNSAFE_evaluate(() => document.body.innerText);
 
     assert(
       pageText.includes("Sign In to Bolt Foundry"),
