@@ -132,6 +132,12 @@ export interface E2ETestContext {
     // deno-lint-ignore no-explicit-any
     ...args: Array<any>
   ) => Promise<T>;
+  // Page information getters with descriptive names
+  getPageUrl: () => string;
+  getPageTitle: () => Promise<string>;
+  getPageCookies: () => Promise<Array<any>>;
+  getPageContent: () => Promise<string>;
+  // Backwards compatibility aliases
   url: () => string;
   title: () => Promise<string>;
   waitForNetworkIdle: (options?: {
@@ -752,6 +758,19 @@ export async function setupE2ETest(options: {
       ): Promise<T> => {
         return await page.evaluate(fn, ...args);
       },
+      getPageUrl: (): string => {
+        return page.url();
+      },
+      getPageTitle: async (): Promise<string> => {
+        return await page.title();
+      },
+      getPageCookies: async (): Promise<Array<any>> => {
+        return await page.cookies();
+      },
+      getPageContent: async (): Promise<string> => {
+        return await page.content();
+      },
+      // Backwards compatibility aliases
       url: (): string => {
         return page.url();
       },
