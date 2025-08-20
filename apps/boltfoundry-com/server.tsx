@@ -230,6 +230,41 @@ const handler = async (request: Request): Promise<Response> => {
       }
 
       // Production mode: Handle with React SSR
+
+      // First, check if this route has an Isograph entrypoint that returns a redirect
+      let matchedEntrypoint = null;
+      for (const [routePath, entrypoint] of isographAppRoutes) {
+        const match = matchRouteWithParams(url.pathname, routePath);
+        if (match.match) {
+          matchedEntrypoint = entrypoint;
+          break;
+        }
+      }
+
+      // If we have an Isograph entrypoint, check if it wants to redirect
+      if (matchedEntrypoint) {
+        logger.info(`[${requestId}] Checking for redirect on ${url.pathname}`);
+        const { getRedirectFromEntrypoint, createServerRedirectResponse } =
+          await import("./lib/redirectHandler.ts");
+        const redirect = getRedirectFromEntrypoint(matchedEntrypoint);
+
+        if (redirect) {
+          const redirectResponse = createServerRedirectResponse(
+            redirect.location,
+          );
+          logResponse(
+            requestId,
+            redirectResponse,
+            startTime,
+            method,
+            url.pathname,
+            url.search,
+            "SSR Redirect",
+          );
+          return redirectResponse;
+        }
+      }
+
       const environment = {
         mode: isDev ? "development" : "production",
         port: port,
