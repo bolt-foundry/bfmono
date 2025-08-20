@@ -4,6 +4,7 @@
 
 import { BfError } from "@bfmono/lib/BfError.ts";
 import type { DatabaseBackend } from "../backend/DatabaseBackend.ts";
+import { registerDefaultAdapter } from "./registerDefaultAdapter.ts";
 
 // Alias: moving forward we’ll refer to all adapters through this name.
 export type IBackendAdapter = DatabaseBackend;
@@ -30,12 +31,27 @@ export class AdapterRegistry {
   }
 
   /**
-   * Returns the active adapter. Throws if none registered so that tests stay
-   * red until an adapter is explicitly set.
+   * Check if an adapter has been registered without triggering lazy registration
    */
-  static get(): IBackendAdapter {
+  static hasAdapter(): boolean {
+    return this._active !== null;
+  }
+
+  /**
+   * Returns the active adapter. If none registered, lazily registers the default adapter.
+   * This allows apps to use BfDb without explicit registration.
+   */
+  static async get(): Promise<IBackendAdapter> {
     if (!this._active) {
-      throw new BfError("AdapterRegistry.get(): no adapter registered");
+      // Lazy registration - register default adapter if not already registered
+      registerDefaultAdapter();
+
+      // If still no adapter after registration attempt, throw
+      if (!this._active) {
+        throw new BfError(
+          "AdapterRegistry.get(): failed to register default adapter",
+        );
+      }
     }
     return this._active;
   }
