@@ -120,28 +120,26 @@ export async function handleTelemetryRequest(
     // Generate slug and query for existing deck by slug to avoid duplicates
     const slug = generateDeckSlug(deckId, currentViewer.orgBfOid);
 
-    const existingDecks = await BfDeck.query(
-      currentViewer,
-      {}, // Metadata - bfOid and className auto-injected
-      { slug }, // Match by slug
-      [], // No specific bfGids
-    );
+    // Use the new queryDecks method to find existing decks
+    const existingDecks = await org.queryDecks({
+      slug, // Match by slug
+    });
 
-    let deck: BfDeck;
+    let deck: Awaited<ReturnType<typeof org.createDecksItem>>;
     if (existingDecks.length > 0) {
       // Found existing deck, use it
-      deck = existingDecks[0] as BfDeck;
+      deck = existingDecks[0];
       logger.info(`Found existing deck: ${deckId} (slug: ${slug})`);
     } else {
-      // Create new deck
+      // Create new deck using the new createDecksItem method
       // Note: SDK's lazy deck creation should have already created this deck
       // This is a fallback for decks that might not have been created yet
-      deck = await org.createTargetNode(BfDeck, {
+      deck = await org.createDecksItem({
         name: deckId,
         content: "",
         description: `Auto-created from telemetry for ${deckId}`,
         slug,
-      }) as BfDeck;
+      });
       logger.info(`Created new deck: ${deckId} (slug: ${slug})`);
     }
 
@@ -156,7 +154,7 @@ export async function handleTelemetryRequest(
       attributes,
     };
 
-    const sample = await deck.createTargetNode(BfSample, {
+    const sample = await deck.createSamplesItem({
       name: `Telemetry Sample ${Date.now()}`,
       completionData: JSON.stringify(completionData),
       collectionMethod: "telemetry",
