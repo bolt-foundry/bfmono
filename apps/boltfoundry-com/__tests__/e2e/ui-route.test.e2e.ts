@@ -14,14 +14,7 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
   try {
     // Start video recording
     const { stop, showSubtitle } = await context
-      .startRecording(
-        "ui-route-demo",
-        {
-          outputFormat: "mp4" as const,
-          framerate: 24,
-          quality: "medium" as const,
-        },
-      );
+      .startRecording("ui-route-demo");
 
     await showSubtitle("UI route rendering test");
 
@@ -33,19 +26,21 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     logger.info(`UI page title: ${title}`);
 
     // Check the current URL
-    const currentUrl = await context.__UNSAFE_page_useContextMethodsInstead.url();
+    const currentUrl = await context.__UNSAFE_page_useContextMethodsInstead
+      .url();
     logger.info(`Current URL: ${currentUrl}`);
 
     // Check the environment and routing state
-    const routingInfo = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      return {
-        pathname: globalThis.location.pathname,
-        // @ts-expect-error - Accessing global variable
-        environment: globalThis.__ENVIRONMENT__,
-        // @ts-expect-error - Accessing global variable
-        hasRehydrate: typeof globalThis.__REHYDRATE__ !== "undefined",
-      };
-    });
+    const routingInfo = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        return {
+          pathname: globalThis.location.pathname,
+          // @ts-expect-error - Accessing global variable
+          environment: globalThis.__ENVIRONMENT__,
+          // @ts-expect-error - Accessing global variable
+          hasRehydrate: typeof globalThis.__REHYDRATE__ !== "undefined",
+        };
+      });
     logger.info(`Routing info: ${JSON.stringify(routingInfo, null, 2)}`);
 
     // Wait a bit for hydration to complete
@@ -55,9 +50,8 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     assertEquals(title, "Bolt Foundry", "Page title should be 'Bolt Foundry'");
 
     // Check if the page contains expected UIDemo content
-    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-      document.body.textContent
-    );
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => document.body.textContent);
 
     // Verify UIDemo-specific content is present
     assert(

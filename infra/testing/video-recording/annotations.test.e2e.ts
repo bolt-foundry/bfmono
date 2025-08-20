@@ -11,7 +11,10 @@ Deno.test("Basic annotation API test", async () => {
     await context.__UNSAFE_page_useContextMethodsInstead.goto(
       "data:text/html,<h1>Demo Application</h1><p>This is a test page for annotations</p><button id='login'>Login</button><input type='text' placeholder='Username' id='username'><div style='margin-top:20px;'><button id='submit'>Submit Form</button></div>",
     );
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector("button", { timeout: 5000 });
+    await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      "button",
+      { timeout: 5000 },
+    );
 
     // Show welcome subtitle
     await showSubtitle("Welcome to our annotation demo! 🎉");

@@ -29,7 +29,6 @@ export async function convertFramesToVideo(
     quality = "medium",
     deleteFrames = true,
     preserveFrames = false,
-    interpolation = "blend",
   } = options;
 
   // If preserveFrames is true, override deleteFrames to false
@@ -48,7 +47,6 @@ export async function convertFramesToVideo(
     outputFormat,
     framerate,
     quality,
-    interpolation,
   });
 
   logger.info(`Converting frames to video: ${outputPath}`);
@@ -90,14 +88,12 @@ function buildFFmpegArgs({
   outputFormat,
   framerate,
   quality,
-  interpolation = "blend",
 }: {
   frameDirectory: string;
   outputPath: string;
   outputFormat: string;
   framerate: number;
   quality: string;
-  interpolation?: string;
 }): Array<string> {
   const framePattern = join(frameDirectory, "frame_%06d.png");
 
@@ -274,7 +270,7 @@ function getVideoFilters(
   format: string,
   framerate: number,
 ): Array<string> {
-  const filters: string[] = [];
+  const filters: Array<string> = [];
 
   // Simple fps conversion without interpolation
   // Just drop/duplicate frames as needed - simple and clean
