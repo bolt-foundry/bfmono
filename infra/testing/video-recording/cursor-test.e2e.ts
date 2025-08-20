@@ -9,7 +9,7 @@ import { smoothMoveTo } from "./smooth-mouse.ts";
 
 const logger = getLogger(import.meta);
 
-Deno.test.ignore("Cursor overlay test with video recording", async () => {
+Deno.test("Cursor overlay test with video recording", async () => {
   const context = await setupE2ETest({
     baseUrl: "https://example.com",
   });

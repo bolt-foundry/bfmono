@@ -3,15 +3,17 @@ import type { CursorGlobals } from "./cursor-types.ts";
 
 const CURSOR_SCRIPT = `
 (function() {
-  // Function to create and inject cursor
+  // Cursor trail configuration - visible motion blur
+  const TRAIL_LENGTH = 3; // Three elements for visible blur
+  const TRAIL_FADE_SPEED = 0.2; // Slower fade for more visibility
+  
+  // Function to create and inject cursor with trail
   function createCursor() {
-    // Remove existing cursor if any
-    const existingCursor = document.getElementById("e2e-cursor-overlay");
-    if (existingCursor) {
-      existingCursor.remove();
-    }
+    // Remove existing cursors if any
+    const existingCursors = document.querySelectorAll("[id^='e2e-cursor-']");
+    existingCursors.forEach(cursor => cursor.remove());
 
-    // Create cursor element
+    // Create main cursor element
     const cursor = document.createElement("div");
     cursor.id = "e2e-cursor-overlay";
     cursor.style.cssText = \`
@@ -23,7 +25,7 @@ const CURSOR_SCRIPT = `
       border-radius: 50% !important;
       pointer-events: none !important;
       z-index: 2147483646 !important;
-      transition: all 0.2s ease-out !important;
+      transition: none !important;
       box-shadow: 0 0 20px rgba(255, 20, 20, 0.9), 0 0 40px rgba(255, 20, 20, 0.5) !important;
       transform: translate(-50%, -50%) !important;
       display: block !important;
@@ -31,15 +33,45 @@ const CURSOR_SCRIPT = `
       opacity: 1 !important;
     \`;
 
+    // Create trail elements with same size as main cursor for true motion blur
+    const trailElements = [];
+    const CURSOR_SIZE = 28; // Same size as main cursor
+    for (let i = 0; i < TRAIL_LENGTH; i++) {
+      const trailElement = document.createElement("div");
+      trailElement.id = \`e2e-cursor-trail-\${i}\`;
+      const opacity = 1 - (i + 1) * TRAIL_FADE_SPEED;
+      
+      trailElement.style.cssText = \`
+        position: fixed !important;
+        width: \${CURSOR_SIZE}px !important;
+        height: \${CURSOR_SIZE}px !important;
+        background: rgba(255, 20, 20, \${opacity * 0.6}) !important;
+        border: 4px solid rgba(255, 255, 255, \${opacity * 0.8}) !important;
+        border-radius: 50% !important;
+        pointer-events: none !important;
+        z-index: \${2147483641 + i} !important;
+        transition: none !important;
+        box-shadow: 0 0 20px rgba(255, 20, 20, \${opacity * 0.5}) !important;
+        transform: translate(-50%, -50%) !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: \${opacity} !important;
+      \`;
+      
+      trailElements.push(trailElement);
+    }
+
     // Append to body or html if body doesn't exist yet
     const container = document.body || document.documentElement;
     if (container) {
       container.appendChild(cursor);
+      trailElements.forEach(element => container.appendChild(element));
     }
 
-    // Store cursor element globally
+    // Store cursor elements globally
     window.__e2eCursor = cursor;
-
+    window.__e2eCursorTrail = trailElements;
+    
     // Initialize cursor at last known position or center of viewport
     const lastPosition = window.__mousePosition || { 
       x: window.innerWidth / 2, 
@@ -48,12 +80,22 @@ const CURSOR_SCRIPT = `
     cursor.style.left = lastPosition.x + "px";
     cursor.style.top = lastPosition.y + "px";
 
+    // No need for position history array with interpolation approach
+    
+    // Position all trail elements at start position
+    trailElements.forEach((element, i) => {
+      element.style.left = lastPosition.x + "px";
+      element.style.top = lastPosition.y + "px";
+      element.style.display = "block";
+      element.style.visibility = "visible";
+    });
+
     // Store current mouse position globally if not already stored
     if (!window.__mousePosition) {
       window.__mousePosition = { x: lastPosition.x, y: lastPosition.y };
     }
 
-    // E2E Cursor created and positioned
+    // E2E Cursor with trail created and positioned
     return cursor;
   }
 
@@ -87,7 +129,76 @@ const CURSOR_SCRIPT = `
       cursor.style.top = mouseY + "px";
       cursor.style.display = "block";
     }
-    // Update global mouse position
+    
+    // Update trail positions using previous frame interpolation
+    if (window.__e2eCursorTrail) {
+      // Get previous position from dedicated previous storage
+      const prevX = window.__mousePrevious ? window.__mousePrevious.x : mouseX;
+      const prevY = window.__mousePrevious ? window.__mousePrevious.y : mouseY;
+      const currentX = mouseX;
+      const currentY = mouseY;
+      
+      // Calculate the movement vector from previous to current position
+      const deltaX = currentX - prevX;
+      const deltaY = currentY - prevY;
+      
+      // Calculate movement distance
+      const movementDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const MOVEMENT_THRESHOLD = 2; // Only show trails if movement is > 2 pixels
+      
+      // Get the main cursor's current transform scale to match trail sizes
+      const mainCursor = window.__e2eCursor;
+      let currentScale = "1";
+      if (mainCursor) {
+        const transform = mainCursor.style.transform;
+        const scaleMatch = transform.match(/scale\(([^)]+)\)/);
+        if (scaleMatch) {
+          currentScale = scaleMatch[1];
+        }
+      }
+      
+      // Debug: Log the current scale to see what's happening
+      if (Math.random() < 0.01) { // Occasional logging
+        console.log('Main cursor transform:', mainCursor?.style.transform, 'Extracted scale:', currentScale);
+      }
+      
+      window.__e2eCursorTrail.forEach((trailElement, i) => {
+        if (trailElement) {
+          if (movementDistance > MOVEMENT_THRESHOLD) {
+            // Interpolate positions between previous and current frame
+            // Trail 0 = 75% from prev to current (0.75)
+            // Trail 1 = 50% from prev to current (0.5) 
+            // Trail 2 = 25% from prev to current (0.25)
+            const lerpFactor = 0.75 - (i * 0.25); // 0.75, 0.5, 0.25
+            const trailX = prevX + (deltaX * lerpFactor);
+            const trailY = prevY + (deltaY * lerpFactor);
+            
+            trailElement.style.left = trailX + "px";
+            trailElement.style.top = trailY + "px";
+            trailElement.style.display = "block";
+            trailElement.style.visibility = "visible";
+            
+            // Match the main cursor's scale
+            trailElement.style.transform = "translate(-50%, -50%) scale(" + currentScale + ")";
+            
+            // Apply opacity fading: 80%, 60%, 40%
+            const opacity = 1 - (i + 1) * 0.2;
+            trailElement.style.opacity = opacity.toString();
+          } else {
+            // Hide trails when there's no meaningful movement
+            trailElement.style.display = "none";
+            trailElement.style.visibility = "hidden";
+          }
+        }
+      });
+    }
+    
+    // Update global mouse position - keep history
+    if (!window.__mousePrevious) window.__mousePrevious = { x: mouseX, y: mouseY };
+    if (!window.__mousePosition) window.__mousePosition = { x: mouseX, y: mouseY };
+    
+    // Shift the history
+    window.__mousePrevious = { ...window.__mousePosition };
     window.__mousePosition = { x: mouseX, y: mouseY };
   }
 
@@ -245,25 +356,59 @@ export async function setCursorStyle(
       return;
     }
 
+    // Define colors for different states
+    let mainColor, shadowColor, scale;
     switch (cursorStyle) {
       case "click":
-        cursor.style.background = "rgba(0, 255, 0, 0.95)";
-        cursor.style.transform = "translate(-50%, -50%) scale(1.4)";
-        cursor.style.boxShadow =
-          "0 0 25px rgba(0, 255, 0, 0.9), 0 0 50px rgba(0, 255, 0, 0.6)";
+        mainColor = "rgba(0, 255, 0, 0.95)";
+        shadowColor = "rgba(0, 255, 0";
+        scale = "1.4";
         break;
       case "hover":
-        cursor.style.background = "rgba(255, 140, 0, 0.9)";
-        cursor.style.transform = "translate(-50%, -50%) scale(1.2)";
-        cursor.style.boxShadow =
-          "0 0 22px rgba(255, 140, 0, 0.8), 0 0 45px rgba(255, 140, 0, 0.5)";
+        mainColor = "rgba(255, 140, 0, 0.9)";
+        shadowColor = "rgba(255, 140, 0";
+        scale = "1.2";
         break;
       default:
-        cursor.style.background = "rgba(255, 20, 20, 0.95)";
-        cursor.style.transform = "translate(-50%, -50%) scale(1)";
-        cursor.style.boxShadow =
-          "0 0 20px rgba(255, 20, 20, 0.9), 0 0 40px rgba(255, 20, 20, 0.5)";
+        mainColor = "rgba(255, 20, 20, 0.95)";
+        shadowColor = "rgba(255, 20, 20";
+        scale = "1";
         break;
+    }
+
+    // Update main cursor
+    cursor.style.background = mainColor;
+    cursor.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+    cursor.style.boxShadow = "0 0 20px " + shadowColor + ", 0.9), 0 0 40px " +
+      shadowColor + ", 0.5)";
+
+    // Update trail elements with same color but consistent sizing
+    const trailElements = (globalThis as CursorGlobals).__e2eCursorTrail;
+    if (trailElements) {
+      trailElements.forEach((trailElement, i) => {
+        if (trailElement) {
+          const TRAIL_FADE_SPEED = 0.2;
+          const opacity = 1 - (i + 1) * TRAIL_FADE_SPEED;
+
+          // No size changes - motion blur only affects opacity
+
+          // Extract RGB values from main color for trail
+          const trailOpacity = opacity * 0.6;
+          const trailMainColor = mainColor.replace(
+            /[^,]+(?=\))/,
+            trailOpacity.toString(),
+          );
+
+          trailElement.style.background = trailMainColor;
+          trailElement.style.boxShadow = "0 0 20px " + shadowColor + ", " +
+            (opacity * 0.5) + ")";
+          trailElement.style.opacity = opacity.toString();
+
+          // Ensure trail elements match the main cursor's scale
+          trailElement.style.transform = "translate(-50%, -50%) scale(" +
+            scale + ")";
+        }
+      });
     }
   }, style);
 }
@@ -317,18 +462,17 @@ export async function removeCursorOverlay(page: Page): Promise<void> {
       delete (globalThis as CursorGlobals).__cursorObserver;
     }
 
-    // Remove cursor element
-    const cursor = document.getElementById("e2e-cursor-overlay");
-    if (cursor) {
-      cursor.remove();
-    }
+    // Remove all cursor elements (main cursor and trail)
+    const allCursorElements = document.querySelectorAll("[id^='e2e-cursor-']");
+    allCursorElements.forEach((element) => element.remove());
 
     // Clean up globals
     delete (globalThis as CursorGlobals).__e2eCursor;
+    delete (globalThis as CursorGlobals).__e2eCursorTrail;
     delete (globalThis as CursorGlobals).__mousePosition;
     delete (globalThis as CursorGlobals).__recreateCursor;
     delete (globalThis as CursorGlobals).__updateCursorPosition;
 
-    // Cursor completely removed
+    // Cursor and trail completely removed
   });
 }
