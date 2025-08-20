@@ -1,6 +1,7 @@
 import type { Page } from "puppeteer-core";
 import { setCursorStyle } from "./cursor-overlay-page-injection.ts";
 import { smoothMoveTo } from "./smooth-mouse.ts";
+import { humanClick, humanMoveTo } from "./human-mouse-puppeteer.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 
 /**
@@ -15,6 +16,13 @@ function isSmoothEnabled(): boolean {
   const smoothConfig = getConfigurationVariable("BF_E2E_SMOOTH");
   // Default to true (smooth enabled) unless explicitly set to false
   return smoothConfig !== "false";
+}
+
+// Check if human-like mouse movements are enabled
+function isHumanMouseEnabled(): boolean {
+  const humanConfig = getConfigurationVariable("BF_E2E_HUMAN_MOUSE");
+  // Default to true (human-like enabled) unless explicitly set to false
+  return humanConfig !== "false";
 }
 
 export interface ScreenshotOptions {
@@ -166,6 +174,7 @@ export async function smoothClick(
 ): Promise<void> {
   const page = "page" in context ? context.page : context;
   const smoothEnabled = isSmoothEnabled();
+  const humanMouseEnabled = isHumanMouseEnabled();
 
   // Skip all screenshots if disabled
   if (!screenshots?.disabled && smoothEnabled) {
@@ -187,35 +196,41 @@ export async function smoothClick(
     const centerX = box.x + box.width / 2;
     const centerY = box.y + box.height / 2;
 
-    await smoothMoveTo(page, centerX, centerY);
+    if (humanMouseEnabled) {
+      // Use human-like mouse movement and clicking
+      await humanClick(page, centerX, centerY);
+    } else {
+      // Use original smooth movement
+      await smoothMoveTo(page, centerX, centerY);
 
-    // Pause after movement to let hover state settle
-    await new Promise((resolve) => setTimeout(resolve, 300));
+      // Pause after movement to let hover state settle
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Show click animation
-    try {
-      await setCursorStyle(page, "click");
-    } catch {
-      // Cursor overlay might not be available
+      // Show click animation
+      try {
+        await setCursorStyle(page, "click");
+      } catch {
+        // Cursor overlay might not be available
+      }
+
+      // Brief pause before actual click for visual feedback
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      await page.mouse.click(centerX, centerY);
+
+      // Pause after click to show the click effect
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Reset cursor style after click
+      try {
+        await setCursorStyle(page, "default");
+      } catch {
+        // Cursor overlay might not be available
+      }
+
+      // Final pause to let UI state settle after click
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
-
-    // Brief pause before actual click for visual feedback
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
-    await page.mouse.click(centerX, centerY);
-
-    // Pause after click to show the click effect
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    // Reset cursor style after click
-    try {
-      await setCursorStyle(page, "default");
-    } catch {
-      // Cursor overlay might not be available
-    }
-
-    // Final pause to let UI state settle after click
-    await new Promise((resolve) => setTimeout(resolve, 200));
   } else {
     // Fast mode: direct click without animations
     await element.click();
@@ -338,6 +353,7 @@ export async function smoothClickText(
 }
 
 export async function smoothFocus(page: Page, selector: string): Promise<void> {
+  const humanMouseEnabled = isHumanMouseEnabled();
   const element = await page.$(selector);
   if (!element) {
     throw new Error(`Element not found: ${selector}`);
@@ -351,26 +367,37 @@ export async function smoothFocus(page: Page, selector: string): Promise<void> {
   const centerX = box.x + box.width / 2;
   const centerY = box.y + box.height / 2;
 
-  await smoothMoveTo(page, centerX, centerY);
+  if (humanMouseEnabled) {
+    // Use human-like mouse movement
+    await humanMoveTo(page, centerX, centerY);
 
-  // Brief pause to let hover state settle
-  await new Promise((resolve) => setTimeout(resolve, 300));
+    // Brief pause for focus
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  } else {
+    // Use original smooth movement
+    await smoothMoveTo(page, centerX, centerY);
 
-  // Show hover style
-  try {
-    await setCursorStyle(page, "hover");
-  } catch {
-    // Cursor overlay might not be available
+    // Brief pause to let hover state settle
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Show hover style
+    try {
+      await setCursorStyle(page, "hover");
+    } catch {
+      // Cursor overlay might not be available
+    }
   }
 
   await page.focus(selector);
 
-  // Reset cursor style
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    await setCursorStyle(page, "default");
-  } catch {
-    // Cursor overlay might not be available
+  if (!humanMouseEnabled) {
+    // Reset cursor style for non-human mode
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await setCursorStyle(page, "default");
+    } catch {
+      // Cursor overlay might not be available
+    }
   }
 }
 
@@ -395,4 +422,37 @@ export async function smoothScroll(
 
 export async function smoothWait(duration: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, duration));
+}
+
+/**
+ * Move mouse to coordinates using human-like movement patterns
+ * This function provides direct access to human-like movements regardless of global settings
+ */
+export async function humanMouseMove(
+  page: Page,
+  targetX: number,
+  targetY: number,
+  options?: {
+    speedFactor?: number;
+    humanLike?: boolean;
+  },
+): Promise<void> {
+  await humanMoveTo(page, targetX, targetY, options);
+}
+
+/**
+ * Click at coordinates using human-like movement and clicking
+ * This function provides direct access to human-like clicking regardless of global settings
+ */
+export async function humanMouseClick(
+  page: Page,
+  targetX: number,
+  targetY: number,
+  options?: {
+    button?: "left" | "right" | "middle";
+    clickDelay?: number;
+    doubleClick?: boolean;
+  },
+): Promise<void> {
+  await humanClick(page, targetX, targetY, options);
 }
