@@ -36,7 +36,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     // Remove manual screenshot - let video recording capture naturally
 
     // Wait for content to ensure page loaded
-    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
+    const title = await context.title();
     logger.info(`Page title: ${title}`);
 
     // Verify the page title is correct
