@@ -1,6 +1,7 @@
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import {
   type Browser,
+  type Cookie,
   type HTTPResponse as Response,
   launch,
   type Page,
@@ -135,7 +136,7 @@ export interface E2ETestContext {
   // Page information getters with descriptive names
   getPageUrl: () => string;
   getPageTitle: () => Promise<string>;
-  getPageCookies: () => Promise<Array<any>>;
+  getPageCookies: () => Promise<Array<Cookie>>;
   getPageContent: () => Promise<string>;
   waitForNetworkIdle: (options?: {
     timeout?: number;
@@ -761,7 +762,7 @@ export async function setupE2ETest(options: {
       getPageTitle: async (): Promise<string> => {
         return await page.title();
       },
-      getPageCookies: async (): Promise<Array<any>> => {
+      getPageCookies: async (): Promise<Array<Cookie>> => {
         return await page.cookies();
       },
       getPageContent: async (): Promise<string> => {

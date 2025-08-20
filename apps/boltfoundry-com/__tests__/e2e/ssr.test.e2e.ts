@@ -107,13 +107,12 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     assert(environment?.port, "Environment should contain port");
 
     // Verify that the page is visually functional (basic styling applied)
-    const hasVisibleContent = await context
-      .__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-        const body = document.body;
-        const styles = globalThis.getComputedStyle(body);
-        // Just check that basic styling is applied (page isn't completely unstyled)
-        return styles.margin !== undefined && styles.padding !== undefined;
-      });
+    const hasVisibleContent = await context.evaluate(() => {
+      const body = document.body;
+      const styles = globalThis.getComputedStyle(body);
+      // Just check that basic styling is applied (page isn't completely unstyled)
+      return styles.margin !== undefined && styles.padding !== undefined;
+    });
     assert(hasVisibleContent, "Page should have basic styling applied");
 
     // Test that the page is interactive (hydration worked)
