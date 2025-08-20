@@ -103,7 +103,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           { timeout: 3000 },
         );
 
-        const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
+        const currentUrl = context.url();
         const wasRedirectedToLogin = currentUrl.includes("/login");
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
 
@@ -146,7 +146,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     await t.step("🔍 Step 3: Look for Google Sign-In button", async () => {
       // Try to stay on login page, or go to home if login failed
-      const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
+      const currentUrl = context.url();
       if (currentUrl.includes("404") || !currentUrl.includes("login")) {
         logger.info("📝 Checking home page since /login not available");
         await navigateTo(context, "/");
@@ -181,8 +181,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Check if login was successful or if we got an error
-          const currentUrl = context.__UNSAFE_page_useContextMethodsInstead
-            .url();
+          const currentUrl = context.url();
           logger.info(`📍 Current URL after login attempt: ${currentUrl}`);
 
           // Verify authentication by checking cookies
@@ -249,7 +248,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           { timeout: 3000 },
         );
 
-        const currentUrl = context.__UNSAFE_page_useContextMethodsInstead.url();
+        const currentUrl = context.url();
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
         const wasRedirectedToLogin = currentUrl.includes("/login");
 
