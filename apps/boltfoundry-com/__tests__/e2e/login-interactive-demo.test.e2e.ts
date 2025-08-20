@@ -125,10 +125,6 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     // Start video recording
     const { stop, showSubtitle } = await context.startRecording(
       "interactive-login-demo",
-      {
-        quality: "high",
-        framerate: 30,
-      },
     );
 
     await showSubtitle("🔐 Production Login Page Demo");

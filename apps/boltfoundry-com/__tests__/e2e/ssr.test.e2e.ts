@@ -14,14 +14,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
   try {
     // Start video recording with conversion to MP4
     const { stop, showSubtitle } = await context
-      .startRecording(
-        "ssr-hydration-demo",
-        {
-          outputFormat: "mp4" as const,
-          framerate: 24,
-          quality: "medium" as const,
-        },
-      );
+      .startRecording("ssr-hydration-demo");
 
     await showSubtitle("SSR landing page hydration test");
 
@@ -29,7 +22,9 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     await navigateTo(context, "/");
 
     // Try direct navigation instead of clicking since button might not be interactive yet
-    await context.__UNSAFE_page_useContextMethodsInstead.goto(`${context.baseUrl}/ui`);
+    await context.__UNSAFE_page_useContextMethodsInstead.goto(
+      `${context.baseUrl}/ui`,
+    );
 
     // Wait for navigation to complete
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -48,9 +43,8 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     assertEquals(title, "Bolt Foundry", "Page title should be 'Bolt Foundry'");
 
     // Check if the page contains expected server-rendered content
-    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
-      document.body.textContent
-    );
+    const bodyText = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => document.body.textContent);
 
     // Verify core UI demo page content is present
     assert(
@@ -71,47 +65,55 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     );
 
     // Verify SSR-specific elements are present
-    const rootElement = await context.__UNSAFE_page_useContextMethodsInstead.$("#root");
+    const rootElement = await context.__UNSAFE_page_useContextMethodsInstead.$(
+      "#root",
+    );
     assert(rootElement, "Page should have #root element for React hydration");
 
     // Check that the server rendered the initial HTML structure
-    const appElement = await context.__UNSAFE_page_useContextMethodsInstead.$("#root");
+    const appElement = await context.__UNSAFE_page_useContextMethodsInstead.$(
+      "#root",
+    );
     assert(appElement, "Page should have #root element from server rendering");
 
     // Verify that the client bundle script is loaded
-    const clientScript = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const script = document.querySelector(
-        'script[src^="/static/build/ClientRoot-"]',
-      );
-      return script !== null;
-    });
+    const clientScript = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        const script = document.querySelector(
+          'script[src^="/static/build/ClientRoot-"]',
+        );
+        return script !== null;
+      });
     assert(clientScript, "Page should include ClientRoot script");
 
     // Verify that the __ENVIRONMENT__ global is set up for rehydration
-    const hasEnvironment = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      // @ts-expect-error - Testing runtime global
-      return typeof globalThis.__ENVIRONMENT__ === "object";
-    });
+    const hasEnvironment = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        // @ts-expect-error - Testing runtime global
+        return typeof globalThis.__ENVIRONMENT__ === "object";
+      });
     assert(
       hasEnvironment,
       "Page should have __ENVIRONMENT__ global for rehydration",
     );
 
     // Verify the environment contains expected data
-    const environment = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      // @ts-expect-error - Testing runtime global
-      return globalThis.__ENVIRONMENT__;
-    });
+    const environment = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        // @ts-expect-error - Testing runtime global
+        return globalThis.__ENVIRONMENT__;
+      });
     assert(environment?.mode, "Environment should contain mode");
     assert(environment?.port, "Environment should contain port");
 
     // Verify that the page is visually functional (basic styling applied)
-    const hasVisibleContent = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const body = document.body;
-      const styles = globalThis.getComputedStyle(body);
-      // Just check that basic styling is applied (page isn't completely unstyled)
-      return styles.margin !== undefined && styles.padding !== undefined;
-    });
+    const hasVisibleContent = await context
+      .__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
+        const body = document.body;
+        const styles = globalThis.getComputedStyle(body);
+        // Just check that basic styling is applied (page isn't completely unstyled)
+        return styles.margin !== undefined && styles.padding !== undefined;
+      });
     assert(hasVisibleContent, "Page should have basic styling applied");
 
     // Test that the page is interactive (hydration worked)
@@ -142,7 +144,9 @@ Deno.test("SSR serves correct response headers", async () => {
 
   try {
     // Make request and check response headers
-    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(context.baseUrl);
+    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(
+      context.baseUrl,
+    );
 
     // Verify response is successful
     assertEquals(response?.status(), 200, "Response should be 200 OK");
@@ -200,28 +204,31 @@ Deno.test("SSR handles static assets correctly", async () => {
     await navigateTo(context, "/");
 
     // Test that CSS is loaded correctly by checking if it's actually loaded in the page
-    const cssLoaded = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const cssLinks = Array.from(
-        document.querySelectorAll('link[rel="stylesheet"]'),
-      );
-      return cssLinks.some((link) => {
-        const href = link.getAttribute("href");
-        return href && href.includes("/static/build/assets/") &&
-          href.includes(".css");
+    const cssLoaded = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        const cssLinks = Array.from(
+          document.querySelectorAll('link[rel="stylesheet"]'),
+        );
+        return cssLinks.some((link) => {
+          const href = link.getAttribute("href");
+          return href && href.includes("/static/build/assets/") &&
+            href.includes(".css");
+        });
       });
-    });
     assert(cssLoaded, "CSS should be properly loaded via manifest");
 
     // Test that the CSS file from the manifest is actually served
-    const cssHref = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const cssLink = document.querySelector('link[rel="stylesheet"]');
-      return cssLink ? cssLink.getAttribute("href") : null;
-    });
+    const cssHref = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        const cssLink = document.querySelector('link[rel="stylesheet"]');
+        return cssLink ? cssLink.getAttribute("href") : null;
+      });
 
     if (cssHref) {
-      const cssResponse = await context.__UNSAFE_page_useContextMethodsInstead.goto(
-        new URL(cssHref, context.baseUrl).toString(),
-      );
+      const cssResponse = await context.__UNSAFE_page_useContextMethodsInstead
+        .goto(
+          new URL(cssHref, context.baseUrl).toString(),
+        );
       assertEquals(
         cssResponse?.status(),
         200,
@@ -239,17 +246,19 @@ Deno.test("SSR handles static assets correctly", async () => {
 
     // Test that JavaScript is loaded correctly - navigate to home page first
     await context.__UNSAFE_page_useContextMethodsInstead.goto(context.baseUrl);
-    const jsPath = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
-      const script = document.querySelector(
-        'script[src^="/static/build/ClientRoot-"]',
-      );
-      return script?.getAttribute("src") || null;
-    });
+    const jsPath = await context.__UNSAFE_page_useContextMethodsInstead
+      .evaluate(() => {
+        const script = document.querySelector(
+          'script[src^="/static/build/ClientRoot-"]',
+        );
+        return script?.getAttribute("src") || null;
+      });
     assert(jsPath, "ClientRoot script should be found on page");
 
-    const jsResponse = await context.__UNSAFE_page_useContextMethodsInstead.goto(
-      new URL(jsPath, context.baseUrl).toString(),
-    );
+    const jsResponse = await context.__UNSAFE_page_useContextMethodsInstead
+      .goto(
+        new URL(jsPath, context.baseUrl).toString(),
+      );
     assertEquals(
       jsResponse?.status(),
       200,
