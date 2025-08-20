@@ -34,7 +34,7 @@ export function BfIsographFragmentReader<
   if (result.status === 302 && result.headers?.Location) {
     // Handle client-side redirect
     if (typeof window !== "undefined") {
-      window.location.replace(result.headers.Location);
+      globalThis.location.replace(result.headers.Location);
     }
     // Return null while redirecting
     return null;

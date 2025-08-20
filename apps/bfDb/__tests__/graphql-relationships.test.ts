@@ -154,17 +154,17 @@ Deno.test("GraphQL Relationships - Deck → Graders (many)", async () => {
   }, { role: "decks" }) as WithRelationships<typeof BfDeck>;
 
   // Verify the many relationship methods were generated
-  assertEquals(typeof deck.findAllGrader, "function");
-  assertEquals(typeof deck.connectionForGrader, "function");
+  assertEquals(typeof deck.findAllGraders, "function");
+  assertEquals(typeof deck.connectionForGraders, "function");
 
-  logger.debug("deck.findAllGrader type:", typeof deck.findAllGrader);
+  logger.debug("deck.findAllGraders type:", typeof deck.findAllGraders);
   logger.debug(
-    "deck.connectionForGrader type:",
-    typeof deck.connectionForGrader,
+    "deck.connectionForGraders type:",
+    typeof deck.connectionForGraders,
   );
 
   // Initially should have no graders
-  const initialGraders = await deck.findAllGrader();
+  const initialGraders = await deck.findAllGraders();
   logger.debug("Initial graders count:", initialGraders.length);
   assertEquals(initialGraders.length, 0);
 
@@ -184,12 +184,12 @@ Deno.test("GraphQL Relationships - Deck → Graders (many)", async () => {
   assertInstanceOf(grader2, BfGrader);
 
   // Now should have 2 graders
-  const allGraders = await deck.findAllGrader();
+  const allGraders = await deck.findAllGraders();
   logger.debug("All graders after creation:", allGraders.length);
   assertEquals(allGraders.length, 2);
 
   // Test the GraphQL connection
-  const connection = await deck.connectionForGrader({ first: 10 });
+  const connection = await deck.connectionForGraders({ first: 10 });
 
   // Verify connection structure
   assertEquals(typeof connection, "object");
@@ -233,11 +233,11 @@ Deno.test("GraphQL Relationships - Deck → Samples (many)", async () => {
   }, { role: "decks" }) as WithRelationships<typeof BfDeck>;
 
   // Verify the many relationship methods were generated
-  assertEquals(typeof deck.findAllSample, "function");
-  assertEquals(typeof deck.connectionForSample, "function");
+  assertEquals(typeof deck.findAllSamples, "function");
+  assertEquals(typeof deck.connectionForSamples, "function");
 
   // Initially should have no samples
-  const initialSamples = await deck.findAllSample();
+  const initialSamples = await deck.findAllSamples();
   assertEquals(initialSamples.length, 0);
 
   // Create samples using the relationship method with edge role
@@ -279,11 +279,11 @@ Deno.test("GraphQL Relationships - Deck → Samples (many)", async () => {
   assertInstanceOf(sample2, BfSample);
 
   // Now should have 2 samples
-  const allSamples = await deck.findAllSample();
+  const allSamples = await deck.findAllSamples();
   assertEquals(allSamples.length, 2);
 
   // Test the GraphQL connection
-  const connection = await deck.connectionForSample({ first: 10 });
+  const connection = await deck.connectionForSamples({ first: 10 });
 
   // Verify connection structure
   assertEquals(typeof connection, "object");
