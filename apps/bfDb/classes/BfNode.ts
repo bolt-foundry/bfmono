@@ -452,6 +452,15 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     return this;
   }
 
+  /**
+   * @deprecated Use the generated relationship methods instead (e.g., createDecksItem, createSamplesItem)
+   *
+   * This method is intended for internal use by the relationship methods.
+   * For creating related nodes, use the type-safe relationship methods that are
+   * automatically generated based on your node's relationships.
+   *
+   * @internal
+   */
   async createTargetNode<TProps extends PropsBase>(
     TargetNodeClass: typeof BfNode<TProps>,
     props: TProps,
@@ -459,7 +468,10 @@ export abstract class BfNode<TProps extends PropsBase = {}>
       role?: string;
       metadata?: Partial<BfMetadata>;
     },
-  ): Promise<InstanceType<typeof TargetNodeClass>> {
+  ): Promise<
+    & InstanceType<typeof TargetNodeClass>
+    & RelationshipMethods<typeof TargetNodeClass>
+  > {
     const targetNode = await TargetNodeClass.__DANGEROUS__createUnattached(
       this.cv,
       props,
@@ -612,7 +624,9 @@ export abstract class BfNode<TProps extends PropsBase = {}>
     nodeProps: Partial<TTargetProps> = {},
     edgeProps: Partial<PropsBase> = {},
     cache?: BfNodeCache<TTargetProps>,
-  ): Promise<Array<InstanceType<TTargetClass>>> {
+  ): Promise<
+    Array<InstanceType<TTargetClass> & RelationshipMethods<TTargetClass>>
+  > {
     // Step 1: Query edges where this node is the source
     const { BfEdge } = await import("@bfmono/apps/bfDb/nodeTypes/BfEdge.ts");
     const edgeMetadata: Partial<BfEdgeMetadata> = {
