@@ -150,10 +150,6 @@ export interface E2ETestContext {
     waitUntil?: "load" | "domcontentloaded" | "networkidle0" | "networkidle2";
     timeout?: number;
   }) => Promise<Response | null>;
-  waitForFunction: <T = unknown>(
-    fn: () => T | Promise<T>,
-    options?: { timeout?: number; polling?: number | "raf" | "mutation" },
-  ) => Promise<void>;
 }
 
 /**
@@ -793,12 +789,6 @@ export async function setupE2ETest(options: {
         timeout?: number;
       }): Promise<Response | null> => {
         return await page.goto(url, options);
-      },
-      waitForFunction: async <T = unknown>(
-        fn: () => T | Promise<T>,
-        options?: { timeout?: number; polling?: number | "raf" | "mutation" },
-      ): Promise<void> => {
-        await page.waitForFunction(fn, options);
       },
       teardown: async (): Promise<void> => {
         try {

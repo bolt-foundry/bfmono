@@ -58,7 +58,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
 
     // Check if cursor element still exists
     const cursorExists = await context
-      .evaluate(() => {
+      .__UNSAFE_evaluate(() => {
         const cursor = document.getElementById("e2e-cursor-overlay");
         if (cursor) {
           return {
@@ -144,7 +144,7 @@ Deno.test("Debug cursor overlay visibility with screenshots", async () => {
 
     // Final cursor state check
     const finalCursorState = await context
-      .evaluate(() => {
+      .__UNSAFE_evaluate(() => {
         const cursor = document.getElementById("e2e-cursor-overlay");
         if (cursor) {
           const rect = cursor.getBoundingClientRect();

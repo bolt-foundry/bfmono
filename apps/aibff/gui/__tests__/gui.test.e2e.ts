@@ -53,7 +53,7 @@ Deno.test.ignore(
       assertEquals(title, "aibff GUI");
 
       // Check that the "New Conversation" header exists
-      const hasNewConversationHeader = await context.evaluate(() => {
+      const hasNewConversationHeader = await context.__UNSAFE_evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) =>
           el.textContent?.trim() === "New Conversation"
@@ -62,7 +62,7 @@ Deno.test.ignore(
       assert(hasNewConversationHeader, "Should show 'New Conversation' header");
 
       // Check that the WorkflowPanel with correct tabs exists
-      const hasWorkflowPanel = await context.evaluate(() => {
+      const hasWorkflowPanel = await context.__UNSAFE_evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) =>
           el.textContent?.includes("Input Variables") ||
@@ -73,14 +73,14 @@ Deno.test.ignore(
       assert(hasWorkflowPanel, "Should show workflow panel with correct tabs");
 
       // Check for the chat interface elements - look for Assistant message div
-      const hasAssistantMessage = await context.evaluate(() => {
+      const hasAssistantMessage = await context.__UNSAFE_evaluate(() => {
         const elements = Array.from(document.querySelectorAll("*"));
         return elements.some((el) => el.textContent?.trim() === "Assistant");
       });
       assert(hasAssistantMessage, "Should show Assistant message area");
 
       // Check for input textarea
-      const hasTextarea = await context.evaluate(() => {
+      const hasTextarea = await context.__UNSAFE_evaluate(() => {
         const textarea = document.querySelector(
           'textarea[placeholder="Type a message..."]',
         );
@@ -89,7 +89,7 @@ Deno.test.ignore(
       assert(hasTextarea, "Should have message input textarea");
 
       // Check for send button
-      const hasSendButton = await context.evaluate(() => {
+      const hasSendButton = await context.__UNSAFE_evaluate(() => {
         const buttons = Array.from(document.querySelectorAll("button"));
         return buttons.some((button) => button.textContent === "Send");
       });
@@ -111,7 +111,7 @@ Deno.test.ignore(
       await context.takeScreenshot("aibff-gui-before-send");
 
       // Click send button
-      await context.evaluate(() => {
+      await context.__UNSAFE_evaluate(() => {
         const buttons = Array.from(document.querySelectorAll("button"));
         const sendButton = buttons.find((button) =>
           button.textContent === "Send"
@@ -139,7 +139,7 @@ Deno.test.ignore(
       await context.takeScreenshot("aibff-gui-after-response");
 
       // Verify tool call was made
-      const toolCallMade = await context.evaluate(() => {
+      const toolCallMade = await context.__UNSAFE_evaluate(() => {
         const allText = document.body.textContent || "";
         return allText.includes("updateInputSamples") ||
           allText.includes("input samples") ||
