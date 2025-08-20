@@ -14,6 +14,8 @@ boltfoundry.com dashboard.
 
 - [Implementation Summary](./implementation-summary.md) - Summary of PR #179
   changes
+- [Implementation Instructions](./implementation-instructions.md) - Step-by-step
+  guide for Phase 2 changes
 - [Open Questions](./open-questions.md) - Questions to answer as we build
 - [Answered Questions](./answered-questions.md) - Resolved questions and
   decisions
