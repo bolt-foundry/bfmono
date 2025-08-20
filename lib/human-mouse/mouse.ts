@@ -3,7 +3,7 @@
  * Provides human-like mouse movement and clicking functionality
  */
 
-import {
+import type {
   ClickOptions,
   MouseControllerOptions,
   Point,
@@ -41,10 +41,10 @@ export class MouseController {
    */
   private getScreenSize(): ScreenSize {
     // Placeholder implementation - in real usage, this would get actual screen size
-    if (typeof window !== "undefined" && window.screen) {
+    if (typeof window !== "undefined" && globalThis.screen) {
       return {
-        width: window.screen.width,
-        height: window.screen.height,
+        width: globalThis.screen.width,
+        height: globalThis.screen.height,
       };
     }
 
@@ -203,29 +203,34 @@ export class MouseController {
    * Platform-specific mouse movement implementation
    * In a real implementation, this would use robotjs, or browser APIs, etc.
    */
-  private async platformMouseMove(x: number, y: number): Promise<void> {
+  private platformMouseMove(x: number, y: number): void {
     // Placeholder - in real implementation this would call:
     // - robotjs.moveMouse(x, y) for Node.js
     // - Browser APIs for web applications
     // - Platform-specific APIs for different environments
 
-    console.log(`Moving mouse to: ${x}, ${y}`);
+    // Simulated mouse movement to: x, y
+    void x;
+    void y;
   }
 
   /**
    * Platform-specific mouse click implementation
    * In a real implementation, this would use robotjs, or browser APIs, etc.
    */
-  private async platformMouseClick(
+  private platformMouseClick(
     button: string,
     x: number,
     y: number,
-  ): Promise<void> {
+  ): void {
     // Placeholder - in real implementation this would call:
     // - robotjs.mouseClick(button) for Node.js
     // - Browser click events for web applications
     // - Platform-specific APIs for different environments
 
-    console.log(`${button} clicking at: ${x}, ${y}`);
+    // Simulated click: button at x, y
+    void button;
+    void x;
+    void y;
   }
 }
