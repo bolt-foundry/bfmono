@@ -19,7 +19,7 @@ Deno.test("Homepage loads successfully", async () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // Basic assertions to verify the page loaded
-    const title = await context.title();
+    const title = await context.getPageTitle();
     logger.info("Page title:", title);
 
     // Verify we're on the right page

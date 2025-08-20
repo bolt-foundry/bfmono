@@ -101,7 +101,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
         await navigateTo(context, "/rlhf");
         await context.waitForNetworkIdle({ timeout: 3000 });
 
-        const currentUrl = context.url();
+        const currentUrl = context.getPageUrl();
         const wasRedirectedToLogin = currentUrl.includes("/login");
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
 
@@ -175,7 +175,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Check if login was successful or if we got an error
-          const currentUrl = context.url();
+          const currentUrl = context.getPageUrl();
           logger.info(`📍 Current URL after login attempt: ${currentUrl}`);
 
           // Verify authentication by checking cookies
@@ -240,7 +240,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
         await navigateTo(context, "/rlhf");
         await context.waitForNetworkIdle({ timeout: 3000 });
 
-        const currentUrl = context.url();
+        const currentUrl = context.getPageUrl();
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");
         const wasRedirectedToLogin = currentUrl.includes("/login");
 

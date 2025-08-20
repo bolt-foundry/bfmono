@@ -30,13 +30,13 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Check current URL after navigation
-    const currentUrl = context.url();
+    const currentUrl = context.getPageUrl();
     logger.info(`Current URL after button click: ${currentUrl}`);
 
     // Remove manual screenshot - let video recording capture naturally
 
     // Wait for content to ensure page loaded
-    const title = await context.title();
+    const title = await context.getPageTitle();
     logger.info(`Page title: ${title}`);
 
     // Verify the page title is correct

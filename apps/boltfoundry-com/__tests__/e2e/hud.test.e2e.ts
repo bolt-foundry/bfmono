@@ -50,7 +50,7 @@ Deno.test("HUD functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Verify we're on the login page
-      const currentUrl = context.url();
+      const currentUrl = context.getPageUrl();
       assert(
         currentUrl.includes("/login"),
         `Should be on login page, but URL is ${currentUrl}`,
@@ -70,7 +70,7 @@ Deno.test("HUD functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify we were redirected to /pg (eval routes start with /pg)
-      const authUrl = context.url();
+      const authUrl = context.getPageUrl();
       assert(
         authUrl.includes("/pg"),
         `Should be redirected to /pg after authentication, but was redirected to ${authUrl}`,

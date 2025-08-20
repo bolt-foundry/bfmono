@@ -63,7 +63,7 @@ Deno.test("Eval page functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Verify we're on the login page
-      const currentUrl = context.url();
+      const currentUrl = context.getPageUrl();
       assert(
         currentUrl.includes("/login"),
         `Should be on login page, but URL is ${currentUrl}`,
@@ -107,7 +107,7 @@ Deno.test("Eval page functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Check if we were redirected or if there's an auth cookie
-      const currentUrl = context.url();
+      const currentUrl = context.getPageUrl();
       logger.debug(`Current URL after auth: ${currentUrl}`);
 
       const cookies = await context.__UNSAFE_page_useContextMethodsInstead

@@ -180,7 +180,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await showSubtitle("🎉 Authentication successful!");
 
     // Check if we were redirected or if there's an auth cookie
-    const currentUrl = context.url();
+    const currentUrl = context.getPageUrl();
     logger.info(`Current URL after auth: ${currentUrl}`);
 
     const cookies = await context.__UNSAFE_page_useContextMethodsInstead
