@@ -1,6 +1,6 @@
 import type {ComponentReaderArtifact, ExtractSecondParam, ReaderAst } from '@isograph/react';
 import { CurrentViewer__LoginPage__param } from './param_type.ts';
-import { LoginPage as resolver } from '../../../../components/LoginPage.tsx';
+import { LoginPage as resolver } from '../../../../isograph/components/CurrentViewer/LoginPage.tsx';
 
 const readerAst: ReaderAst<CurrentViewer__LoginPage__param> = [
   {

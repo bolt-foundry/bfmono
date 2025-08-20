@@ -165,14 +165,25 @@ export const DecksListItem = iso(`
 
 ### File Organization
 
+**Important:** Isograph components should be organized by the GraphQL type they
+attach to, not by feature:
+
 ```
-components/
-  Grade.tsx           # Top-level route component
-  DecksView.tsx       # View component (field on Organization)
-  DeckList.tsx        # List component (field on Organization)
-  DecksListItem.tsx   # Item component (field on BfDeck)
-entrypoints/
-  EntrypointGrade.ts  # Route entrypoint
+apps/boltfoundry-com/
+  components/            # Regular React "dumb" components
+    Evals/
+      Layout/
+        MainContent.tsx  # Simple layout components
+  isograph/
+    components/          # Isograph components organized by GraphQL type
+      BfOrganization/
+        DecksList.tsx    # field BfOrganization.DecksList
+      CurrentViewerLoggedIn/
+        Grade.tsx        # field CurrentViewerLoggedIn.Grade
+      Query/
+        Home.tsx         # field Query.Home
+    entrypoints/         # Top-level route entrypoints
+      EntrypointGrade.ts # Returns { Body, title, status?, headers? }
 ```
 
 ## 5. Data Fetching
@@ -268,25 +279,79 @@ export const DeckList = iso(`
 });
 ```
 
-## 8. Type Safety
+## 8. Component Function Signatures
 
-The Isograph compiler generates types, but you can add additional type safety:
+### Proper Parameter Destructuring
+
+Isograph components receive `{ data, parameters }` as their argument. Use
+destructuring for clarity:
 
 ```typescript
-import type { DecksListItem as DecksListItemType } from "./__generated__/DecksListItem";
-
-export const DecksListItem = iso(`
-  field BfDeck.DecksListItem @component {
+// ❌ Anti-pattern: Using 'any' type
+export const DecksList = iso(`
+  field BfOrganization.DecksList @component {
     id
     name
   }
-`)(function DecksListItem({ data }: { data: DecksListItemType }) {
-  // TypeScript now knows the shape of data
-  return <div>{data.name}</div>;
+`)(function DecksList(data: any) {
+  return <div>{data.name}</div>; // TypeScript can't help here
+});
+
+// ✅ Pattern: Proper destructuring
+export const DecksList = iso(`
+  field BfOrganization.DecksList @component {
+    id
+    name
+  }
+`)(function DecksList({ data }) {
+  return <div>{data.name}</div>; // TypeScript knows the exact shape
 });
 ```
 
-## 9. Feature Flags and Progressive Enhancement
+### Rendering Isograph Components
+
+When using component fields, render them as JSX components:
+
+```typescript
+export const Grade = iso(`
+  field CurrentViewerLoggedIn.Grade @component {
+    organization {
+      DecksList  // This becomes a React component
+    }
+  }
+`)(function Grade({ data }) {
+  // ❌ Wrong: Calling as a function
+  return <div>{data.organization.DecksList()}</div>;
+
+  // ✅ Correct: Rendering as JSX component
+  return (
+    <div>
+      <data.organization.DecksList />
+    </div>
+  );
+});
+```
+
+## 9. Type Safety
+
+The Isograph compiler generates types automatically. Avoid using `any`:
+
+```typescript
+// The compiler generates BfOrganization__DecksList__param type
+export const DecksList = iso(`
+  field BfOrganization.DecksList @component {
+    id
+    name
+  }
+`)(function DecksList({ data }) {
+  // TypeScript automatically knows:
+  // - data.id is string
+  // - data.name is string | null
+  return <div>{data.name || "(no name)"}</div>;
+});
+```
+
+## 10. Feature Flags and Progressive Enhancement
 
 When migrating or adding features, use feature flags:
 
@@ -309,7 +374,7 @@ export const DeckList = iso(`
 });
 ```
 
-## 10. Testing Considerations
+## 11. Testing Considerations
 
 Isograph components are easier to test because they're self-contained:
 

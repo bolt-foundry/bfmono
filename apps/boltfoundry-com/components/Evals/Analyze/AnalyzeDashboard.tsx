@@ -6,7 +6,7 @@ import { BfDsInput } from "@bfmono/apps/bfDs/components/BfDsInput.tsx";
 import { BfDsSelect } from "@bfmono/apps/bfDs/components/BfDsSelect.tsx";
 import { DisagreementCard } from "./DisagreementCard.tsx";
 import { type Disagreement, ResolutionModal } from "./ResolutionModal.tsx";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -76,7 +76,7 @@ interface AnalyzeDashboardProps {
 }
 
 export function AnalyzeDashboard({ deckId: _deckId }: AnalyzeDashboardProps) {
-  const { openRightSidebar } = useEvalContext();
+  const { openRightSidebar } = usePromptGradeContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
