@@ -69,7 +69,7 @@ export class BfSample extends BfNode<InferProps<typeof BfSample>> {
         resolve: async (_src, args, ctx) => {
           const cv = ctx.getCurrentViewer();
           const deck = await BfDeck.findX(cv, args.deckId as BfGid);
-          const sample = await deck.createTargetNode(BfSample, {
+          const sample = await deck.createSamplesItem({
             completionData: JSON.parse(args.completionData),
             collectionMethod: (args.collectionMethod ||
               "manual") as BfSampleCollectionMethod,

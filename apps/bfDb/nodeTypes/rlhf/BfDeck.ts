@@ -25,12 +25,12 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
       .nonNull.string("slug")
       .connection("graders", () => BfGrader, {
         resolve: async (deck, args) => {
-          return await deck.connectionForGrader(args);
+          return await deck.connectionForGraders(args);
         },
       })
       .connection("samples", () => BfSample, {
         resolve: async (deck, args) => {
-          return await deck.connectionForSample(args);
+          return await deck.connectionForSamples(args);
         },
       })
       .typedMutation("createDeck", {
@@ -54,12 +54,12 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
             });
             await org.save();
           }
-          const deck = await org.createTargetNode(BfDeck, {
+          const deck = await org.createDecksItem({
             name: args.name,
             content: args.content,
             description: args.description || "",
             slug: args.slug,
-          }) as BfDeck;
+          });
           await deck.afterCreate();
           const result = deck.toGraphql();
           return { ...result, id: deck.id };
@@ -77,8 +77,8 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
       .string("content")
       .string("description")
       .string("slug")
-      .many("grader", () => BfGrader)
-      .many("sample", () => BfSample)
+      .many("graders", () => BfGrader)
+      .many("samples", () => BfSample)
   );
 
   /**

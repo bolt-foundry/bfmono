@@ -42,18 +42,21 @@ Deno.test("RLHF Workflow - Create deck via sample submission, add AI evaluation 
     });
 
     // Mock AI evaluation by directly creating a grader result
-    await sample.createTargetNode(BfGraderResult, {
+    const { createBfNode } = await import(
+      "@bfmono/apps/bfDb/builders/bfDb/createBfNode.ts"
+    );
+    await createBfNode(BfGraderResult, {
       score: 1,
       explanation: "Response is helpful but could be more specific",
       reasoningProcess:
         "AI evaluation: response acknowledges user but lacks detail",
-    });
+    }, { sourceBfGid: sample.id });
 
     // Add human feedback that disagrees with AI
-    const feedback = await sample.createTargetNode(BfSampleFeedback, {
+    const feedback = await createBfNode(BfSampleFeedback, {
       score: 3,
       explanation: "Actually this is a perfect response - clear and friendly",
-    });
+    }, { sourceBfGid: sample.id });
 
     // Verify workflow
     assertEquals(deck.props.name, "customer-service");
