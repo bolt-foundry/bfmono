@@ -26,8 +26,7 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     logger.info(`UI page title: ${title}`);
 
     // Check the current URL
-    const currentUrl = await context.__UNSAFE_page_useContextMethodsInstead
-      .url();
+    const currentUrl = context.url();
     logger.info(`Current URL: ${currentUrl}`);
 
     // Check the environment and routing state

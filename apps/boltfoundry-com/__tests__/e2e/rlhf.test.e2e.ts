@@ -37,7 +37,7 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
 
     // Check that page loaded successfully (no 404)
     const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(
-      context.__UNSAFE_page_useContextMethodsInstead.url(),
+      context.url(),
     );
     const statusCode = response?.status();
     logger.info("HTTP Status Code:", statusCode);
@@ -48,7 +48,7 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     );
     logger.info(
       "Page URL:",
-      context.__UNSAFE_page_useContextMethodsInstead.url(),
+      context.url(),
     );
 
     // Extract just the body content for debugging
