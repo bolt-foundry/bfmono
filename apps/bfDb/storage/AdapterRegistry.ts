@@ -4,8 +4,16 @@
 
 import { BfError } from "@bfmono/lib/BfError.ts";
 import type { DatabaseBackend } from "../backend/DatabaseBackend.ts";
+import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
+import { InMemoryAdapter } from "./InMemoryAdapter.ts";
+import { DatabaseBackendPg } from "../backend/DatabaseBackendPg.ts";
+import { DatabaseBackendSqlite } from "../backend/DatabaseBackendSqlite.ts";
+import { DatabaseBackendNeon } from "../backend/DatabaseBackendNeon.ts";
+import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
-// Alias: moving forward we’ll refer to all adapters through this name.
+const logger = getLogger(import.meta);
+
+// Alias: moving forward we'll refer to all adapters through this name.
 export type IBackendAdapter = DatabaseBackend;
 
 /**
@@ -30,12 +38,59 @@ export class AdapterRegistry {
   }
 
   /**
-   * Returns the active adapter. Throws if none registered so that tests stay
-   * red until an adapter is explicitly set.
+   * Check if an adapter has been registered without triggering lazy registration
    */
-  static get(): IBackendAdapter {
+  static hasAdapter(): boolean {
+    return this._active !== null;
+  }
+
+  /**
+   * Returns the active adapter. If none registered, lazily registers the default adapter.
+   * This allows apps to use BfDb without explicit registration.
+   */
+  static async get(): Promise<IBackendAdapter> {
     if (!this._active) {
-      throw new BfError("AdapterRegistry.get(): no adapter registered");
+      // Lazy registration - register default adapter based on environment
+      const env =
+        (getConfigurationVariable("FORCE_DB_BACKEND")?.toLowerCase() ||
+          getConfigurationVariable("DB_BACKEND_TYPE")?.toLowerCase()) ??
+          "sqlite";
+      logger.info(`AdapterRegistry: lazily registering '${env}' backend`);
+
+      switch (env) {
+        case "neon": {
+          const neon = new DatabaseBackendNeon();
+          await neon.initialize();
+          this.register(neon);
+          break;
+        }
+        case "pg":
+        case "postgres": {
+          const pg = new DatabaseBackendPg();
+          await pg.initialize();
+          this.register(pg);
+          break;
+        }
+        case "memory": {
+          const mem = new InMemoryAdapter();
+          await mem.initialize();
+          this.register(mem);
+          break;
+        }
+        case "sqlite":
+        default: {
+          const sqlite = new DatabaseBackendSqlite();
+          await sqlite.initialize();
+          this.register(sqlite);
+        }
+      }
+
+      // If still no adapter after registration attempt, throw
+      if (!this._active) {
+        throw new BfError(
+          "AdapterRegistry.get(): failed to register default adapter",
+        );
+      }
     }
     return this._active;
   }

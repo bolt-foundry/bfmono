@@ -25,12 +25,7 @@ const normalizationAst: NormalizationAst = {
         },
         {
           kind: "Scalar",
-          fieldName: "orgBfOid",
-          arguments: null,
-        },
-        {
-          kind: "Scalar",
-          fieldName: "personBfGid",
+          fieldName: "__typename",
           arguments: null,
         },
         {
@@ -64,7 +59,7 @@ const normalizationAst: NormalizationAst = {
                   arguments: [
                     [
                       "first",
-                      { kind: "Literal", value: 10 },
+                      { kind: "Literal", value: 50 },
                     ],
                   ],
                   concreteType: "BfOrganizationDecksConnection",
@@ -109,15 +104,31 @@ const normalizationAst: NormalizationAst = {
                 },
                 {
                   kind: "Scalar",
-                  fieldName: "domain",
-                  arguments: null,
-                },
-                {
-                  kind: "Scalar",
                   fieldName: "name",
                   arguments: null,
                 },
               ],
+            },
+          ],
+        },
+        {
+          kind: "InlineFragment",
+          type: "CurrentViewerLoggedOut",
+          selections: [
+            {
+              kind: "Scalar",
+              fieldName: "__typename",
+              arguments: null,
+            },
+            {
+              kind: "Scalar",
+              fieldName: "id",
+              arguments: null,
+            },
+            {
+              kind: "Scalar",
+              fieldName: "__typename",
+              arguments: null,
             },
           ],
         },

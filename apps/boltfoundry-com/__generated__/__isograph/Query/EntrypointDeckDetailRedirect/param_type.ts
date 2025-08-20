@@ -1,5 +1,5 @@
 
-export type Query__Eval__param = {
+export type Query__EntrypointDeckDetailRedirect__param = {
   readonly data: {
     readonly __typename: string,
   },
