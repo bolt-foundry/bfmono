@@ -21,12 +21,10 @@ export function resetRegistration() {
 export function registerDefaultAdapter() {
   if (registered) return; // idempotent
 
-  try {
-    AdapterRegistry.get();
+  // Check if something is already registered without using async get()
+  if (AdapterRegistry.hasAdapter()) {
     registered = true; // Something already registered elsewhere
     return;
-  } catch (_) {
-    // fallthrough – nothing registered yet
   }
 
   const env = (getConfigurationVariable("FORCE_DB_BACKEND")?.toLowerCase() ||

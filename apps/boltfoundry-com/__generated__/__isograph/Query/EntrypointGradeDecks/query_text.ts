@@ -1,16 +1,15 @@
-export default 'query EntrypointEval  {\
+export default 'query EntrypointGradeDecks  {\
   id,\
   currentViewer {\
     __typename,\
     id,\
-    orgBfOid,\
-    personBfGid,\
+    __typename,\
     ... on CurrentViewerLoggedIn {\
       id,\
       __typename,\
       organization {\
         id,\
-        decks____first___l_10: decks(first: 10) {\
+        decks____first___l_50: decks(first: 50) {\
           edges {\
             node {\
               id,\
@@ -20,9 +19,13 @@ export default 'query EntrypointEval  {\
             },\
           },\
         },\
-        domain,\
         name,\
       },\
+    },\
+    ... on CurrentViewerLoggedOut {\
+      __typename,\
+      id,\
+      __typename,\
     },\
   },\
 }';

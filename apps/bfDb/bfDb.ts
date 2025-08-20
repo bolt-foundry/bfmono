@@ -621,7 +621,7 @@ export async function withIsolatedDb<T>(
     registerDefaultAdapter();
 
     // Additional safety: ensure the adapter is properly initialized
-    const adapter = AdapterRegistry.get();
+    const adapter = await AdapterRegistry.get();
     await adapter.initialize();
     logger.debug(`Initialized adapter: ${adapter.constructor.name}`);
 
