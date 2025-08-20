@@ -24,7 +24,7 @@ Deno.test("Login page does not show development warnings in production mode", as
 
     // Get page content
     const bodyText = await context
-      .evaluate(() => document.body.textContent);
+      .__UNSAFE_evaluate(() => document.body.textContent);
 
     // Verify login page loaded
     assert(

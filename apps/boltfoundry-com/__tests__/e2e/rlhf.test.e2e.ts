@@ -29,10 +29,10 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     await context.waitForFunction(() => {
       const h1 = document.querySelector("h1");
       // Since this test doesn't authenticate, we expect the login page
-      return h1 && (
+      return !!(h1 && (
         h1.textContent?.includes("Sign In") ||
         h1.textContent?.includes("RLHF")
-      );
+      ));
     }, { timeout: 5000 });
 
     // Check that page loaded successfully (no 404)
