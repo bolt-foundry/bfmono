@@ -195,7 +195,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
           }
 
           // Check if page content indicates we're logged in
-          const pageContentAfterAuth = await context.evaluate(() =>
+          const pageContentAfterAuth = await context.__UNSAFE_evaluate(() =>
             document.body.innerText.toLowerCase()
           );
 

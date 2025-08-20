@@ -26,19 +26,21 @@ Deno.test("Homepage loads successfully", async () => {
     assertEquals(title, "Bolt Foundry");
 
     // Verify the page content is present
-    const pageContent = await context.evaluate(() => document.body.textContent);
+    const pageContent = await context.__UNSAFE_evaluate(() =>
+      document.body.textContent
+    );
     logger.info("Page content:", pageContent?.substring(0, 200) + "...");
     assert(pageContent, "Page should have content");
 
     // Debug: Check if React has hydrated
-    const reactHydrated = await context.evaluate(() => {
+    const reactHydrated = await context.__UNSAFE_evaluate(() => {
       const root = document.querySelector("#root");
       return root ? root.innerHTML.length > 50 : false;
     });
     logger.info("React hydrated:", reactHydrated);
 
     // Debug: Check what resources failed to load
-    const failedRequests = await context.evaluate(() => {
+    const failedRequests = await context.__UNSAFE_evaluate(() => {
       const scripts = Array.from(document.querySelectorAll("script[src]"));
       const links = Array.from(document.querySelectorAll("link[href]"));
       return {

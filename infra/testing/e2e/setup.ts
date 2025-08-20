@@ -127,7 +127,11 @@ export interface E2ETestContext {
     selector: string,
     options?: { timeout?: number; visible?: boolean },
   ) => Promise<void>;
-  evaluate: <T>(
+  waitForFunction: (
+    fn: () => boolean | Promise<boolean>,
+    options?: { timeout?: number; polling?: number },
+  ) => Promise<void>;
+  __UNSAFE_evaluate: <T>(
     // deno-lint-ignore no-explicit-any
     fn: (...args: Array<any>) => T,
     // deno-lint-ignore no-explicit-any
@@ -748,7 +752,13 @@ export async function setupE2ETest(options: {
       ): Promise<void> => {
         await page.waitForSelector(selector, options);
       },
-      evaluate: async <T>(
+      waitForFunction: async (
+        fn: () => boolean | Promise<boolean>,
+        options?: { timeout?: number; polling?: number },
+      ): Promise<void> => {
+        await page.waitForFunction(fn, options);
+      },
+      __UNSAFE_evaluate: async <T>(
         // deno-lint-ignore no-explicit-any
         fn: (...args: Array<any>) => T,
         // deno-lint-ignore no-explicit-any

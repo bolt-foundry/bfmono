@@ -19,7 +19,7 @@ Deno.test("CSS loading - inline and external CSS on home page", async () => {
     await context.takeScreenshot("css-test-home-page");
 
     // Verify professional CSS styling is loaded correctly
-    const cssLoadingStatus = await context.evaluate(() => {
+    const cssLoadingStatus = await context.__UNSAFE_evaluate(() => {
       // Check for landing page wrapper with proper class
       const landingPage = document.querySelector(".landing-page");
       const hasLandingPageClass = landingPage !== null;

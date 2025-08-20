@@ -28,7 +28,7 @@ Deno.test("Eval page functionality", async (t) => {
       });
 
       // Verify homepage loaded
-      const pageContent = await context.evaluate(() =>
+      const pageContent = await context.__UNSAFE_evaluate(() =>
         document.body.textContent
       );
       assert(
@@ -70,7 +70,7 @@ Deno.test("Eval page functionality", async (t) => {
         `Should be on login page, but URL is ${currentUrl}`,
       );
 
-      const loginPageContent = await context.evaluate(() =>
+      const loginPageContent = await context.__UNSAFE_evaluate(() =>
         document.body.textContent
       );
       assert(
@@ -151,14 +151,14 @@ Deno.test("Eval page functionality", async (t) => {
       await context.takeScreenshot("eval-test-decks-page");
 
       // Check if HUD is visible and contains our debug messages
-      const hudVisible = await context.evaluate(() =>
+      const hudVisible = await context.__UNSAFE_evaluate(() =>
         document.querySelector(".bfds-hud") !== null
       );
       if (hudVisible) {
         logger.info("✅ HUD is visible");
 
         // Get HUD messages
-        const hudMessages = await context.evaluate(() => {
+        const hudMessages = await context.__UNSAFE_evaluate(() => {
           const messages = document.querySelectorAll(".hud-message-content");
           return Array.from(messages).map((el) => el.textContent);
         });
@@ -186,7 +186,7 @@ Deno.test("Eval page functionality", async (t) => {
       }
 
       // Verify deck items are displayed
-      const deckItemCount = await context.evaluate(() =>
+      const deckItemCount = await context.__UNSAFE_evaluate(() =>
         document.querySelectorAll(".deck-item").length
       );
       logger.info(`Found ${deckItemCount} deck items`);
@@ -206,7 +206,7 @@ Deno.test("Eval page functionality", async (t) => {
       await context.takeScreenshot("eval-test-after-deck-click");
 
       // Wait for GradingInbox to mount
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(".grading-inbox", {
+      await context.waitForSelector(".grading-inbox", {
         visible: true,
         timeout: 10000,
       });
@@ -214,8 +214,11 @@ Deno.test("Eval page functionality", async (t) => {
       await context.takeScreenshot("eval-test-grading-inbox");
 
       // Check HUD messages for GradingInbox mount
-      if (await context.__UNSAFE_page_useContextMethodsInstead.$(".bfds-hud") !== null) {
-        const hudMessages = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() => {
+      const hudExists = await context.__UNSAFE_evaluate(() =>
+        document.querySelector(".bfds-hud") !== null
+      );
+      if (hudExists) {
+        const hudMessages = await context.__UNSAFE_evaluate(() => {
           const messages = document.querySelectorAll(".hud-message-content");
           return Array.from(messages).map((el) => el.textContent);
         });
@@ -244,12 +247,14 @@ Deno.test("Eval page functionality", async (t) => {
       }
 
       // Verify grading UI elements
-      const gradingHeader = await context.__UNSAFE_page_useContextMethodsInstead.evaluate(() =>
+      const gradingHeader = await context.__UNSAFE_evaluate(() =>
         document.querySelector(".grading-header")?.textContent
       );
       assert(gradingHeader?.includes("Grading:"), "Should show grading header");
 
-      const sampleDisplay = await context.__UNSAFE_page_useContextMethodsInstead.$(".sample-display") !== null;
+      const sampleDisplay = await context.__UNSAFE_evaluate(() =>
+        document.querySelector(".sample-display") !== null
+      );
       assert(sampleDisplay, "Should display sample for grading");
 
       logger.info("✅ Successfully navigated to grading inbox");

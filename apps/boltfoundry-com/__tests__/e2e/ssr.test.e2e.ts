@@ -22,9 +22,7 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     await navigateTo(context, "/");
 
     // Try direct navigation instead of clicking since button might not be interactive yet
-    await context.__UNSAFE_page_useContextMethodsInstead.goto(
-      `${context.baseUrl}/ui`,
-    );
+    await navigateTo(context, "/ui");
 
     // Wait for navigation to complete
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -65,49 +63,46 @@ Deno.test("SSR landing page loads and hydrates correctly", async () => {
     );
 
     // Verify SSR-specific elements are present
-    const rootElement = await context.__UNSAFE_page_useContextMethodsInstead.$(
-      "#root",
+    const rootElement = await context.__UNSAFE_evaluate(() =>
+      document.querySelector("#root") !== null
     );
     assert(rootElement, "Page should have #root element for React hydration");
 
     // Check that the server rendered the initial HTML structure
-    const appElement = await context.__UNSAFE_page_useContextMethodsInstead.$(
-      "#root",
+    const appElement = await context.__UNSAFE_evaluate(() =>
+      document.querySelector("#root") !== null
     );
     assert(appElement, "Page should have #root element from server rendering");
 
     // Verify that the client bundle script is loaded
-    const clientScript = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => {
-        const script = document.querySelector(
-          'script[src^="/static/build/ClientRoot-"]',
-        );
-        return script !== null;
-      });
+    const clientScript = await context.__UNSAFE_evaluate(() => {
+      const script = document.querySelector(
+        'script[src^="/static/build/ClientRoot-"]',
+      );
+      return script !== null;
+    });
     assert(clientScript, "Page should include ClientRoot script");
 
     // Verify that the __ENVIRONMENT__ global is set up for rehydration
-    const hasEnvironment = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => {
-        // @ts-expect-error - Testing runtime global
-        return typeof globalThis.__ENVIRONMENT__ === "object";
-      });
+    const hasEnvironment = await context.__UNSAFE_evaluate(() => {
+      // @ts-expect-error - Testing runtime global
+      return typeof globalThis.__ENVIRONMENT__ === "object";
+    });
     assert(
       hasEnvironment,
       "Page should have __ENVIRONMENT__ global for rehydration",
     );
 
     // Verify the environment contains expected data
-    const environment = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => {
-        // @ts-expect-error - Testing runtime global
-        return globalThis.__ENVIRONMENT__;
-      });
+    const environment = await context.__UNSAFE_evaluate(() => {
+      // @ts-expect-error - Testing runtime global
+      return globalThis.__ENVIRONMENT__;
+    });
     assert(environment?.mode, "Environment should contain mode");
     assert(environment?.port, "Environment should contain port");
 
     // Verify that the page is visually functional (basic styling applied)
-    const hasVisibleContent = await context.evaluate(() => {
+    const hasVisibleContent = await context.__UNSAFE_evaluate(() => {
       const body = document.body;
       const styles = globalThis.getComputedStyle(body);
       // Just check that basic styling is applied (page isn't completely unstyled)

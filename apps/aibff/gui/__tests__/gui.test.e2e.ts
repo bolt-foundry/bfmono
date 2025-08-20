@@ -24,7 +24,7 @@ Deno.test.ignore(
       await context.takeScreenshot("aibff-gui-initial");
 
       // Wait for the loading to complete and UI to be ready
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
+      await context.waitForFunction(
         () => {
           const bodyText = document.body.textContent || "";
           // Wait for loading to complete (no "Loading conversation..." text)
@@ -34,7 +34,7 @@ Deno.test.ignore(
       );
 
       // Wait for content to load - look for the "New Conversation" header
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
+      await context.waitForFunction(
         () => {
           const elements = Array.from(document.querySelectorAll("*"));
           return elements.some((el) =>
@@ -122,7 +122,7 @@ Deno.test.ignore(
       logger.info("Message sent, waiting for AI response with tool call...");
 
       // Wait for AI response (look for assistant message that isn't the initial one)
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(
+      await context.waitForFunction(
         () => {
           const messages = Array.from(document.querySelectorAll("*"));
           const assistantMessages = messages.filter((el) =>

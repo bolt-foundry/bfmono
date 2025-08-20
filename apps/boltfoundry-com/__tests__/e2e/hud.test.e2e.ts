@@ -28,7 +28,7 @@ Deno.test("HUD functionality", async (t) => {
       });
 
       // Verify homepage loaded
-      const pageContent = await context.evaluate(() =>
+      const pageContent = await context.__UNSAFE_evaluate(() =>
         document.body.textContent
       );
       assert(
@@ -102,7 +102,7 @@ Deno.test("HUD functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Verify HUD is visible by checking if button variant changed to primary
-      const hudButtonVariant = await context.evaluate(() => {
+      const hudButtonVariant = await context.__UNSAFE_evaluate(() => {
         const button = document.querySelector('[data-testid="header-hud"]');
         return button?.className;
       });
@@ -113,7 +113,7 @@ Deno.test("HUD functionality", async (t) => {
       );
 
       // Verify HUD panel is visible
-      const hudPanelVisible = await context.evaluate(() => {
+      const hudPanelVisible = await context.__UNSAFE_evaluate(() => {
         const hudPanel = document.querySelector(".hud-container");
         return hudPanel !== null &&
           getComputedStyle(hudPanel).display !== "none";
@@ -150,7 +150,7 @@ Deno.test("HUD functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Verify HUD is closed by checking if button variant changed back to ghost
-      const hudButtonVariant = await context.evaluate(() => {
+      const hudButtonVariant = await context.__UNSAFE_evaluate(() => {
         const button = document.querySelector('[data-testid="header-hud"]');
         return button?.className;
       });
@@ -161,7 +161,7 @@ Deno.test("HUD functionality", async (t) => {
       );
 
       // Verify HUD panel is no longer visible
-      const hudPanelHidden = await context.evaluate(() => {
+      const hudPanelHidden = await context.__UNSAFE_evaluate(() => {
         const hudPanel = document.querySelector(".hud-container");
         return hudPanel === null ||
           getComputedStyle(hudPanel).display === "none";
@@ -183,14 +183,14 @@ Deno.test("HUD functionality", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Verify it opened
-      const hudOpenAgain = await context.evaluate(() => {
+      const hudOpenAgain = await context.__UNSAFE_evaluate(() => {
         const button = document.querySelector('[data-testid="header-hud"]');
         return button?.className?.includes("primary");
       });
       assert(hudOpenAgain, "HUD should open again when clicking header button");
 
       // Verify HUD panel is visible again
-      const hudVisible = await context.evaluate(() => {
+      const hudVisible = await context.__UNSAFE_evaluate(() => {
         const hudPanel = document.querySelector(".hud-container");
         return hudPanel !== null &&
           getComputedStyle(hudPanel).display !== "none";
