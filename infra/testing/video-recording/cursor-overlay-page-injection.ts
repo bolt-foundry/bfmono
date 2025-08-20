@@ -22,7 +22,7 @@ const CURSOR_SCRIPT = `
       border: 4px solid rgba(255, 255, 255, 1) !important;
       border-radius: 50% !important;
       pointer-events: none !important;
-      z-index: 2147483647 !important;
+      z-index: 2147483646 !important;
       transition: all 0.2s ease-out !important;
       box-shadow: 0 0 20px rgba(255, 20, 20, 0.9), 0 0 40px rgba(255, 20, 20, 0.5) !important;
       transform: translate(-50%, -50%) !important;

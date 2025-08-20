@@ -123,11 +123,18 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     );
 
     // Start video recording
-    const { stop, showSubtitle } = await context.startRecording(
+    const { stop, showSubtitle, showTitleCard } = await context.startRecording(
       "interactive-login-demo",
     );
 
-    await showSubtitle("🔐 Production Login Page Demo");
+    // Show opening title card immediately (no fade-in animation)
+    await showTitleCard(
+      "Interactive Login Demo",
+      "Production Environment Test",
+      3500,
+      { noOpeningAnimation: true },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 4000));
 
     // Navigate to login page
     logger.info("Navigating to login page...");
@@ -139,7 +146,10 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     // Wait for page to fully load
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    await showSubtitle("✅ Clean login page - no development warnings!");
+    await showSubtitle("✅ Clean login page - no development warnings!", 5000);
+
+    // Wait for subtitle to be fully visible
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Take screenshot before interaction
     await context.takeScreenshot("login-page-before-click");
@@ -158,7 +168,10 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
       "Should NOT show development warnings in production",
     );
 
-    await showSubtitle("👆 Clicking Google Sign-In button...");
+    await showSubtitle("👆 Clicking Google Sign-In button...", 4000);
+
+    // Wait for subtitle to be readable
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Wait for button to be ready
     await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
@@ -177,7 +190,10 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     // Wait for authentication to process
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await showSubtitle("🎉 Authentication successful!");
+    await showSubtitle("🎉 Authentication successful!", 4000);
+
+    // Wait for subtitle to be readable
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Check if we were redirected or if there's an auth cookie
     const currentUrl = context.url();
@@ -193,13 +209,27 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
       logger.info(
         `✅ Auth cookies found: ${authCookies.map((c) => c.name).join(", ")}`,
       );
-      await showSubtitle("🍪 Authentication cookies set!");
+      await showSubtitle("🍪 Authentication cookies set!", 4000);
+
+      // Wait for subtitle to be readable
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     } else {
-      await showSubtitle("⚠️ No auth cookies - backend integration needed");
+      await showSubtitle(
+        "⚠️ No auth cookies - backend integration needed",
+        4000,
+      );
     }
 
     // Take final screenshot
     await context.takeScreenshot("login-page-after-auth");
+
+    // Show closing title card
+    await showTitleCard(
+      "Demo Complete!",
+      "Login flow tested successfully",
+      2500,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // Stop video recording
     const videoResult = await stop();
