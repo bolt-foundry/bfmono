@@ -2,6 +2,7 @@
 
 export interface CursorGlobals {
   __e2eCursor?: HTMLElement;
+  __e2eCursorTrail?: Array<HTMLElement>;
   __mousePosition?: { x: number; y: number };
   __recreateCursor?: () => HTMLElement;
   __updateCursorPosition?: () => void;
