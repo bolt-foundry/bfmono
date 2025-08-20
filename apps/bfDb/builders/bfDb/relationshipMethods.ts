@@ -72,11 +72,21 @@ type ManyRelationshipMethods<T extends AnyBfNodeCtor> = UnionToIntersection<
           >;
         }
         & {
+          [P in K as `query${Capitalize<P>}`]: (
+            props?: Partial<InferProps<RelationTarget<T, P>>>,
+          ) => Promise<Array<InstanceType<RelationTarget<T, P>>>>;
+        }
+        & {
           [P in K as `connectionFor${Capitalize<P>}`]: (
             args?: ConnectionArguments & {
               where?: Partial<InferProps<RelationTarget<T, P>>>;
             },
           ) => Promise<Connection<InstanceType<RelationTarget<T, P>>>>;
+        }
+        & {
+          [P in K as `create${Capitalize<P>}Item`]: (
+            props: InferProps<RelationTarget<T, P>>,
+          ) => Promise<InstanceType<RelationTarget<T, P>>>;
         }
       : never;
   }[RelationNames<T>]
@@ -307,6 +317,20 @@ function generateManyRelationshipMethods(
     configurable: true,
   });
 
+  // query{RelationName}(props) - Query related nodes with specific properties
+  Object.defineProperty(node, `query${capitalizedName}`, {
+    value: async function (props: Record<string, JSONValue> = {}) {
+      return await node.queryTargetInstances(
+        targetClass,
+        props as PropsBase, // Cast to PropsBase for type compatibility
+        { role: relationName }, // filter by relationship name
+      );
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+
   // connectionFor{RelationName}(args) - GraphQL connection support
   Object.defineProperty(node, `connectionFor${capitalizedName}`, {
     value: async function (
@@ -323,6 +347,22 @@ function generateManyRelationshipMethods(
 
       // Use existing BfNode.connection for cursor-based pagination
       return BfNode.connection(results, connectionArgs);
+    },
+    writable: false,
+    enumerable: false,
+    configurable: true,
+  });
+
+  // create{RelationName}Item(props) - Create and link a new related node
+  // Using "Item" suffix to clarify we're creating a single item in a many relationship
+  Object.defineProperty(node, `create${capitalizedName}Item`, {
+    value: async function (props: Record<string, unknown>) {
+      // Use createTargetNode which handles both node creation and edge linking
+      return await node.createTargetNode(
+        targetClass,
+        props as PropsBase, // Cast to PropsBase for type compatibility
+        { role: relationName }, // Pass relationship name as the edge role
+      );
     },
     writable: false,
     enumerable: false,
