@@ -142,7 +142,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     await t.step("🔍 Step 3: Look for Google Sign-In button", async () => {
       // Try to stay on login page, or go to home if login failed
-      const currentUrl = context.url();
+      const currentUrl = context.getPageUrl();
       if (currentUrl.includes("404") || !currentUrl.includes("login")) {
         logger.info("📝 Checking home page since /login not available");
         await navigateTo(context, "/");
