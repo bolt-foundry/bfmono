@@ -100,35 +100,27 @@ const RECORDING_THROBBER_SCRIPT = `
     document.head.appendChild(style);
     document.body.appendChild(throbber);
 
-    // Function to attach throbber to cursor
-    function attachThrobberToCursor() {
-      const cursor = document.getElementById("e2e-cursor-overlay");
+    // Function to update throbber position based on global mouse position
+    function updateThrobberPosition() {
       const throbber = document.getElementById("recording-throbber");
-
-      if (cursor && throbber) {
-        const cursorRect = cursor.getBoundingClientRect();
-        throbber.style.left = cursorRect.left + cursorRect.width / 2 + "px";
-        throbber.style.top = cursorRect.top + cursorRect.height / 2 + "px";
+      const mousePos = globalThis.__mousePosition;
+      
+      if (throbber && mousePos) {
+        // Position throbber directly at mouse position
+        throbber.style.left = mousePos.x + "px";
+        throbber.style.top = mousePos.y + "px";
       }
     }
 
-    // Attach throbber to cursor position initially
-    attachThrobberToCursor();
+    // Initial positioning
+    updateThrobberPosition();
 
-    // Update throbber position when cursor moves
-    const updateThrobberPosition = () => {
-      attachThrobberToCursor();
-    };
-
-    // Listen for mouse movement to update throbber position
-    document.addEventListener("mousemove", updateThrobberPosition);
-
-    // Also update position periodically in case cursor moves programmatically
-    const positionInterval = setInterval(updateThrobberPosition, 100);
+    // Update position periodically to catch programmatic mouse movements
+    // Using a longer interval to reduce jitter
+    const positionInterval = setInterval(updateThrobberPosition, 250);
 
     // Store cleanup function
     globalThis.__cleanupRecordingThrobber = () => {
-      document.removeEventListener("mousemove", updateThrobberPosition);
       clearInterval(positionInterval);
     };
   })();
