@@ -1,0 +1,73 @@
+import { iso } from "@iso-bfc";
+import { PromptGradeProvider } from "@bfmono/apps/boltfoundry-com/contexts/PromptGradeContext.tsx";
+import { Header } from "@bfmono/apps/boltfoundry-com/components/Evals/Layout/Header.tsx";
+import { LeftSidebar } from "@bfmono/apps/boltfoundry-com/components/Evals/Layout/LeftSidebar.tsx";
+import { MainContent } from "@bfmono/apps/boltfoundry-com/components/Evals/Layout/MainContent.tsx";
+import { RightSidebar } from "@bfmono/apps/boltfoundry-com/components/Evals/Layout/RightSidebar.tsx";
+import { SidebarNav } from "@bfmono/apps/boltfoundry-com/components/Evals/Navigation/SidebarNav.tsx";
+
+/**
+ * Grade component - Main component for the evaluation/grading system
+ * This is a field on CurrentViewerLoggedIn that renders the full eval interface
+ * Provides the full layout with navigation, sidebars, and main content
+ */
+export const Grade = iso(`
+  field CurrentViewerLoggedIn.Grade @component {
+    organization {
+      id
+      name
+      DecksList
+    }
+  }
+`)(function Grade({ data }) {
+  // Determine what to show based on route
+  const currentPath = typeof window !== "undefined"
+    ? window.location.pathname
+    : "/pg/grade";
+  const isDecksListPage = currentPath === "/pg/grade/decks" ||
+    currentPath === "/pg/grade" ||
+    currentPath === "/pg";
+
+  // Render content based on route
+  const renderMainContent = () => {
+    if (isDecksListPage && data.organization) {
+      return (
+        <div className="decks-view">
+          <div className="view-header">
+            <h2>Decks</h2>
+            <p className="view-description">
+              Create and manage evaluation frameworks for grading AI responses
+            </p>
+          </div>
+          <data.organization.DecksList />
+        </div>
+      );
+    }
+
+    // Default content for other routes
+    return <div>Main content will go here based on route</div>;
+  };
+
+  return (
+    <PromptGradeProvider>
+      <div className="eval-page">
+        <Header />
+        <div className="eval-layout">
+          <div className="eval-content">
+            <LeftSidebar>
+              <div className="eval-sidebar-content">
+                <SidebarNav />
+              </div>
+            </LeftSidebar>
+            <MainContent>
+              {renderMainContent()}
+            </MainContent>
+            <RightSidebar title="Sidebar">
+              <div>Optional sidebar content</div>
+            </RightSidebar>
+          </div>
+        </div>
+      </div>
+    </PromptGradeProvider>
+  );
+});

@@ -1,7 +1,7 @@
 import type { EagerReaderArtifact, ReaderAst } from '@isograph/react';
 import { Query__EntrypointGradeDecks__param } from './param_type.ts';
 import { Query__EntrypointGradeDecks__output_type } from './output_type.ts';
-import { EntrypointGradeDecks as resolver } from '../../../../entrypoints/EntrypointGradeDecks.ts';
+import { EntrypointGradeDecks as resolver } from '../../../../isograph/entrypoints/EntrypointGradeDecks.ts';
 import CurrentViewer__LoginPage__resolver_reader from '../../CurrentViewer/LoginPage/resolver_reader.ts';
 import CurrentViewerLoggedIn__Grade__resolver_reader from '../../CurrentViewerLoggedIn/Grade/resolver_reader.ts';
 import CurrentViewerLoggedIn__asCurrentViewerLoggedIn__resolver_reader from '../../CurrentViewerLoggedIn/asCurrentViewerLoggedIn/resolver_reader.ts';

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/contexts/PromptGradeContext.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
 /**
- * Hook to manage deck samples through EvalContext
+ * Hook to manage deck samples through PromptGradeContext
  * Loads samples into context on first use, then returns context state
  */
 export function useDeckSamples(deckId: string) {
@@ -16,7 +16,7 @@ export function useDeckSamples(deckId: string) {
     setSamplesForDeck,
     setSamplesLoading,
     updateSampleGrade,
-  } = useEvalContext();
+  } = usePromptGradeContext();
 
   const samples = deckSamples[deckId] || [];
   const loading = samplesLoading[deckId] || false;

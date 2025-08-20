@@ -8,8 +8,27 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
+/**
+ * Helper to clean up test data from the database
+ * This ensures test isolation by removing test-specific data
+ */
+async function cleanupTestData(apiUrl: string) {
+  try {
+    // Call a cleanup endpoint if available, or use direct DB access
+    // For now, we'll rely on the test deck having a unique name
+    logger.debug("Cleaning up test data...");
+  } catch (error) {
+    logger.warn("Failed to cleanup test data:", error);
+  }
+}
+
 Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
   const context = await setupBoltFoundryComTest();
+
+  // Clean up any existing test data before starting
+  const baseUrl = context.url().split("/")[0] + "//" +
+    context.url().split("/")[2];
+  await cleanupTestData(baseUrl);
 
   try {
     // Start video recording

@@ -25,51 +25,105 @@ components via Isograph, and implement proper navigation, home, and login pages.
 
 **Goal**: Replace Eval.tsx with a new PromptGrade.tsx that handles layout
 
+**Tasks**:
+
 - [ ] Create PromptGrade.tsx component
 - [ ] Port layout logic from Eval.tsx
 - [ ] Expose PromptGrade via Isograph
 - [ ] Update routes to use PromptGrade instead of Eval
 - [ ] Delete old Eval.tsx component
+- [ ] Update E2E test to verify PromptGrade renders
+
+**Success Criteria**:
+
+- PromptGrade component renders without errors
+- All existing functionality from Eval.tsx is preserved
+- E2E test passes with new component
+- No references to Eval.tsx remain in codebase
 
 ### 2. Implement Navigation Components
 
 **Goal**: Create and expose navigation components via Isograph
+
+**Tasks**:
 
 - [ ] Create main navigation component
 - [ ] Expose nav component via Isograph
 - [ ] Add section switching (Grade, Analyze, Chat)
 - [ ] Implement user menu/profile dropdown
 - [ ] Ensure navigation works with redirect-based routing
+- [ ] Add E2E test for navigation between sections
 
-### 3. Create Home Page
+**Success Criteria**:
 
-**Goal**: Landing page accessible via Isograph
+- Navigation component accessible via Isograph query
+- Can switch between Grade, Analyze, and Chat sections
+- User menu displays current user info
+- E2E test verifies navigation works
+- Navigation state persists across page refreshes
 
-- [ ] Create Home component
-- [ ] Expose via Isograph
-- [ ] Add route configuration
-- [ ] Include getting started content
-- [ ] Link to main features
+### 3. Update Home Page Navigation
 
-### 4. Enhance Login Page
+**Goal**: Update existing home page to use Isograph-based navigation
 
-**Goal**: Professional login experience via Isograph
+**Tasks**:
 
-- [ ] Update/create Login component
-- [ ] Expose via Isograph
-- [ ] Ensure proper authentication flow
-- [ ] Add organization selection/creation
-- [ ] Style consistent with brand
+- [ ] Keep existing Home component content
+- [ ] Update nav to use Isograph component
+- [ ] Remove nav from /ui route
+- [ ] Ensure nav component exposed via Isograph
+- [ ] Add E2E test for updated navigation
+
+**Success Criteria**:
+
+- Home page renders with Isograph nav
+- Navigation removed from /ui
+- Links to Grade, Analyze, Chat sections work
+- E2E test verifies navigation works
+- No duplicate navigation components
+
+### 4. Convert Login Page to Isograph
+
+**Goal**: Convert existing login page to use Isograph
+
+**Tasks**:
+
+- [ ] Keep existing Login component design
+- [ ] Expose Login component via Isograph
+- [ ] Ensure authentication flow still works
+- [ ] Maintain existing organization selection
+- [ ] Add E2E test for login flow
+
+**Success Criteria**:
+
+- Login page works via Isograph
+- No visual changes from current design
+- Authentication flow unchanged
+- E2E test verifies login still works
+- Existing functionality preserved
 
 ### 5. Wire Everything Together
 
 **Goal**: Ensure all components work cohesively
+
+**Tasks**:
 
 - [ ] Update EntrypointGradeDecks to use PromptGrade
 - [ ] Ensure all routes properly configured
 - [ ] Verify authentication flow works
 - [ ] Test navigation between all pages
 - [ ] Run `bft iso` to compile all Isograph queries
+- [ ] Run full E2E test suite
+- [ ] Fix any integration issues
+- [ ] Update isograph-patterns.md with file organization by GraphQL type
+
+**Success Criteria**:
+
+- All routes work without errors
+- Authentication persists across navigation
+- `bft iso` compiles without errors
+- All E2E tests pass
+- No console errors in browser
 
 ## Technical Notes
 
@@ -78,14 +132,17 @@ components via Isograph, and implement proper navigation, home, and login pages.
 - Maintain authentication patterns with CurrentViewerLoggedIn/LoggedOut
 - Keep real-time data updates working
 
-## Success Criteria
+## Overall Phase Success Criteria
 
 - [ ] PromptGrade.tsx replaces Eval.tsx completely
-- [ ] All components accessible via Isograph
+- [ ] All app components accessible via Isograph
 - [ ] Navigation works between all sections
 - [ ] Home and login pages functional
 - [ ] Old Eval.tsx deleted
 - [ ] UI maintains or improves on previous design
+- [ ] All E2E tests pass (including existing ones from Phase 2)
+- [ ] No regression in telemetry functionality
+- [ ] Code follows Isograph patterns from documentation
 
 ## Next Phase
 

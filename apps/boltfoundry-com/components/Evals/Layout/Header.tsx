@@ -1,8 +1,8 @@
 import { Nav } from "@bfmono/apps/boltfoundry-com/components/Nav.tsx";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/contexts/PromptGradeContext.tsx";
 
 export function Header() {
-  const { setLeftSidebarOpen, leftSidebarOpen } = useEvalContext();
+  const { setLeftSidebarOpen, leftSidebarOpen } = usePromptGradeContext();
 
   return (
     <Nav

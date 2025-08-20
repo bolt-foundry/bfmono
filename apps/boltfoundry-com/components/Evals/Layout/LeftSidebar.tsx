@@ -1,22 +1,18 @@
-import { BfDsList } from "@bfmono/apps/bfDs/components/BfDsList.tsx";
-import { BfDsListItem } from "@bfmono/apps/bfDs/components/BfDsListItem.tsx";
+import type { ReactNode } from "react";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/contexts/PromptGradeContext.tsx";
 import { useEffect, useRef } from "react";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
-import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
-export function LeftSidebar() {
-  const {
-    leftSidebarOpen,
-    rightSidebarOpen,
-  } = useEvalContext();
-  const { currentPath, navigate } = useRouter();
+interface LeftSidebarProps {
+  children: ReactNode;
+}
+
+/**
+ * LeftSidebar - Simple layout component for the left sidebar
+ * Handles visibility state and animations based on context
+ */
+export function LeftSidebar({ children }: LeftSidebarProps) {
+  const { leftSidebarOpen, rightSidebarOpen } = usePromptGradeContext();
   const hasAnimated = useRef(false);
-
-  // Determine which section is active based on current path
-  const isGradeActive = currentPath.startsWith("/pg/grade") ||
-    currentPath === "/pg";
-  const isAnalyzeActive = currentPath === "/pg/analyze";
-  const isChatActive = currentPath === "/pg/chat";
 
   useEffect(() => {
     // Mark that we've had at least one state change after initial render
@@ -46,26 +42,7 @@ export function LeftSidebar() {
       <div className={placeholderClass}></div>
       <div className={sidebarClass}>
         <div className="eval-sidebar-content">
-          <BfDsList header="Navigation">
-            <BfDsListItem
-              active={isGradeActive}
-              onClick={() => navigate("/pg/grade/decks")}
-            >
-              Grade
-            </BfDsListItem>
-            <BfDsListItem
-              active={isAnalyzeActive}
-              onClick={() => navigate("/pg/analyze")}
-            >
-              Analyze
-            </BfDsListItem>
-            <BfDsListItem
-              active={isChatActive}
-              onClick={() => navigate("/pg/chat")}
-            >
-              Chat
-            </BfDsListItem>
-          </BfDsList>
+          {children}
         </div>
       </div>
     </>

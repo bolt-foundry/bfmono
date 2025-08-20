@@ -1,6 +1,6 @@
 import { iso } from "@iso-bfc";
-import { LoginWithGoogleButton } from "./LoginWithGoogleButton.tsx";
-import { Nav } from "./Nav.tsx";
+import { LoginWithGoogleButton } from "@bfmono/apps/boltfoundry-com/components/LoginWithGoogleButton.tsx";
+import { Nav } from "@bfmono/apps/boltfoundry-com/components/Nav.tsx";
 
 export const LoginPage = iso(`
   field CurrentViewer.LoginPage @component {

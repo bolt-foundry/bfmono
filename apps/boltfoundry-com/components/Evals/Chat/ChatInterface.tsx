@@ -5,7 +5,7 @@ import { BfDsSelect } from "@bfmono/apps/bfDs/components/BfDsSelect.tsx";
 import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 import { ChatMessage } from "./ChatMessage.tsx";
 import { ChatInput } from "./ChatInput.tsx";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/contexts/PromptGradeContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -120,7 +120,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ sessionId }: ChatInterfaceProps) {
   const { openRightSidebar, chatMode, chatBackTarget, exitChatMode } =
-    useEvalContext();
+    usePromptGradeContext();
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(
     sessionId ? mockSessions.find((s) => s.id === sessionId) || null : null,
   );
