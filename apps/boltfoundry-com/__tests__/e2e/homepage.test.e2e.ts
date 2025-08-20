@@ -19,39 +19,36 @@ Deno.test("Homepage loads successfully", async () => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // Basic assertions to verify the page loaded
-    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
+    const title = await context.title();
     logger.info("Page title:", title);
 
     // Verify we're on the right page
     assertEquals(title, "Bolt Foundry");
 
     // Verify the page content is present
-    const pageContent = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => document.body.textContent);
+    const pageContent = await context.evaluate(() => document.body.textContent);
     logger.info("Page content:", pageContent?.substring(0, 200) + "...");
     assert(pageContent, "Page should have content");
 
     // Debug: Check if React has hydrated
-    const reactHydrated = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => {
-        const root = document.querySelector("#root");
-        return root ? root.innerHTML.length > 50 : false;
-      });
+    const reactHydrated = await context.evaluate(() => {
+      const root = document.querySelector("#root");
+      return root ? root.innerHTML.length > 50 : false;
+    });
     logger.info("React hydrated:", reactHydrated);
 
     // Debug: Check what resources failed to load
-    const failedRequests = await context.__UNSAFE_page_useContextMethodsInstead
-      .evaluate(() => {
-        const scripts = Array.from(document.querySelectorAll("script[src]"));
-        const links = Array.from(document.querySelectorAll("link[href]"));
-        return {
-          scripts: scripts.map((s) => s.getAttribute("src")),
-          links: links.map((l) => l.getAttribute("href")),
-          rootContent:
-            document.querySelector("#root")?.innerHTML?.substring(0, 100) ||
-            "empty",
-        };
-      });
+    const failedRequests = await context.evaluate(() => {
+      const scripts = Array.from(document.querySelectorAll("script[src]"));
+      const links = Array.from(document.querySelectorAll("link[href]"));
+      return {
+        scripts: scripts.map((s) => s.getAttribute("src")),
+        links: links.map((l) => l.getAttribute("href")),
+        rootContent:
+          document.querySelector("#root")?.innerHTML?.substring(0, 100) ||
+          "empty",
+      };
+    });
     logger.info("Resources:", failedRequests);
 
     // Check if authentication section is present
