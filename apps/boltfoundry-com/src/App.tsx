@@ -5,7 +5,6 @@ import {
 import { AppRoot } from "../AppRoot.tsx";
 import { BfDsProvider } from "@bfmono/apps/bfDs/components/BfDsProvider.tsx";
 import { RefinementProvider } from "../contexts/RefinementContext.tsx";
-
 function App(props: Partial<ServerProps>) {
   return (
     <div className="app">

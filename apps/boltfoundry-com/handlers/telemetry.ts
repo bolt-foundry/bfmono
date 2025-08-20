@@ -1,6 +1,6 @@
 import { CurrentViewer } from "@bfmono/apps/bfDb/classes/CurrentViewer.ts";
-import { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
-import { BfSample } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfSample.ts";
+import type { BfDeck } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfDeck.ts";
+// BfSample type import not needed currently
 import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { generateDeckSlug } from "@bfmono/apps/bfDb/utils/slugUtils.ts";
@@ -109,7 +109,8 @@ export async function handleTelemetryRequest(
       );
     }
 
-    const { deckId, contextVariables, attributes } = telemetryData.bfMetadata;
+    const { deckId } = telemetryData.bfMetadata;
+    // contextVariables and attributes not used yet
 
     // Get the organization node
     const org = await BfOrganization.findX(
@@ -117,26 +118,21 @@ export async function handleTelemetryRequest(
       currentViewer.orgBfOid,
     );
 
-    // Generate slug and query for existing deck by slug to avoid duplicates
+    // Generate slug for this deck
     const slug = generateDeckSlug(deckId, currentViewer.orgBfOid);
 
-    const existingDecks = await BfDeck.query(
-      currentViewer,
-      {}, // Metadata - bfOid and className auto-injected
-      { slug }, // Match by slug
-      [], // No specific bfGids
-    );
+    // Query for existing deck with this slug in the organization
+    const existingDecks = await org.queryDecks({ slug });
 
     let deck: BfDeck;
     if (existingDecks.length > 0) {
-      // Found existing deck, use it
-      deck = existingDecks[0] as BfDeck;
+      // Found existing deck in this org
+      deck = existingDecks[0];
       logger.info(`Found existing deck: ${deckId} (slug: ${slug})`);
     } else {
-      // Create new deck
-      // Note: SDK's lazy deck creation should have already created this deck
-      // This is a fallback for decks that might not have been created yet
-      deck = await org.createTargetNode(BfDeck, {
+      // Create new deck using the relationship method to ensure proper edge role
+      // This ensures the edge has role="decks" which is required for GraphQL queries
+      deck = await org.createDecksItem({
         name: deckId,
         content: "",
         description: `Auto-created from telemetry for ${deckId}`,
@@ -145,32 +141,17 @@ export async function handleTelemetryRequest(
       logger.info(`Created new deck: ${deckId} (slug: ${slug})`);
     }
 
-    // Create the sample
-    const completionData = {
-      request: telemetryData.request,
-      response: telemetryData.response,
-      provider: telemetryData.provider,
-      model: telemetryData.model,
-      duration: telemetryData.duration,
-      contextVariables,
-      attributes,
-    };
+    // TODO: Add sample creation once deck display is working
+    // For now, just acknowledge the telemetry
+    logger.info(`Telemetry received for deck ${deck.props.name}`);
 
-    const sample = await deck.createTargetNode(BfSample, {
-      name: `Telemetry Sample ${Date.now()}`,
-      completionData: JSON.stringify(completionData),
-      collectionMethod: "telemetry",
-    });
-
-    logger.info(
-      `Created sample ${sample.metadata.bfGid} for deck ${deck.props.name}`,
-    );
+    // Force a small delay to ensure SQLite WAL is committed
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     return new Response(
       JSON.stringify({
         success: true,
         deckId: deck.metadata.bfGid,
-        sampleId: sample.metadata.bfGid,
       }),
       {
         status: 200,
