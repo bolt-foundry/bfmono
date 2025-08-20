@@ -62,6 +62,7 @@
     "jsr:@std/path@~0.225.2": "0.225.2",
     "jsr:@std/streams@^1.0.10": "1.0.10",
     "jsr:@std/streams@^1.0.9": "1.0.10",
+    "jsr:@std/testing@*": "1.0.14",
     "jsr:@std/testing@^1.0.9": "1.0.14",
     "jsr:@std/toml@^1.0.3": "1.0.8",
     "jsr:@std/toml@^1.0.4": "1.0.8",
