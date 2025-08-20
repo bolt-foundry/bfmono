@@ -5,7 +5,7 @@ import { SampleDisplay } from "./SampleDisplay.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
 import { useDeckSamples } from "@bfmono/apps/boltfoundry-com/hooks/useDeckSamples.ts";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
-import { useEvalContext } from "@bfmono/apps/boltfoundry-com/contexts/EvalContext.tsx";
+import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import type { GradingSample } from "@bfmono/apps/boltfoundry-com/types/grading.ts";
 
 interface GradingContainerProps {
@@ -23,7 +23,7 @@ export function GradingContainer({
 }: GradingContainerProps) {
   const { samples, saveGrade, saving } = useDeckSamples(deckId);
   const { navigate } = useRouter();
-  const { markSamplesCompleted } = useEvalContext();
+  const { markSamplesCompleted } = usePromptGradeContext();
   const [viewMode, setViewMode] = useState<ViewMode>("grading");
   const [viewingSample, setViewingSample] = useState<GradingSample | null>(
     null,

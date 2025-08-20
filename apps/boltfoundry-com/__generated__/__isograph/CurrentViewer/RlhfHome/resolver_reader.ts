@@ -1,6 +1,6 @@
 import type {ComponentReaderArtifact, ExtractSecondParam, ReaderAst } from '@isograph/react';
 import { CurrentViewer__RlhfHome__param } from './param_type.ts';
-import { RlhfHome as resolver } from '../../../../components/RlhfHome.tsx';
+import { RlhfHome as resolver } from '../../../../isograph/components/CurrentViewer/RlhfHome.tsx';
 
 const readerAst: ReaderAst<CurrentViewer__RlhfHome__param> = [
   {

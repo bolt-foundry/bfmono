@@ -1,4 +1,5 @@
 import { iso } from "@iso-bfc";
+import { FallbackDecks } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/FallbackDecks.tsx";
 
 /**
  * EntrypointGradeDecks - Main entrypoint for /pg/grade/decks route
@@ -35,7 +36,9 @@ export const EntrypointGradeDecks = iso(`
   }
 
   // User is logged in, show the Grade component
-  const Body = data.currentViewer?.asCurrentViewerLoggedIn?.Grade;
+  const Body = data.currentViewer?.asCurrentViewerLoggedIn?.Grade ||
+    FallbackDecks;
   const title = "Decks - Bolt Foundry";
+
   return { Body, title };
 });
