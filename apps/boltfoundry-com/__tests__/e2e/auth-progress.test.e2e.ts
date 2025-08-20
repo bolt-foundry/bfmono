@@ -99,9 +99,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
       async () => {
         logger.info("📝 Testing access to /rlhf without authentication");
         await navigateTo(context, "/rlhf");
-        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
-          { timeout: 3000 },
-        );
+        await context.waitForNetworkIdle({ timeout: 3000 });
 
         const currentUrl = context.url();
         const wasRedirectedToLogin = currentUrl.includes("/login");
@@ -125,9 +123,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
 
     await t.step("📍 Step 2: Check if /login route exists", async () => {
       await navigateTo(context, "/login");
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
-        timeout: 3000,
-      });
+      await context.waitForNetworkIdle({ timeout: 3000 });
 
       const pageContent = await context.__UNSAFE_page_useContextMethodsInstead
         .content();
@@ -150,9 +146,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
       if (currentUrl.includes("404") || !currentUrl.includes("login")) {
         logger.info("📝 Checking home page since /login not available");
         await navigateTo(context, "/");
-        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
-          { timeout: 3000 },
-        );
+        await context.waitForNetworkIdle({ timeout: 3000 });
       }
 
       const pageText = await context.__UNSAFE_page_useContextMethodsInstead
@@ -244,9 +238,7 @@ Deno.test("🎬 Frontend Authentication Implementation Progress", async (t) => {
       async () => {
         logger.info("📝 Testing access to /rlhf after authentication");
         await navigateTo(context, "/rlhf");
-        await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle(
-          { timeout: 3000 },
-        );
+        await context.waitForNetworkIdle({ timeout: 3000 });
 
         const currentUrl = context.url();
         const stayedOnProtectedRoute = currentUrl.includes("/rlhf");

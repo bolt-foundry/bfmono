@@ -22,7 +22,7 @@ Deno.test("UI route renders UIDemo component correctly", async () => {
     await navigateTo(context, "/ui");
 
     // Wait for content to ensure page loaded
-    const title = await context.__UNSAFE_page_useContextMethodsInstead.title();
+    const title = await context.title();
     logger.info(`UI page title: ${title}`);
 
     // Check the current URL

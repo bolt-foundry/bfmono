@@ -21,12 +21,12 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     await navigateTo(context, "/rlhf");
 
     // Wait for page to load completely
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+    await context.waitForNetworkIdle({
       timeout: 5000,
     });
 
     // Wait for React hydration to complete - look for auth-aware content
-    await context.__UNSAFE_page_useContextMethodsInstead.waitForFunction(() => {
+    await context.waitForFunction(() => {
       const h1 = document.querySelector("h1");
       // Since this test doesn't authenticate, we expect the login page
       return h1 && (
@@ -36,7 +36,7 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
     }, { timeout: 5000 });
 
     // Check that page loaded successfully (no 404)
-    const response = await context.__UNSAFE_page_useContextMethodsInstead.goto(
+    const response = await context.navigate(
       context.url(),
     );
     const statusCode = response?.status();
@@ -44,7 +44,7 @@ Deno.test("RLHF page shows login when not authenticated", async () => {
 
     logger.info(
       "Page title:",
-      await context.__UNSAFE_page_useContextMethodsInstead.title(),
+      await context.title(),
     );
     logger.info(
       "Page URL:",

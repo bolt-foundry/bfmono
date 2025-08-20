@@ -1,5 +1,10 @@
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
-import { type Browser, launch, type Page } from "puppeteer-core";
+import {
+  type Browser,
+  type HTTPResponse as Response,
+  launch,
+  type Page,
+} from "puppeteer-core";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { ensureDir } from "@std/fs";
 import { basename, join } from "@std/path";
@@ -128,6 +133,19 @@ export interface E2ETestContext {
     ...args: Array<any>
   ) => Promise<T>;
   url: () => string;
+  title: () => Promise<string>;
+  waitForNetworkIdle: (options?: {
+    timeout?: number;
+    idleTime?: number;
+  }) => Promise<void>;
+  navigate: (url: string, options?: {
+    waitUntil?: "load" | "domcontentloaded" | "networkidle0" | "networkidle2";
+    timeout?: number;
+  }) => Promise<Response | null>;
+  waitForFunction: <T = unknown>(
+    fn: () => T | Promise<T>,
+    options?: { timeout?: number; polling?: number | "raf" | "mutation" },
+  ) => Promise<void>;
 }
 
 /**
@@ -736,6 +754,31 @@ export async function setupE2ETest(options: {
       },
       url: (): string => {
         return page.url();
+      },
+      title: async (): Promise<string> => {
+        return await page.title();
+      },
+      waitForNetworkIdle: async (options?: {
+        timeout?: number;
+        idleTime?: number;
+      }): Promise<void> => {
+        await page.waitForNetworkIdle(options);
+      },
+      navigate: async (url: string, options?: {
+        waitUntil?:
+          | "load"
+          | "domcontentloaded"
+          | "networkidle0"
+          | "networkidle2";
+        timeout?: number;
+      }): Promise<Response | null> => {
+        return await page.goto(url, options);
+      },
+      waitForFunction: async <T = unknown>(
+        fn: () => T | Promise<T>,
+        options?: { timeout?: number; polling?: number | "raf" | "mutation" },
+      ): Promise<void> => {
+        await page.waitForFunction(fn, options);
       },
       teardown: async (): Promise<void> => {
         try {
