@@ -1,11 +1,9 @@
 // ---------------------------------------------------------------------------
 // Unified storage façade that delegates **all** operations to the active
-// backend adapter retrieved from `AdapterRegistry`.  A default adapter is
-// auto‑registered (via `registerDefaultAdapter`) if nothing is present.
+// backend adapter retrieved from `AdapterRegistry`.
 // ---------------------------------------------------------------------------
 
 import { AdapterRegistry } from "./AdapterRegistry.ts";
-import { registerDefaultAdapter } from "./registerDefaultAdapter.ts";
 
 import type { BfGid } from "@bfmono/lib/types.ts";
 import type { DbItem, Props } from "@bfmono/apps/bfDb/bfDb.ts";
@@ -17,11 +15,9 @@ import type {
 
 /**
  * Ensures an adapter is available and returns it.
- * `registerDefaultAdapter()` is idempotent and fast, so calling on every
- * access keeps the API simple while retaining testability.
+ * AdapterRegistry.get() handles lazy registration internally.
  */
 async function adapter() {
-  registerDefaultAdapter();
   return await AdapterRegistry.get();
 }
 
