@@ -1,13 +1,15 @@
 import type { Page } from "puppeteer-core";
 import { setCursorStyle } from "./cursor-overlay-page-injection.ts";
-import { smoothMoveTo } from "./smooth-mouse.ts";
+import type { smoothMoveTo as _smoothMoveTo } from "./smooth-mouse.ts";
+import { humanClick, humanMoveTo } from "./human-mouse-puppeteer.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 
 /**
  * Smooth UI interaction framework for creating realistic video demos
- * Handles clicking, typing, and other interactions with natural timing and visual feedback
+ * Handles clicking, typing, and other interactions with human-like mouse movements and natural timing
  *
- * Use --smooth=false parameter to disable smooth animations for faster test execution
+ * Use BF_E2E_SMOOTH=false to disable smooth animations for faster test execution
+ * When smooth is enabled, all mouse movements use natural curved paths and human-like timing
  */
 
 // Check if smooth animations are enabled
@@ -178,7 +180,7 @@ export async function smoothClick(
   }
 
   if (smoothEnabled) {
-    // Full smooth interaction with animations
+    // Smooth interaction with human-like mouse movement
     const box = await element.boundingBox();
     if (!box) {
       throw new Error(`Unable to get bounding box for: ${selector}`);
@@ -187,35 +189,8 @@ export async function smoothClick(
     const centerX = box.x + box.width / 2;
     const centerY = box.y + box.height / 2;
 
-    await smoothMoveTo(page, centerX, centerY);
-
-    // Pause after movement to let hover state settle
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    // Show click animation
-    try {
-      await setCursorStyle(page, "click");
-    } catch {
-      // Cursor overlay might not be available
-    }
-
-    // Brief pause before actual click for visual feedback
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
-    await page.mouse.click(centerX, centerY);
-
-    // Pause after click to show the click effect
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    // Reset cursor style after click
-    try {
-      await setCursorStyle(page, "default");
-    } catch {
-      // Cursor overlay might not be available
-    }
-
-    // Final pause to let UI state settle after click
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Always use human-like mouse movement and clicking when smooth is enabled
+    await humanClick(page, centerX, centerY);
   } else {
     // Fast mode: direct click without animations
     await element.click();
@@ -338,6 +313,7 @@ export async function smoothClickText(
 }
 
 export async function smoothFocus(page: Page, selector: string): Promise<void> {
+  const smoothEnabled = isSmoothEnabled();
   const element = await page.$(selector);
   if (!element) {
     throw new Error(`Element not found: ${selector}`);
@@ -351,26 +327,34 @@ export async function smoothFocus(page: Page, selector: string): Promise<void> {
   const centerX = box.x + box.width / 2;
   const centerY = box.y + box.height / 2;
 
-  await smoothMoveTo(page, centerX, centerY);
+  if (smoothEnabled) {
+    // Always use human-like mouse movement when smooth is enabled
+    await humanMoveTo(page, centerX, centerY);
 
-  // Brief pause to let hover state settle
-  await new Promise((resolve) => setTimeout(resolve, 300));
+    // Brief pause to let hover state settle and be visible
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-  // Show hover style
-  try {
-    await setCursorStyle(page, "hover");
-  } catch {
-    // Cursor overlay might not be available
+    // Show hover style for focus elements
+    try {
+      await setCursorStyle(page, "hover");
+    } catch {
+      // Cursor overlay might not be available
+    }
+  } else {
+    // Fast mode: direct focus without smooth movement
+    await page.mouse.move(centerX, centerY);
   }
 
   await page.focus(selector);
 
-  // Reset cursor style
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    await setCursorStyle(page, "default");
-  } catch {
-    // Cursor overlay might not be available
+  if (smoothEnabled) {
+    // Reset cursor style after focus
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await setCursorStyle(page, "default");
+    } catch {
+      // Cursor overlay might not be available
+    }
   }
 }
 
