@@ -31,7 +31,7 @@ export function registerDefaultAdapter() {
 
   const env = (getConfigurationVariable("FORCE_DB_BACKEND")?.toLowerCase() ||
     getConfigurationVariable("DB_BACKEND_TYPE")?.toLowerCase()) ??
-    "memory";
+    "sqlite";
   logger.info(`registerDefaultAdapter → selecting '${env}' backend`);
 
   switch (env) {

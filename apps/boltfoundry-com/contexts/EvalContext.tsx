@@ -17,6 +17,9 @@ type ChatMode = null | "createDeck";
 type SidebarMode = "normal" | "grading";
 
 interface EvalContextType {
+  // Organization data from Isograph
+  organization?: unknown;
+
   leftSidebarOpen: boolean;
   rightSidebarOpen: boolean;
   activeMainContent: MainView;
@@ -84,10 +87,10 @@ const isMobile = () => {
 
 export function EvalProvider({
   children,
-  initialDecks,
+  organization,
 }: {
   children: ReactNode;
-  initialDecks?: any; // GraphQL decks data from Isograph query
+  organization?: unknown; // Organization data from Isograph query with DecksView component
 }) {
   const [leftSidebarOpen, setLeftSidebarOpenState] = useState(() =>
     !isMobile()
@@ -117,12 +120,15 @@ export function EvalProvider({
     const initialSamples: Record<string, Array<GradingSample>> = {};
 
     // Process GraphQL decks data if available
-    if (initialDecks?.edges) {
-      initialDecks.edges.forEach((edge: any) => {
+    // deno-lint-ignore no-explicit-any
+    if ((organization as any)?.decks?.edges) {
+      // deno-lint-ignore no-explicit-any
+      (organization as any).decks.edges.forEach((edge: any) => {
         const deck = edge.node;
         if (deck.samples?.edges) {
           // Transform GraphQL samples to GradingSample format
           initialSamples[deck.slug || deck.id] = deck.samples.edges.map(
+            // deno-lint-ignore no-explicit-any
             (sampleEdge: any) => {
               const sample = sampleEdge.node;
               return {

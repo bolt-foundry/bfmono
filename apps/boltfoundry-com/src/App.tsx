@@ -5,8 +5,6 @@ import {
 import { AppRoot } from "../AppRoot.tsx";
 import { BfDsProvider } from "@bfmono/apps/bfDs/components/BfDsProvider.tsx";
 import { RefinementProvider } from "../contexts/RefinementContext.tsx";
-import { GraphQLSamplesTestButton } from "../components/GraphQLSamplesTestButton.tsx";
-
 function App(props: Partial<ServerProps>) {
   return (
     <div className="app">
@@ -17,7 +15,6 @@ function App(props: Partial<ServerProps>) {
         >
           <RefinementProvider>
             <AppRoot />
-            <GraphQLSamplesTestButton />
           </RefinementProvider>
         </AppEnvironmentProvider>
       </BfDsProvider>
