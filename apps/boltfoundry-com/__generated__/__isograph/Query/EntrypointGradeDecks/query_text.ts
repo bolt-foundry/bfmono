@@ -26,6 +26,9 @@ export default 'query EntrypointGradeDecks  {\
                 edges {\
                   node {\
                     id,\
+                    collectionMethod,\
+                    completionData,\
+                    name,\
                   },\
                 },\
               },\
