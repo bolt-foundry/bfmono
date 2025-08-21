@@ -115,43 +115,48 @@ export function DeckDetailView({
 
   return (
     <div className="deck-detail-view">
-      <div className="deck-detail-breadcrumb flexRow alignItemsCenter">
-        <BfDsButton
-          variant="ghost"
-          size="small"
-          icon="arrowLeft"
-          onClick={() => navigate("/pg/grade/decks")}
-        >
-          Decks
-        </BfDsButton>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">{deckName}</span>
+      <div className="view-header">
+        <div className="deck-detail-breadcrumb flexRow alignItemsCenter">
+          <BfDsButton
+            variant="ghost"
+            size="small"
+            icon="arrowLeft"
+            onClick={() => navigate("/pg/grade/decks")}
+          >
+            Decks
+          </BfDsButton>
+          <span className="breadcrumb-separator">/</span>
+          <span className="breadcrumb-current">{deckName}</span>
+        </div>
       </div>
-      <BfDsTabs
-        tabs={[
-          {
-            id: DeckTab.Samples,
-            label: "Samples",
-            content: renderSamplesContent(),
-          },
-          {
-            id: DeckTab.Graders,
-            label: "Graders",
-            content: renderGradersContent(),
-            badge: isRefining ? "Refining" : undefined,
-            badgeVariant: isRefining ? "warning" : undefined,
-          },
-          {
-            id: DeckTab.Inbox,
-            label: "Inbox",
-            content: renderInboxContent(),
-            badge: "New",
-            badgeVariant: "warning",
-          },
-        ]}
-        activeTab={currentTab}
-        onTabChange={handleTabChange}
-      />
+
+      <div className="deck-detail-content">
+        <BfDsTabs
+          tabs={[
+            {
+              id: DeckTab.Samples,
+              label: "Samples",
+              content: renderSamplesContent(),
+            },
+            {
+              id: DeckTab.Graders,
+              label: "Graders",
+              content: renderGradersContent(),
+              badge: isRefining ? "Refining" : undefined,
+              badgeVariant: isRefining ? "warning" : undefined,
+            },
+            {
+              id: DeckTab.Inbox,
+              label: "Inbox",
+              content: renderInboxContent(),
+              badge: "New",
+              badgeVariant: "warning",
+            },
+          ]}
+          activeTab={currentTab}
+          onTabChange={handleTabChange}
+        />
+      </div>
     </div>
   );
 }

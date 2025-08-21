@@ -5,6 +5,8 @@ import { LeftSidebar } from "@bfmono/apps/boltfoundry-com/components/PromptGrade
 import { MainContent } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/MainContent.tsx";
 import { RightSidebar } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/RightSidebar.tsx";
 import { SidebarNav } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/SidebarNav.tsx";
+import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 
 /**
  * Grade component - Main component for the evaluation/grading system
@@ -17,16 +19,26 @@ export const Grade = iso(`
       id
       name
       DecksList
+      decks(first: 100) {
+        edges {
+          node {
+            id
+            DeckDetailView
+          }
+        }
+      }
     }
   }
 `)(function Grade({ data }) {
+  const { currentPath, routeParams } = useRouter();
+  const deckId = routeParams.deckId;
+
   // Determine what to show based on route
-  const currentPath = typeof window !== "undefined"
-    ? globalThis.location.pathname
-    : "/pg/grade";
   const isDecksListPage = currentPath === "/pg/grade/decks" ||
     currentPath === "/pg/grade" ||
     currentPath === "/pg";
+  const isDeckDetailPage =
+    currentPath.match(/^\/pg\/grade\/decks\/[^/]+\/[^/]+$/) && deckId;
 
   // Render content based on route
   const renderMainContent = () => {
@@ -44,8 +56,35 @@ export const Grade = iso(`
       );
     }
 
+    if (isDeckDetailPage && deckId && data.organization) {
+      // Find the specific deck by ID
+      const deck = data.organization.decks?.edges?.find(
+        (edge) => edge?.node?.id === deckId,
+      )?.node;
+
+      if (deck) {
+        const DeckDetailView = deck.DeckDetailView;
+        return <DeckDetailView />;
+      }
+
+      // Deck not found
+      return (
+        <BfDsEmptyState
+          title="Deck Not Found"
+          description={`Deck with ID ${deckId} was not found.`}
+          icon="exclamationDeck"
+        />
+      );
+    }
+
     // Default content for other routes
-    return <div>Main content will go here based on route</div>;
+    return (
+      <BfDsEmptyState
+        title="Welcome to PromptGrade"
+        description="Select a deck from the navigation to get started."
+        icon="home"
+      />
+    );
   };
 
   return (
