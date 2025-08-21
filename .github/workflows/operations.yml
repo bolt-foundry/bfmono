@@ -37,7 +37,8 @@ concurrency:
 jobs:
   execute-operation:
     runs-on: ubuntu-latest
-    environment: infrastructure
+    # Only use infrastructure environment for terraform/kamal operations, not for notifications
+    environment: ${{ (github.event_name == 'workflow_dispatch' && contains(fromJSON('["terraform-plan", "terraform-apply", "terraform-destroy", "terraform-refresh", "kamal-unlock"]'), inputs.operation)) && 'infrastructure' || '' }}
 
     steps:
       - name: Set operation for push events
