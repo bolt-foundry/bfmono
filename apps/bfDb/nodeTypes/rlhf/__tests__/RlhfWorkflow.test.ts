@@ -29,7 +29,7 @@ Deno.test("RLHF Workflow - Create deck via sample submission, add AI evaluation 
 
     // Create sample (simulating telemetry endpoint)
     const sample = await deck.createTargetNode(BfSample, {
-      completionData: JSON.stringify({
+      telemetryData: JSON.stringify({
         request: { messages: [{ role: "user", content: "Help me" }] },
         response: {
           choices: [{

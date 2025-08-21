@@ -153,6 +153,21 @@ const normalizationAst: NormalizationAst = {
                                           fieldName: "id",
                                           arguments: null,
                                         },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "collectionMethod",
+                                          arguments: null,
+                                        },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "name",
+                                          arguments: null,
+                                        },
+                                        {
+                                          kind: "Scalar",
+                                          fieldName: "telemetryData",
+                                          arguments: null,
+                                        },
                                       ],
                                     },
                                   ],
