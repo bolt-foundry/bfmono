@@ -27,8 +27,8 @@ export default 'query EntrypointGradeDecks  {\
                   node {\
                     id,\
                     collectionMethod,\
-                    completionData,\
                     name,\
+                    telemetryData,\
                   },\
                 },\
               },\
