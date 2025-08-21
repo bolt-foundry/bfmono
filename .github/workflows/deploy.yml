@@ -187,6 +187,8 @@ jobs:
             if ! command -v kamal &> /dev/null; then
               echo \"Installing kamal gem...\"
               gem install kamal
+              # Add Ruby gem bin directory to PATH
+              export PATH=\"\$PATH:\$HOME/.local/share/gem/ruby/3.3.0/bin\"
             fi
 
             # Deploy with Kamal
