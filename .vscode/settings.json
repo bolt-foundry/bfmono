@@ -1,3 +1,4 @@
 {
-  "deno.enable": true
+  "deno.enable": true,
+  "markdown.styles": ["styles/markdown-custom.css"]
 }
