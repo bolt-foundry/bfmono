@@ -5,6 +5,11 @@ import {
 } from "@bfmono/infra/testing/e2e/setup.ts";
 import { setupBoltFoundryComTest } from "../helpers.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
+import {
+  isAuthenticated,
+  loadAuthState,
+  saveAuthState,
+} from "@bfmono/infra/testing/e2e/authState.ts";
 
 const logger = getLogger(import.meta);
 
@@ -21,7 +26,30 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
     await new Promise((resolve) => setTimeout(resolve, 3000));
 
     await t.step("Login and create organization", async () => {
-      // Navigate to homepage
+      // Try to load saved authentication state first
+      const authLoaded = await loadAuthState(
+        context.__UNSAFE_page_useContextMethodsInstead,
+        "boltfoundry-com",
+      );
+
+      if (authLoaded) {
+        // Check if we're actually authenticated
+        await navigateTo(context, "/pg");
+        const authenticated = await isAuthenticated(
+          context.__UNSAFE_page_useContextMethodsInstead,
+        );
+
+        if (authenticated) {
+          logger.info("✅ Using saved authentication state");
+          await showSubtitle("✅ Using saved login state");
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return;
+        } else {
+          logger.warn("Saved auth state invalid, proceeding with login");
+        }
+      }
+
+      // Navigate to homepage for fresh login
       logger.debug("Navigating to homepage...");
       await navigateTo(context, "/");
       await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
@@ -56,6 +84,12 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       assert(
         context.url().includes("/pg"),
         "Should be redirected to /pg after authentication",
+      );
+
+      // Save authentication state for future tests
+      await saveAuthState(
+        context.__UNSAFE_page_useContextMethodsInstead,
+        "boltfoundry-com",
       );
 
       await showSubtitle("✅ Logged in successfully");
