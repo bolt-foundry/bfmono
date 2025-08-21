@@ -123,9 +123,11 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     );
 
     // Start video recording
-    const { stop, showSubtitle, showTitleCard } = await context.startRecording(
-      "interactive-login-demo",
-    );
+    const { stop, showSubtitle, showTitleCard, showStatus, clearStatus } =
+      await context
+        .startRecording(
+          "interactive-login-demo",
+        );
 
     // Show opening title card immediately (no fade-in animation)
     await showTitleCard(
@@ -137,6 +139,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
 
     // Navigate to login page
     logger.info("Navigating to login page...");
+    await showStatus("Loading page...", "info", 2000); // Auto-clear after 2 seconds
     await navigateTo(context, "/login");
     await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
       timeout: 3000,
@@ -144,6 +147,11 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
 
     // Wait for page to fully load
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    await showStatus("Page loaded successfully", "success");
+
+    // Wait 2 seconds to show the auto-clear happened, then show another status
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await showStatus("Ready for interaction", "info");
 
     await showSubtitle("✅ Clean login page - no development warnings!", 5000);
 
@@ -182,6 +190,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
 
     // Use smooth click for nice animation
     logger.info("Performing smooth click on Google Sign-In button...");
+    await showStatus("Authenticating...", "warning");
     await context.takeScreenshot("before-google-signin-click");
     await context.click("#google-signin-button");
     await context.takeScreenshot("after-google-signin-click");
@@ -208,11 +217,14 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
       logger.info(
         `✅ Auth cookies found: ${authCookies.map((c) => c.name).join(", ")}`,
       );
+      await showStatus("Authentication complete", "success");
       await showSubtitle("🍪 Authentication cookies set!", 4000);
 
-      // Wait for subtitle to be readable
+      // Wait for subtitle to be readable, then manually clear status
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      await clearStatus(); // Demonstrate manual clearing
     } else {
+      await showStatus("Authentication failed", "error");
       await showSubtitle(
         "⚠️ No auth cookies - backend integration needed",
         4000,
