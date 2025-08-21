@@ -26,6 +26,9 @@ export default 'query EntrypointGradeDecks  {\
                 edges {\
                   node {\
                     id,\
+                    collectionMethod,\
+                    completionData,\
+                    name,\
                   },\
                 },\
               },\
@@ -37,7 +40,6 @@ export default 'query EntrypointGradeDecks  {\
       },\
     },\
     ... on CurrentViewerLoggedOut {\
-      __typename,\
       id,\
       __typename,\
     },\
