@@ -3,6 +3,15 @@ import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
 
+interface GlobalWithUrlChrome {
+  __updateUrlChromeStatus?: (
+    text: string,
+    type?: string,
+    duration?: number,
+  ) => void;
+  __clearUrlChromeStatus?: () => void;
+}
+
 export const URL_CHROME_HEIGHT = 40;
 
 const BF_SYMBOL_SVG = `<svg
@@ -62,12 +71,11 @@ export async function injectUrlChromeOnAllPages(page: Page): Promise<void> {
           background: white !important;
           border: 1px solid #dadce0 !important;
           border-radius: 20px !important;
-          padding: 6px 12px !important;
+          padding: 6px 8px !important;
           flex: 1 !important;
-          margin-left: 8px !important;
+          margin-left: 4px !important;
           color: #3c4043 !important;
           font-size: 14px !important;
-          overflow: hidden !important;
         `;
 
         const bfIcon = document.createElement("div");
@@ -86,13 +94,129 @@ export async function injectUrlChromeOnAllPages(page: Page): Promise<void> {
           overflow: hidden !important;
           text-overflow: ellipsis !important;
           color: #3c4043 !important;
+          flex: 1 !important;
         `;
 
+        // Create status display area inside the address bar
+        const statusArea = document.createElement("div");
+        statusArea.id = "video-url-chrome-status";
+        statusArea.style.cssText = `
+          display: none !important;
+          align-items: center !important;
+          margin-left: 12px !important;
+          margin-top: -2px !important;
+          margin-bottom: -2px !important;
+          margin-right: -3px !important;
+          padding: 4px 8px !important;
+          background: #f8f9fa !important;
+          border: 1px solid #dadce0 !important;
+          border-radius: 12px !important;
+          font-size: 12px !important;
+          color: #3c4043 !important;
+          flex-shrink: 0 !important;
+          transition: opacity 0.3s ease-in-out !important;
+          pointer-events: none !important;
+        `;
+
+        const statusDot = document.createElement("div");
+        statusDot.id = "video-url-chrome-status-dot";
+        statusDot.style.cssText = `
+          width: 6px !important;
+          height: 6px !important;
+          border-radius: 50% !important;
+          margin-right: 6px !important;
+          flex-shrink: 0 !important;
+          background: #34a853 !important;
+        `;
+
+        const statusText = document.createElement("span");
+        statusText.id = "video-url-chrome-status-text";
+        statusText.style.cssText = `
+          white-space: nowrap !important;
+        `;
+
+        statusArea.appendChild(statusDot);
+        statusArea.appendChild(statusText);
+
+        // Add components to address bar in order: icon, url, status
         addressBar.appendChild(bfIcon);
         addressBar.appendChild(urlText);
+        addressBar.appendChild(statusArea);
+
         chrome.appendChild(addressBar);
 
         document.body.appendChild(chrome);
+
+        // Global timeout ID for auto-clearing status
+        let statusTimeoutId: number | null = null;
+
+        // Global function to update status
+        (globalThis as GlobalWithUrlChrome).__updateUrlChromeStatus = function (
+          text: string,
+          type: string = "info",
+          duration?: number,
+        ) {
+          const statusArea = document.getElementById("video-url-chrome-status");
+          const statusDot = document.getElementById(
+            "video-url-chrome-status-dot",
+          );
+          const statusText = document.getElementById(
+            "video-url-chrome-status-text",
+          );
+
+          if (!statusArea || !statusDot || !statusText) return;
+
+          // Clear any existing timeout
+          if (statusTimeoutId) {
+            clearTimeout(statusTimeoutId);
+            statusTimeoutId = null;
+          }
+
+          // Color mapping for status types
+          const colors = {
+            error: "#ea4335",
+            warning: "#fbbc04",
+            info: "#4285f4",
+            success: "#34a853",
+          };
+
+          statusText.textContent = text;
+          statusDot.style.background = colors[type as keyof typeof colors] ||
+            colors.info;
+
+          if (text) {
+            statusArea.style.display = "flex";
+            statusArea.style.opacity = "1";
+
+            // Set auto-clear timeout if duration is provided
+            if (duration && duration > 0) {
+              statusTimeoutId = setTimeout(() => {
+                statusArea.style.display = "none";
+                statusTimeoutId = null;
+              }, duration);
+            }
+          } else {
+            statusArea.style.display = "none";
+          }
+        };
+
+        // Global function to clear status
+        (globalThis as GlobalWithUrlChrome).__clearUrlChromeStatus =
+          function () {
+            const statusArea = document.getElementById(
+              "video-url-chrome-status",
+            );
+
+            // Clear any pending timeout
+            if (statusTimeoutId) {
+              clearTimeout(statusTimeoutId);
+              statusTimeoutId = null;
+            }
+
+            if (statusArea) {
+              statusArea.style.display = "none";
+            }
+          };
 
         const updateUrl = () => {
           urlText.textContent = globalThis.location.href;
@@ -127,6 +251,66 @@ export async function injectUrlChromeOnAllPages(page: Page): Promise<void> {
   } catch (error) {
     logger.error("Failed to inject URL chrome on new pages:", error);
     throw error;
+  }
+}
+
+export async function updateUrlChromeStatus(
+  page: Page,
+  text: string,
+  type: "error" | "warning" | "info" | "success" = "info",
+  duration?: number,
+): Promise<void> {
+  try {
+    await page.evaluate(
+      (statusText, statusType, autoClearDuration) => {
+        interface GlobalWithUrlChrome {
+          __updateUrlChromeStatus?: (
+            text: string,
+            type?: string,
+            duration?: number,
+          ) => void;
+        }
+        if (
+          typeof (globalThis as GlobalWithUrlChrome).__updateUrlChromeStatus ===
+            "function"
+        ) {
+          (globalThis as GlobalWithUrlChrome).__updateUrlChromeStatus!(
+            statusText,
+            statusType,
+            autoClearDuration,
+          );
+        }
+      },
+      text,
+      type,
+      duration,
+    );
+    logger.debug(
+      `URL chrome status updated: ${type} - ${text}${
+        duration ? ` (auto-clear: ${duration}ms)` : ""
+      }`,
+    );
+  } catch (error) {
+    logger.warn("Failed to update URL chrome status:", error);
+  }
+}
+
+export async function clearUrlChromeStatus(page: Page): Promise<void> {
+  try {
+    await page.evaluate(() => {
+      interface GlobalWithUrlChrome {
+        __clearUrlChromeStatus?: () => void;
+      }
+      if (
+        typeof (globalThis as GlobalWithUrlChrome).__clearUrlChromeStatus ===
+          "function"
+      ) {
+        (globalThis as GlobalWithUrlChrome).__clearUrlChromeStatus!();
+      }
+    });
+    logger.debug("URL chrome status cleared");
+  } catch (error) {
+    logger.warn("Failed to clear URL chrome status:", error);
   }
 }
 
