@@ -242,7 +242,7 @@ Deno.test("GraphQL Relationships - Deck → Samples (many)", async () => {
 
   // Create samples using the relationship method with edge role
   const sample1 = await deck.createSamplesItem({
-    completionData: {
+    telemetryData: {
       id: "test-1",
       object: "chat.completion",
       created: Date.now(),
@@ -259,7 +259,7 @@ Deno.test("GraphQL Relationships - Deck → Samples (many)", async () => {
   });
 
   const sample2 = await deck.createSamplesItem({
-    completionData: {
+    telemetryData: {
       id: "test-2",
       object: "chat.completion",
       created: Date.now(),
