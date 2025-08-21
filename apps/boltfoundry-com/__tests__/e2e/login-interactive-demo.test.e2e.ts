@@ -131,8 +131,7 @@ Deno.test("🎬 Interactive Login Demo - Production Mode", async () => {
     await showTitleCard(
       "Interactive Login Demo",
       "Production Environment Test",
-      3500,
-      { noOpeningAnimation: true },
+      { showDuration: 3500, noOpeningAnimation: true },
     );
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
