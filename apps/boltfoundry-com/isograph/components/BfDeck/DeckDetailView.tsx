@@ -14,7 +14,7 @@ export const DeckDetailView = iso(`
   }
 `)(function DeckDetailView({ data }) {
   const { navigate, routeParams } = useRouter();
-  const currentTab = (routeParams.tab as DeckTab) || DeckTab.Samples;
+  const currentTab = (routeParams.tab as DeckTab) || DeckTab.Inbox;
 
   const handleTabChange = (newTab: string) => {
     navigate(`/pg/grade/decks/${data.id}/${newTab}`);
