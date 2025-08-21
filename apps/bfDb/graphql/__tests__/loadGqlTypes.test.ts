@@ -36,8 +36,8 @@ function createTestBuilder(): BfTestSchemaBuilder {
 
   builder.scalarType("JSON", {
     description: "JSON scalar type",
-    serialize: (value) => value,
-    parseValue: (value) => value,
+    serialize: (value) => JSON.stringify(value),
+    parseValue: (value) => JSON.parse(value as string),
   });
 
   return builder;
