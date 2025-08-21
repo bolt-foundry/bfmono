@@ -17,9 +17,8 @@ import {
 } from "../video-recording/smooth-ui.ts";
 import { smoothHover } from "../video-recording/smooth-mouse.ts";
 import {
-  _startScreencastRecordingInternal,
-  _stopScreencastRecordingInternal,
-  type VideoRecordingSession as _VideoRecordingSession,
+  startScreencastRecording,
+  stopScreencastRecording,
 } from "../video-recording/recorder.ts";
 import type {
   VideoConversionOptions,
@@ -29,6 +28,10 @@ import {
   injectCursorOverlayOnAllPages,
   removeCursorOverlay,
 } from "../video-recording/cursor-overlay-page-injection.ts";
+import {
+  injectUrlChromeOnAllPages,
+  removeUrlChrome,
+} from "../video-recording/url-chrome-injection.ts";
 
 const logger = getLogger(import.meta);
 
@@ -43,6 +46,10 @@ export interface VideoRecordingControls {
   ) => Promise<void>;
   clearSubtitle: () => Promise<void>;
   highlightElement: (selector: string, text: string) => Promise<void>;
+}
+
+export interface AnnotatedVideoRecordingOptions extends VideoConversionOptions {
+  includeUrlChrome?: boolean;
 }
 
 // Simple server startup without global registry - each test gets its own server
@@ -119,6 +126,7 @@ export interface E2ETestContext {
   navigateTo: (path: string) => Promise<void>;
   startRecording: (
     name: string,
+    options?: AnnotatedVideoRecordingOptions,
   ) => Promise<VideoRecordingControls>;
   teardown: () => Promise<void>;
   // Smooth interaction methods (preferred for E2E tests)
@@ -428,20 +436,8 @@ export async function setupE2ETest(options: {
       },
       startRecording: async (
         name: string,
+        options?: AnnotatedVideoRecordingOptions,
       ): Promise<VideoRecordingControls> => {
-        // Check if video recording is disabled
-        if (getConfigurationVariable("BF_E2E_NO_VIDEO") === "true") {
-          logger.debug("Video recording disabled by BF_E2E_NO_VIDEO");
-          // Return no-op controls
-          return {
-            stop: () => Promise.resolve(null),
-            showSubtitle: async () => {},
-            showTitleCard: async () => {},
-            clearSubtitle: async () => {},
-            highlightElement: async () => {},
-          };
-        }
-
         const videosDir = getConfigurationVariable("BF_E2E_VIDEO_DIR") ||
           join(Deno.cwd(), "tmp", "videos");
 
@@ -467,6 +463,17 @@ export async function setupE2ETest(options: {
         // Ensure videos directory exists
         await ensureDir(videosDir);
 
+        // Inject URL chrome by default (can be disabled with includeUrlChrome: false)
+        const shouldIncludeUrlChrome = options?.includeUrlChrome !== false;
+        if (shouldIncludeUrlChrome) {
+          try {
+            await injectUrlChromeOnAllPages(page);
+            logger.debug("URL chrome injected for video recording");
+          } catch (error) {
+            logger.warn("Failed to inject URL chrome:", error);
+          }
+        }
+
         // Inject cursor overlay for better video visibility
         try {
           await injectCursorOverlayOnAllPages(page);
@@ -477,11 +484,9 @@ export async function setupE2ETest(options: {
           logger.warn("Failed to inject cursor overlay:", error);
         }
 
-        const session = await _startScreencastRecordingInternal(
-          page,
-          name,
-          videosDir,
-        );
+        const session = await startScreencastRecording(page, name, videosDir, {
+          includeUrlChrome: shouldIncludeUrlChrome,
+        });
 
         // Inject throbber on all pages to persist across navigations
         await injectRecordingThrobberOnAllPages(page);
@@ -492,7 +497,7 @@ export async function setupE2ETest(options: {
               // Stop throbber before stopping recording
               await removeRecordingThrobber(page);
 
-              const videoResult = await _stopScreencastRecordingInternal(
+              const videoResult = await stopScreencastRecording(
                 page,
                 session,
                 videoOptions,
@@ -503,6 +508,15 @@ export async function setupE2ETest(options: {
                 await removeCursorOverlay(page);
               } catch (error) {
                 logger.debug("Failed to remove cursor overlay:", error);
+              }
+
+              // Clean up URL chrome if it was injected
+              if (shouldIncludeUrlChrome) {
+                try {
+                  await removeUrlChrome(page);
+                } catch (error) {
+                  logger.debug("Failed to remove URL chrome:", error);
+                }
               }
 
               logger.info(
