@@ -762,6 +762,14 @@ OPTIONS:
             });
             copyPromises.push(copyCmd.output());
           }
+
+          // Create symlink to host's shared folder
+          const hostSharedPath = join(bfmonoSrc, "shared");
+          const workspaceSharedPath = join(bfmonoDst, "shared");
+          const symlinkCmd = new Deno.Command("ln", {
+            args: ["-sf", hostSharedPath, workspaceSharedPath],
+          });
+          copyPromises.push(symlinkCmd.output());
         } else {
           // Copy other directories normally
           const copyCmd = new Deno.Command("cp", {
