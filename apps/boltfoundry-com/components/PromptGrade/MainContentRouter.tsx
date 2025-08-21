@@ -2,7 +2,7 @@ import React from "react";
 import { usePromptGradeContext } from "@bfmono/apps/boltfoundry-com/components/PromptGrade/PromptGradeContext.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { DecksView } from "../Evals/Decks/DecksView.tsx";
-import { DeckDetailView } from "../Evals/Decks/DeckDetailView.tsx";
+import { DeckDetailView } from "@bfmono/apps/boltfoundry-com/isograph/components/BfDeck/DeckDetailView.tsx";
 import { AnalyzeView } from "../Evals/Analyze/AnalyzeView.tsx";
 import { ChatView } from "../Evals/Chat/ChatView.tsx";
 import { GradingContainer } from "../Evals/Grading/GradingContainer.tsx";

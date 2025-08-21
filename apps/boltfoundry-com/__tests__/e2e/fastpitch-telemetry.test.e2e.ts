@@ -24,12 +24,12 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       // Navigate to homepage
       logger.debug("Navigating to homepage...");
       await navigateTo(context, "/");
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForNetworkIdle({
+      await context.waitForNetworkIdle({
         timeout: 3000,
       });
 
       // Click login link
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      await context.waitForSelector(
         'a[href="/login"]',
         { visible: true, timeout: 5000 },
       );
@@ -43,7 +43,7 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       );
 
       // Click Google Sign-In
-      await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+      await context.waitForSelector(
         "#google-signin-button",
         { visible: true, timeout: 5000 },
       );
@@ -175,11 +175,10 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
 
         // Navigate to /pg/grade/decks (or refresh if already there)
         await navigateTo(context, "/pg/grade/decks");
-        await context.__UNSAFE_page_useContextMethodsInstead
-          .waitForNetworkIdle();
+        await context.waitForNetworkIdle();
 
         // Wait for DeckList component to mount
-        await context.__UNSAFE_page_useContextMethodsInstead.waitForSelector(
+        await context.waitForSelector(
           ".decks-list, .decks-header, .bfds-empty-state",
           {
             visible: true,
@@ -190,8 +189,9 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
         await context.takeScreenshot("fastpitch-test-decks-page");
 
         // Check if we see the deck we created via telemetry
-        const pageContent = await context.__UNSAFE_page_useContextMethodsInstead
-          .evaluate(() => document.body.textContent);
+        const pageContent = await context.evaluate(() =>
+          document.body.textContent
+        );
 
         // Check for the test deck
         const hasFastpitchDeck = pageContent?.includes("fastpitch-test-deck");
@@ -224,17 +224,15 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Check if we can see the test deck in the list
-      const testDeckVisible = await context
-        .__UNSAFE_page_useContextMethodsInstead
-        .evaluate(() => {
-          const deckItems = document.querySelectorAll(".deck-item");
-          for (const item of deckItems) {
-            if (item.textContent?.includes("fastpitch-test-deck")) {
-              return true;
-            }
+      const testDeckVisible = await context.evaluate(() => {
+        const deckItems = document.querySelectorAll(".deck-item");
+        for (const item of deckItems) {
+          if (item.textContent?.includes("fastpitch-test-deck")) {
+            return true;
           }
-          return false;
-        });
+        }
+        return false;
+      });
 
       if (testDeckVisible) {
         logger.info("✅ Test deck is visible in the deck list!");
@@ -247,6 +245,67 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       }
 
       assert(testDeckVisible, "Test deck should be visible in the deck list");
+    });
+
+    await t.step("Click on test deck and verify detail view", async () => {
+      await showSubtitle("🎯 Clicking on test deck...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Click the deck to navigate to detail view
+      const deckItems = await context.__UNSAFE_page_useContextMethodsInstead
+        .$$(".deck-item");
+
+      if (deckItems.length === 0) {
+        throw new Error("No deck items found to click");
+      }
+
+      // Find the fastpitch test deck and click it
+      let foundTestDeck = false;
+      for (const item of deckItems) {
+        const text = await item.evaluate((el) => el.textContent);
+        if (text?.includes("fastpitch-test-deck")) {
+          await item.click();
+          foundTestDeck = true;
+          break;
+        }
+      }
+
+      if (!foundTestDeck) {
+        // Just click the first deck item if we can't find the specific test deck
+        await deckItems[0].click();
+      }
+
+      await context.waitForNetworkIdle();
+
+      // Check current URL after click
+      const currentUrl = context.url();
+      logger.info(`Current URL after deck click: ${currentUrl}`);
+
+      assert(
+        currentUrl.includes("/pg/grade/decks/") ||
+          currentUrl.includes("/deck/"),
+        "Should navigate to deck detail view",
+      );
+
+      await showSubtitle("✅ Navigated to deck detail");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Refresh the page to test permalink functionality
+      await showSubtitle("🔄 Testing permalink...");
+      await context.__UNSAFE_page_useContextMethodsInstead.reload();
+      await context.waitForNetworkIdle();
+
+      // Check URL is still the same after refresh
+      const urlAfterRefresh = context.url();
+      logger.info(`URL after refresh: ${urlAfterRefresh}`);
+
+      assert(
+        urlAfterRefresh === currentUrl,
+        "URL should remain the same after refresh",
+      );
+
+      await showSubtitle("✅ Deck detail view confirmed");
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     });
 
     // Stop video recording
