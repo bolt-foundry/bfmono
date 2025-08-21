@@ -9,7 +9,7 @@ export async function smoothMoveTo(
   page: Page,
   targetX: number,
   targetY: number,
-  pixelsPerSecond = 1200, // Faster movement speed for better visual effect
+  pixelsPerSecond = 2400, // 2x faster movement speed for demo videos
 ): Promise<void> {
   // Get current mouse position from our global state or default to center
   const currentPos = await page.evaluate(() => {
@@ -22,9 +22,9 @@ export async function smoothMoveTo(
     Math.pow(targetX - currentPos.x, 2) + Math.pow(targetY - currentPos.y, 2),
   );
   const duration = Math.max(
-    100,
-    Math.min(1500, (distance / pixelsPerSecond) * 1000),
-  ); // Min 100ms, max 1.5s
+    25,
+    Math.min(800, (distance / pixelsPerSecond) * 1000),
+  ); // Min 25ms, max 0.8s for snappy movements
 
   // Calculate steps to match 60fps (16.67ms per frame)
   // This ensures smooth movement that matches video framerate
