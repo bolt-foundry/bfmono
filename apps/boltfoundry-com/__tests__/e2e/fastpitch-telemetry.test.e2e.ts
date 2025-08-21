@@ -13,12 +13,11 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
 
   try {
     // Start video recording
-    const { stop, showSubtitle } = await context.startRecording(
+    const { stop, showSubtitle, showTitleCard } = await context.startRecording(
       "fastpitch-telemetry-test",
     );
 
-    await showSubtitle("🚀 Fastpitch Telemetry Test");
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await showTitleCard("Fastpitch Telemetry Test", "E2E Demo Video");
 
     await t.step("Login and create organization", async () => {
       // Navigate to homepage
@@ -35,8 +34,8 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       );
       await context.click('a[href="/login"]');
 
-      // Wait for login page
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Wait for login page to load
+      await context.waitForNetworkIdle({ timeout: 2000 });
       assert(
         context.url().includes("/login"),
         "Should be on login page",
@@ -49,8 +48,8 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       );
       await context.click("#google-signin-button");
 
-      // Wait for authentication
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait for authentication to complete
+      await context.waitForNetworkIdle({ timeout: 3000 });
 
       // Verify redirected to /pg
       assert(
@@ -59,12 +58,10 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       );
 
       await showSubtitle("✅ Logged in successfully");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
     });
 
     await t.step("Generate telemetry with BfClient", async () => {
       await showSubtitle("📊 Generating telemetry data...");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Use the same org as the dev authentication: boltfoundry.com
       const orgId = "boltfoundry.com";
@@ -164,14 +161,12 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       );
 
       await showSubtitle("✅ Telemetry sent successfully");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
     });
 
     await t.step(
       "Navigate to decks page and verify real deck appears",
       async () => {
         await showSubtitle("🔍 Checking for real deck in dashboard...");
-        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Navigate to /pg/grade/decks (or refresh if already there)
         await navigateTo(context, "/pg/grade/decks");
@@ -200,11 +195,9 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
         if (hasFastpitchDeck) {
           logger.info("✅ Found fastpitch test deck in the dashboard!");
           await showSubtitle("✅ Real deck displayed in dashboard!");
-          await new Promise((resolve) => setTimeout(resolve, 3000));
         } else {
           logger.warn("❌ Deck not found - dashboard still showing mock data");
           await showSubtitle("⚠️ Dashboard still showing mock data");
-          await new Promise((resolve) => setTimeout(resolve, 3000));
 
           // Check if we're seeing mock decks instead
           const hasMockDecks =
@@ -221,7 +214,6 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
 
     await t.step("Verify deck is in the list", async () => {
       await showSubtitle("📝 Verifying deck appears in list...");
-      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Check if we can see the test deck in the list
       const testDeckVisible = await context
@@ -239,11 +231,9 @@ Deno.test("Fastpitch telemetry to dashboard flow", async (t) => {
       if (testDeckVisible) {
         logger.info("✅ Test deck is visible in the deck list!");
         await showSubtitle("✅ Test deck confirmed in list!");
-        await new Promise((resolve) => setTimeout(resolve, 3000));
       } else {
         logger.warn("❌ Test deck not found in the list");
         await showSubtitle("⚠️ Test deck not visible");
-        await new Promise((resolve) => setTimeout(resolve, 3000));
       }
 
       assert(testDeckVisible, "Test deck should be visible in the deck list");

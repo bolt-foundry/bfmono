@@ -25,7 +25,7 @@ export async function convertFramesToVideo(
 ): Promise<VideoConversionResult> {
   const {
     outputFormat = "mp4",
-    framerate = 48, // Default to 48 fps for smoother video
+    framerate = 60, // Default to 60 fps to match browser screencast
     quality = "medium",
     deleteFrames = true,
     preserveFrames = false,
