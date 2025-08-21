@@ -29,8 +29,10 @@ import {
   removeCursorOverlay,
 } from "../video-recording/cursor-overlay-page-injection.ts";
 import {
+  clearUrlChromeStatus,
   injectUrlChromeOnAllPages,
   removeUrlChrome,
+  updateUrlChromeStatus,
 } from "../video-recording/url-chrome-injection.ts";
 
 const logger = getLogger(import.meta);
@@ -46,6 +48,12 @@ export interface VideoRecordingControls {
   ) => Promise<void>;
   clearSubtitle: () => Promise<void>;
   highlightElement: (selector: string, text: string) => Promise<void>;
+  showStatus: (
+    text: string,
+    type?: "error" | "warning" | "info" | "success",
+    duration?: number,
+  ) => Promise<void>;
+  clearStatus: () => Promise<void>;
 }
 
 export interface AnnotatedVideoRecordingOptions extends VideoConversionOptions {
@@ -484,9 +492,7 @@ export async function setupE2ETest(options: {
           logger.warn("Failed to inject cursor overlay:", error);
         }
 
-        const session = await startScreencastRecording(page, name, videosDir, {
-          includeUrlChrome: shouldIncludeUrlChrome,
-        });
+        const session = await startScreencastRecording(page, name, videosDir);
 
         // Inject throbber on all pages to persist across navigations
         await injectRecordingThrobberOnAllPages(page);
@@ -930,6 +936,30 @@ export async function setupE2ETest(options: {
             logger.info(
               `Element highlighted: "${selector}" with text: "${text}"`,
             );
+          },
+          showStatus: async (
+            text: string,
+            type: "error" | "warning" | "info" | "success" = "info",
+            duration?: number,
+          ): Promise<void> => {
+            if (shouldIncludeUrlChrome) {
+              await updateUrlChromeStatus(page, text, type, duration);
+              logger.info(
+                `Status displayed: "${text}" (${type})${
+                  duration ? ` (auto-clear: ${duration}ms)` : ""
+                }`,
+              );
+            } else {
+              logger.warn("Status not displayed: URL chrome is disabled");
+            }
+          },
+          clearStatus: async (): Promise<void> => {
+            if (shouldIncludeUrlChrome) {
+              await clearUrlChromeStatus(page);
+              logger.info("Status cleared");
+            } else {
+              logger.warn("Status not cleared: URL chrome is disabled");
+            }
           },
         };
       },
