@@ -18,7 +18,11 @@ export interface VideoRecordingSession {
   cdpSession?: CDPSession; // Store CDP session for cleanup
 }
 
-export async function _startScreencastRecordingInternal(
+export interface VideoRecordingOptions {
+  includeUrlChrome?: boolean;
+}
+
+export async function startScreencastRecording(
   page: Page,
   name: string,
   outputDir = "/tmp/videos",
@@ -30,7 +34,7 @@ export async function _startScreencastRecordingInternal(
   // Get current viewport dimensions to match screencast
   const viewport = page.viewport();
   const maxWidth = viewport?.width || 1280;
-  const maxHeight = viewport?.height || 800;
+  const maxHeight = viewport?.height || 720;
 
   const session: VideoRecordingSession = {
     frames: [],
@@ -103,7 +107,7 @@ export async function _startScreencastRecordingInternal(
   return session;
 }
 
-export async function _stopScreencastRecordingInternal(
+export async function stopScreencastRecording(
   page: Page,
   session: VideoRecordingSession,
   videoOptions: VideoConversionOptions = {},
