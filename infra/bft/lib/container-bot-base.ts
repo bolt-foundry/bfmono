@@ -556,12 +556,28 @@ OPTIONS:
   // Ensure host bridge is running
   await ensureHostBridge();
 
+  // Setup shared directory path for certificate generation
+  const currentPath = dirname(
+    dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
+  );
+  let internalbfDir: string;
+  if (currentPath.includes("/bfmono")) {
+    internalbfDir = currentPath.substring(
+      0,
+      currentPath.lastIndexOf("/bfmono"),
+    );
+  } else {
+    internalbfDir = currentPath;
+  }
+  const sharedPath = join(internalbfDir, "bfmono", "shared");
+
   // Ensure wildcard certificate for HTTPS support
-  const homeDir = getConfigurationVariable("HOME");
-  const sharedCertDir = `${homeDir}/internalbf/bfmono/shared/certs`;
+  // Use the actual shared path that gets mounted to the container
+  const sharedCertDir = join(sharedPath, "certs");
   await ensureWildcardCertificate(sharedCertDir);
 
   // Check for Claude credentials
+  const homeDir = getConfigurationVariable("HOME");
   const claudeDir = `${homeDir}/.claude`;
 
   try {
@@ -1261,20 +1277,7 @@ OPTIONS:
     }
   }
 
-  // Setup shared directory path
-  const currentPath = dirname(
-    dirname(dirname(dirname(import.meta.url.replace("file://", "")))),
-  );
-  let internalbfDir: string;
-  if (currentPath.includes("/bfmono")) {
-    internalbfDir = currentPath.substring(
-      0,
-      currentPath.lastIndexOf("/bfmono"),
-    );
-  } else {
-    internalbfDir = currentPath;
-  }
-  const sharedPath = join(internalbfDir, "bfmono", "shared");
+  // sharedPath already calculated earlier for certificate generation
 
   // Ensure shared directory exists
   try {
