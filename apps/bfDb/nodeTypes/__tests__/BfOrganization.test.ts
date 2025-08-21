@@ -25,7 +25,7 @@ Deno.test("BfOrganization - Organization isolation", async () => {
       },
       sample: {
         name: "Shared Sample",
-        completionData: {
+        telemetryData: {
           id: "shared-completion",
           object: "chat.completion" as const,
           created: Date.now(),

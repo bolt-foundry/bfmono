@@ -13,20 +13,23 @@ export const SampleListItem = iso(`
   field BfSample.SampleListItem @component {
     id
     name
-    completionData
+    telemetryData
     collectionMethod
   }
 `)(function SampleListItem({ data }) {
   const { navigate } = useRouter();
 
-  // Parse completion data to extract useful info
-  let parsedData;
+  // Parse telemetry data to extract completion info
+  let completionData;
   try {
-    parsedData = typeof data.completionData === "string"
-      ? JSON.parse(data.completionData)
-      : data.completionData;
+    const telemetry = typeof data.telemetryData === "string"
+      ? JSON.parse(data.telemetryData)
+      : data.telemetryData;
+
+    // Extract completion data from telemetry response
+    completionData = telemetry?.response?.body;
   } catch {
-    parsedData = null;
+    completionData = null;
   }
 
   const handleViewSample = () => {
@@ -46,27 +49,27 @@ export const SampleListItem = iso(`
         </div>
       </div>
 
-      {parsedData && (
+      {completionData && (
         <div className="sample-preview">
-          {parsedData.choices?.[0]?.message?.content && (
+          {completionData.choices?.[0]?.message?.content && (
             <div className="completion-preview">
               <strong>Response:</strong>
               <p className="completion-text">
-                {parsedData.choices[0].message.content.slice(0, 200)}
-                {parsedData.choices[0].message.content.length > 200
+                {completionData.choices[0].message.content.slice(0, 200)}
+                {completionData.choices[0].message.content.length > 200
                   ? "..."
                   : ""}
               </p>
             </div>
           )}
 
-          {parsedData.usage && (
+          {completionData.usage && (
             <div className="usage-info">
               <small>
-                Tokens: {parsedData.usage.prompt_tokens +
-                  parsedData.usage.completion_tokens}
-                ({parsedData.usage.prompt_tokens} +{" "}
-                {parsedData.usage.completion_tokens})
+                Tokens: {completionData.usage.prompt_tokens +
+                  completionData.usage.completion_tokens}
+                ({completionData.usage.prompt_tokens} +{" "}
+                {completionData.usage.completion_tokens})
               </small>
             </div>
           )}
