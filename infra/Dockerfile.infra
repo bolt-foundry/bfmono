@@ -184,6 +184,24 @@ if [ -d "/internalbf/bfmono/shared" ]; then\n\
     export PATH="$CLAUDE_CODE_DIR/.bin:$PATH"\n\
 fi\n\
 \n\
+# Trust the wildcard certificate for HTTPS if it exists\n\
+if [ -f "/internalbf/bfmono/shared/certs/codebot-wildcard.pem" ]; then\n\
+    echo "🔒 Adding wildcard certificate to system trust store..."\n\
+    # Copy certificate to ca-certificates directory\n\
+    if sudo -n cp /internalbf/bfmono/shared/certs/codebot-wildcard.pem /usr/local/share/ca-certificates/codebot-wildcard.crt 2>/dev/null; then\n\
+        # Update ca-certificates\n\
+        if sudo -n update-ca-certificates >/dev/null 2>&1; then\n\
+            echo "✅ Wildcard certificate added to system trust store"\n\
+        else\n\
+            echo "⚠️  Failed to update ca-certificates"\n\
+        fi\n\
+    else\n\
+        echo "⚠️  Failed to copy certificate to trust store"\n\
+    fi\n\
+else\n\
+    echo "⚠️  No wildcard certificate found to trust"\n\
+fi\n\
+\n\
 # Start container bridge in background if not running a specific command\n\
 if [ $# -eq 0 ] || [ "$1" = "-l" ]; then\n\
     # Only start bridge for interactive sessions\n\
@@ -211,6 +229,9 @@ RUN echo "# Allow codebot to manage /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee /etc/hosts" >> /etc/sudoers.d/codebot && \
     echo "codebot ALL=(ALL) NOPASSWD: /usr/bin/tee -a /etc/hosts" >> /etc/sudoers.d/codebot && \
+    echo "# Allow codebot to manage SSL certificates" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /bin/cp * /usr/local/share/ca-certificates/*" >> /etc/sudoers.d/codebot && \
+    echo "codebot ALL=(ALL) NOPASSWD: /usr/sbin/update-ca-certificates" >> /etc/sudoers.d/codebot && \
     chmod 0440 /etc/sudoers.d/codebot
 
 # Create non-root user (Debian uses useradd)
