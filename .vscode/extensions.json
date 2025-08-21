@@ -1,5 +1,7 @@
 {
   "recommendations": [
-    "denoland.vscode-deno"
+    "denoland.vscode-deno",
+    "adamerose.markdown-wysiwyg",
+    "meta.sapling-scm"
   ]
 }
