@@ -3,9 +3,9 @@ import type { CursorGlobals } from "./cursor-types.ts";
 
 const CURSOR_SCRIPT = `
 (function() {
-  // Cursor trail configuration - visible motion blur
-  const TRAIL_LENGTH = 3; // Three elements for visible blur
-  const TRAIL_FADE_SPEED = 0.2; // Slower fade for more visibility
+  // Cursor trail configuration - subtle motion blur
+  const TRAIL_LENGTH = 4; // Four elements for smoother blur
+  const TRAIL_FADE_SPEED = 0.25; // Faster fade for more subtlety
   
   // Function to create and inject cursor with trail
   function createCursor() {
@@ -20,13 +20,13 @@ const CURSOR_SCRIPT = `
       position: fixed !important;
       width: 28px !important;
       height: 28px !important;
-      background: rgba(255, 20, 20, 0.95) !important;
-      border: 4px solid rgba(255, 255, 255, 1) !important;
+      background: rgba(255, 20, 20, 0.35) !important;
+      border: 4px solid rgba(255, 255, 255, 0.8) !important;
       border-radius: 50% !important;
       pointer-events: none !important;
       z-index: 2147483646 !important;
       transition: none !important;
-      box-shadow: 0 0 20px rgba(255, 20, 20, 0.9), 0 0 40px rgba(255, 20, 20, 0.5) !important;
+      box-shadow: 0 0 15px rgba(255, 20, 20, 0.6), 0 0 30px rgba(255, 20, 20, 0.3) !important;
       transform: translate(-50%, -50%) !important;
       display: block !important;
       visibility: visible !important;
@@ -45,13 +45,13 @@ const CURSOR_SCRIPT = `
         position: fixed !important;
         width: \${CURSOR_SIZE}px !important;
         height: \${CURSOR_SIZE}px !important;
-        background: rgba(255, 20, 20, \${opacity * 0.6}) !important;
-        border: 4px solid rgba(255, 255, 255, \${opacity * 0.8}) !important;
+        background: rgba(255, 20, 20, \${opacity * 0.2}) !important;
+        border: 4px solid rgba(255, 255, 255, \${opacity * 0.5}) !important;
         border-radius: 50% !important;
         pointer-events: none !important;
         z-index: \${2147483641 + i} !important;
         transition: none !important;
-        box-shadow: 0 0 20px rgba(255, 20, 20, \${opacity * 0.5}) !important;
+        box-shadow: 0 0 10px rgba(255, 20, 20, \${opacity * 0.3}) !important;
         transform: translate(-50%, -50%) !important;
         display: block !important;
         visibility: visible !important;
@@ -354,17 +354,17 @@ export async function setCursorStyle(
     let mainColor, shadowColor, scale;
     switch (cursorStyle) {
       case "click":
-        mainColor = "rgba(0, 255, 0, 0.95)";
+        mainColor = "rgba(0, 255, 0, 0.8)";
         shadowColor = "rgba(0, 255, 0";
         scale = "1.4";
         break;
       case "hover":
-        mainColor = "rgba(255, 140, 0, 0.9)";
+        mainColor = "rgba(255, 140, 0, 0.8)";
         shadowColor = "rgba(255, 140, 0";
         scale = "1.2";
         break;
       default:
-        mainColor = "rgba(255, 20, 20, 0.95)";
+        mainColor = "rgba(255, 20, 20, 0.35)";
         shadowColor = "rgba(255, 20, 20";
         scale = "1";
         break;
