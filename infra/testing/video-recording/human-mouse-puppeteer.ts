@@ -125,7 +125,7 @@ export async function humanMoveTo(
     // Fall back to original smooth movement
     const duration = Math.max(
       100,
-      Math.min(1500, (distance / (1200 * speedFactor)) * 1000),
+      Math.min(1500, (distance / (2400 * speedFactor)) * 1000),
     );
     const steps = Math.max(5, Math.ceil(duration / (1000 / 60)));
     const stepDelay = duration / steps;
@@ -148,7 +148,7 @@ export async function humanMoveTo(
   }
 
   // Human-like movement with spline interpolation
-  const baseSpeed = 800; // Base pixels per second
+  const baseSpeed = 1600; // Base pixels per second (2x faster than original)
   const adjustedSpeed = baseSpeed * speedFactor;
 
   // Calculate timing with some randomness

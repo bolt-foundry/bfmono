@@ -39,12 +39,21 @@ const logger = getLogger(import.meta);
 
 export interface VideoRecordingControls {
   stop: () => Promise<VideoConversionResult | null>;
-  showSubtitle: (text: string, duration?: number) => Promise<void>;
+  showSubtitle: (
+    text: string,
+    options?: {
+      showDuration?: number;
+      pauseDuration?: number;
+    } | number,
+  ) => Promise<void>;
   showTitleCard: (
     title: string,
     subtitle?: string,
-    duration?: number,
-    options?: { noOpeningAnimation?: boolean },
+    options?: {
+      showDuration?: number;
+      pauseDuration?: number;
+      noOpeningAnimation?: boolean;
+    } | number,
   ) => Promise<void>;
   clearSubtitle: () => Promise<void>;
   highlightElement: (selector: string, text: string) => Promise<void>;
@@ -563,8 +572,18 @@ export async function setupE2ETest(options: {
           },
           showSubtitle: async (
             text: string,
-            duration = 3000,
+            options?: {
+              showDuration?: number;
+              pauseDuration?: number;
+            } | number,
           ): Promise<void> => {
+            // Handle backwards compatibility - if number passed, use as both durations
+            const { showDuration, pauseDuration } = typeof options === "number"
+              ? { showDuration: options, pauseDuration: options }
+              : {
+                showDuration: options?.showDuration ?? 3000,
+                pauseDuration: options?.pauseDuration ?? 1000,
+              };
             await page.evaluate(
               (subtitleText, displayDuration) => {
                 // Get or create E2E overlay container
@@ -642,19 +661,42 @@ export async function setupE2ETest(options: {
                 }
               },
               text,
-              duration,
+              showDuration,
             );
 
             logger.info(
-              `Subtitle displayed: "${text}" (duration: ${duration}ms)`,
+              `Subtitle displayed: "${text}" (showDuration: ${showDuration}ms, pauseDuration: ${pauseDuration}ms)`,
             );
+
+            // Wait for pause duration before continuing test
+            if (pauseDuration > 0) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, pauseDuration)
+              );
+            }
           },
           showTitleCard: async (
             title: string,
             subtitle?: string,
-            duration = 4000,
-            options?: { noOpeningAnimation?: boolean },
+            options?: {
+              showDuration?: number;
+              pauseDuration?: number;
+              noOpeningAnimation?: boolean;
+            } | number,
           ): Promise<void> => {
+            // Handle backwards compatibility - if number passed, use as both durations
+            const { showDuration, pauseDuration, noOpeningAnimation } =
+              typeof options === "number"
+                ? {
+                  showDuration: options,
+                  pauseDuration: options,
+                  noOpeningAnimation: false,
+                }
+                : {
+                  showDuration: options?.showDuration ?? 4000,
+                  pauseDuration: options?.pauseDuration ?? 4000,
+                  noOpeningAnimation: options?.noOpeningAnimation ?? false,
+                };
             await page.evaluate(
               (
                 titleText,
@@ -772,15 +814,22 @@ export async function setupE2ETest(options: {
               },
               title,
               subtitle,
-              duration,
-              options?.noOpeningAnimation || false,
+              showDuration,
+              noOpeningAnimation,
             );
 
             logger.info(
               `Title card displayed: "${title}"${
                 subtitle ? ` - "${subtitle}"` : ""
-              } (duration: ${duration}ms)`,
+              } (showDuration: ${showDuration}ms, pauseDuration: ${pauseDuration}ms)`,
             );
+
+            // Wait for pause duration before continuing test
+            if (pauseDuration > 0) {
+              await new Promise((resolve) =>
+                setTimeout(resolve, pauseDuration)
+              );
+            }
           },
           clearSubtitle: async (): Promise<void> => {
             await page.evaluate(() => {
