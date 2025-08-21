@@ -160,12 +160,12 @@ const normalizationAst: NormalizationAst = {
                                         },
                                         {
                                           kind: "Scalar",
-                                          fieldName: "completionData",
+                                          fieldName: "name",
                                           arguments: null,
                                         },
                                         {
                                           kind: "Scalar",
-                                          fieldName: "name",
+                                          fieldName: "telemetryData",
                                           arguments: null,
                                         },
                                       ],
