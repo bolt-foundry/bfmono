@@ -3,33 +3,9 @@ import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 import { generateDeckSlug } from "@bfmono/apps/bfDb/utils/slugUtils.ts";
 import type { BfGid } from "@bfmono/lib/types.ts";
-import type { OpenAI } from "@openai/openai";
+import type { TelemetryData } from "@bfmono/apps/bfDb/types/telemetry.ts";
 
 const logger = getLogger(import.meta);
-
-interface TelemetryData {
-  duration: number;
-  provider: string;
-  model?: string;
-  request: {
-    url: string;
-    method: string;
-    headers: Record<string, string>;
-    body: OpenAI.Chat.ChatCompletionCreateParams;
-    timestamp?: string;
-  };
-  response: {
-    status: number;
-    headers: Record<string, string>;
-    body: OpenAI.Chat.ChatCompletion;
-    timestamp?: string;
-  };
-  bfMetadata?: {
-    deckId: string;
-    contextVariables: Record<string, unknown>;
-    attributes?: Record<string, unknown>;
-  };
-}
 
 export async function handleTelemetryRequest(
   request: Request,
@@ -159,13 +135,17 @@ export async function handleTelemetryRequest(
       logger.info(`Created new deck: ${deckId} (slug: ${slug})`);
     }
 
-    // For now, just return success after creating/finding the deck
-    // Skip sample creation to simplify
+    // Record the sample using the deck's recordSample method
+    const sample = await deck.recordSample(telemetryData);
+
+    logger.info(`Created sample: ${sample.metadata.bfGid}`);
+
     return new Response(
       JSON.stringify({
         success: true,
         deckId: deck.metadata.bfGid,
-        message: "Deck upserted successfully",
+        sampleId: sample.metadata.bfGid,
+        message: "Sample created successfully",
       }),
       {
         status: 200,

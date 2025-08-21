@@ -19,7 +19,7 @@ const readerAst: ReaderAst<BfSample__SampleListItem__param> = [
   },
   {
     kind: "Scalar",
-    fieldName: "completionData",
+    fieldName: "telemetryData",
     alias: null,
     arguments: null,
     isUpdatable: false,

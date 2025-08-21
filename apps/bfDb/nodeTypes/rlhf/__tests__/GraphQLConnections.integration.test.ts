@@ -38,7 +38,7 @@ Deno.test("GraphQL Connection Integration - BfDeck.samples connection without pa
 
     const sample1 = await deck.createTargetNode(BfSample, {
       name: "Sample 1",
-      completionData: {
+      telemetryData: {
         id: "sample-1",
         model: "gpt-4",
         usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
@@ -53,7 +53,7 @@ Deno.test("GraphQL Connection Integration - BfDeck.samples connection without pa
 
     const sample2 = await deck.createTargetNode(BfSample, {
       name: "Sample 2",
-      completionData: {
+      telemetryData: {
         id: "sample-2",
         model: "gpt-4",
         usage: { prompt_tokens: 120, completion_tokens: 60, total_tokens: 180 },
@@ -109,7 +109,7 @@ Deno.test("GraphQL Connection Integration - BfDeck.samples connection with pagin
 
     await deck.createTargetNode(BfSample, {
       name: "Pagination Test Sample",
-      completionData: {
+      telemetryData: {
         id: "sample-1",
         model: "gpt-4",
         usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
@@ -169,7 +169,7 @@ Deno.test("GraphQL Connection Integration - BfSample.results connection without 
     // Create sample and graders for test setup
     const sample = await deck.createTargetNode(BfSample, {
       name: "Results Test Sample",
-      completionData: {
+      telemetryData: {
         id: "sample-1",
         model: "gpt-4",
         usage: { prompt_tokens: 150, completion_tokens: 75, total_tokens: 225 },
@@ -255,7 +255,7 @@ Deno.test("GraphQL Connection Integration - BfSample.results connection with pag
     // Create sample for test setup
     const sample = await deck.createTargetNode(BfSample, {
       name: "Pagination Error Test Sample",
-      completionData: {
+      telemetryData: {
         id: "sample-1",
         model: "gpt-4",
         usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
@@ -355,7 +355,7 @@ Deno.test("GraphQL Connection Integration - connection preserves node properties
 
     const sample = await deck.createTargetNode(BfSample, {
       name: "Property Preservation Sample",
-      completionData: {
+      telemetryData: {
         id: "prop-sample",
         model: "gpt-4-turbo",
         usage: {
@@ -386,7 +386,7 @@ Deno.test("GraphQL Connection Integration - connection preserves node properties
     // Check all properties are preserved
     assertEquals(edgeNode.id, sample.id);
     assertEquals(edgeNode.props.collectionMethod, "automated");
-    const completionData = edgeNode.props.completionData as {
+    const completionData = edgeNode.props.telemetryData as {
       model: string;
       usage: { total_tokens: number };
       choices: Array<{ message: { content: string } }>;
