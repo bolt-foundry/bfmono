@@ -133,6 +133,14 @@ jobs:
                 chmod 600 ~/.ssh/id_rsa
                 ssh-keyscan -H \$FLOATING_IP >> ~/.ssh/known_hosts 2>/dev/null || true
 
+                # Install kamal gem if not already installed
+                if ! command -v kamal &> /dev/null; then
+                  echo \"Installing kamal gem...\"
+                  gem install kamal
+                  # Add Ruby gem bin directory to PATH
+                  export PATH=\"\$PATH:\$HOME/.local/share/gem/ruby/3.3.0/bin\"
+                fi
+
                 # Go to app directory and unlock Kamal
                 cd \$GITHUB_WORKSPACE/apps/boltfoundry-com
                 kamal lock release --rolling
