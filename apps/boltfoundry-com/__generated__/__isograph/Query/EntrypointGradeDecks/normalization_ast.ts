@@ -160,12 +160,12 @@ const normalizationAst: NormalizationAst = {
                                         },
                                         {
                                           kind: "Scalar",
-                                          fieldName: "completionData",
+                                          fieldName: "name",
                                           arguments: null,
                                         },
                                         {
                                           kind: "Scalar",
-                                          fieldName: "name",
+                                          fieldName: "telemetryData",
                                           arguments: null,
                                         },
                                       ],
@@ -198,11 +198,6 @@ const normalizationAst: NormalizationAst = {
           kind: "InlineFragment",
           type: "CurrentViewerLoggedOut",
           selections: [
-            {
-              kind: "Scalar",
-              fieldName: "__typename",
-              arguments: null,
-            },
             {
               kind: "Scalar",
               fieldName: "id",
