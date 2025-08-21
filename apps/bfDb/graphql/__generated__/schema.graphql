@@ -77,9 +77,9 @@ type BfPerson implements BfNode {
 
 type BfSample implements BfNode {
   collectionMethod: String
-  completionData: JSON
   id: ID!
   name: String
+  telemetryData: JSON
 }
 
 type BfSampleFeedback implements BfNode {
@@ -141,7 +141,7 @@ type Mutation {
   createDeck(content: String!, description: String, name: String!, slug: String!): BfDeck
   joinWaitlist(company: String, email: String!, name: String!): JoinWaitlistPayload
   loginWithGoogle(idToken: String!): CurrentViewer
-  submitSample(collectionMethod: String, completionData: String!, deckId: String!, name: String): BfSample
+  submitSample(collectionMethod: String, deckId: String!, name: String, telemetryDataJson: String!): BfSample
 }
 
 """An object with a unique identifier"""

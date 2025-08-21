@@ -10,7 +10,7 @@ import { BfSampleFeedback } from "../BfSampleFeedback.ts";
 import { type JSONValue, withIsolatedDb } from "@bfmono/apps/bfDb/bfDb.ts";
 import { makeLoggedInCv } from "@bfmono/apps/bfDb/utils/testUtils.ts";
 import type { InferProps } from "@bfmono/apps/bfDb/classes/BfNode.ts";
-import type { BfSampleCompletionData } from "../BfSample.ts";
+import type { OpenAI } from "@openai/openai";
 
 type BfDeckProps = InferProps<typeof BfDeck>;
 type BfGraderProps = InferProps<typeof BfGrader>;
@@ -78,7 +78,7 @@ Deno.test("RLHF Pipeline Integration - Complete end-to-end workflow", async () =
     assertEquals(queriedGrader.metadata.bfOid, cv.orgBfOid);
 
     // Step 3: Create a BfSample with completionData and collectionMethod
-    const completionData: BfSampleCompletionData = {
+    const completionData = {
       id: "chatcmpl-test-123",
       object: "chat.completion",
       created: Date.now(),
@@ -112,14 +112,14 @@ Deno.test("RLHF Pipeline Integration - Complete end-to-end workflow", async () =
 
     const sample = await deck.createTargetNode(BfSample, {
       name: "Code Review Sample",
-      completionData: completionData as unknown as JSONValue,
+      telemetryData: completionData as unknown as JSONValue,
       collectionMethod: "manual",
     });
 
     // Verify sample creation
     assertEquals(sample.props.collectionMethod, "manual");
     const sampleCompletionData = sample.props
-      .completionData as unknown as BfSampleCompletionData;
+      .telemetryData as unknown as OpenAI.Chat.ChatCompletion;
     assertEquals(sampleCompletionData.id, "chatcmpl-test-123");
     assertEquals(sampleCompletionData.model, "gpt-4");
     assertEquals(
@@ -216,7 +216,8 @@ Deno.test("RLHF Pipeline Integration - Complete end-to-end workflow", async () =
     // Verify that the business logic flows correctly
     // Sample contains the completion data to be evaluated
     assertEquals(
-      typeof (sample.props.completionData as unknown as BfSampleCompletionData)
+      typeof (sample.props
+        .telemetryData as unknown as OpenAI.Chat.ChatCompletion)
         .choices[0]
         .message.content,
       "string",

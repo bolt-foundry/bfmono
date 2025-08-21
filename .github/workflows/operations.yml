@@ -79,7 +79,7 @@ jobs:
             else
               export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
             fi
-            
+
             # Sync all variables from 1Password
             bft sitevar sync --force
 

@@ -3,6 +3,8 @@ import { BfOrganization } from "@bfmono/apps/bfDb/nodeTypes/BfOrganization.ts";
 import { readLocalDeck } from "@bolt-foundry/bolt-foundry";
 import { BfGrader } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfGrader.ts";
 import { BfSample } from "@bfmono/apps/bfDb/nodeTypes/rlhf/BfSample.ts";
+import type { TelemetryData } from "@bfmono/apps/bfDb/types/telemetry.ts";
+import type { WithRelationships } from "@bfmono/apps/bfDb/builders/bfDb/relationshipMethods.ts";
 
 /**
  * BfDeck represents a deck of cards/prompts used for RLHF evaluation.
@@ -80,6 +82,26 @@ export class BfDeck extends BfNode<InferProps<typeof BfDeck>> {
       .many("graders", () => BfGrader)
       .many("samples", () => BfSample)
   );
+
+  /**
+   * Record a sample from telemetry data
+   * Creates a BfSample with the completion data and associates it with this deck
+   */
+  async recordSample(
+    this: WithRelationships<typeof BfDeck>,
+    telemetryData: TelemetryData,
+  ) {
+    // Create sample with full telemetry data
+    const sample = await this.createSamplesItem({
+      // @ts-expect-error - TelemetryData doesn't match JSONValue but will be serialized correctly
+      // See: @bfmono/memos/3-resources/bfnode-tech-debt/json-field-typing.md
+      telemetryData,
+      collectionMethod: "telemetry",
+      name: `Sample ${new Date().toISOString()}`,
+    });
+
+    return sample;
+  }
 
   /**
    * Read deck properties from a filesystem .deck.md file
