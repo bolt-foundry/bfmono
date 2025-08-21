@@ -73,8 +73,14 @@ jobs:
       - name: Execute Operation
         run: |
           nix develop --accept-flake-config --command bash -euc "
+            # Use CI token for notify operations, infrastructure token for others
+            if [ '${{ env.OPERATION }}' = 'notify-internalbf' ]; then
+              export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.CI_OP_SERVICE_ACCOUNT_TOKEN }}'
+            else
+              export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
+            fi
+
             # Sync all variables from 1Password
-            export OP_SERVICE_ACCOUNT_TOKEN='${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}'
             bft sitevar sync --force
 
             # Source both config and secrets
