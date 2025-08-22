@@ -36,16 +36,16 @@ boltfoundry.com dashboard.
 
 ✅ **Phase 1: Telemetry Visibility** - Completed (PR #190) ✅ **Phase 2:
 Dashboard Integration** - Completed (PR #190) ✅ **Phase 3: UI/UX
-Implementation** - Completed (PR #202) ⏳ **Phase 4: Sample Display** - Not
-Started ⏳ **Phase 5: Feedback Loop** - Not Started ⏳ **Phase 6: Iteration &
-Polish** - Not Started
+Implementation** - Completed (PR #202) 🚧 **Phase 4: Sample Display** - Mostly
+Complete (PR #244) ⏳ **Phase 5: Feedback Loop** - Not Started ⏳ **Phase 6:
+Iteration & Polish** - Not Started
 
 ## Success Criteria
 
 - [x] Fastpitch telemetry visible in dashboard ✅
 - [x] Can view individual run details ✅
 - [x] UI/UX properly implemented with Isograph patterns (Phase 3) ✅
-- [ ] Samples properly displayed (Phase 4)
+- [x] Samples properly displayed (Phase 4) ✅
 - [ ] Can provide feedback on outputs (Phase 5)
 - [ ] Feedback influences future generations (Phase 5)
 
@@ -74,7 +74,32 @@ Polish** - Not Started
   Analyze/Chat disabled
 - **E2E Test**: fastpitch-telemetry test now passes with complete deck data flow
 
+### Phase 4 (PR #244)
+
+- **Data Structure Migration**: Renamed `completionData` → `telemetryData`
+  throughout codebase
+- **Mutation Removal**: Removed `submitSample` mutation from BfSample.ts
+- **JSON Serialization**: Fixed GraphQL JSON scalar serialization for Isograph
+  compatibility
+- **Sample Recording**: Implemented `BfDeck.recordSample()` method for telemetry
+  ingestion
+- **Type System**: Added `TelemetryData` type definition and fixed all type
+  casting issues
+- **E2E Modernization**: Updated tests to use modern patterns (removed
+  evaluate(), timeouts)
+- **Test Context**: Added `reloadPage()` method to E2E test context
+- **Sample Display**: SampleListItem component now parses and displays real
+  telemetry data
+- **All Tests Pass**: Complete pipeline validated with fastpitch-telemetry E2E
+  test
+
 ## Next Steps
 
-Ready to begin [Phase 4: Sample Display](./phase-4-sample-display.md) to ensure
-samples flow and display correctly in the UI.
+Phase 4 is mostly complete with PR #244. Remaining Phase 4 items:
+
+- Sample detail view implementation
+- Pagination for large sample lists
+- Real-time updates for new samples
+
+Ready to begin [Phase 5: Feedback Loop](./phase-5-feedback-loop.md) to enable
+grading and improvement of AI responses.
