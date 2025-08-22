@@ -1,6 +1,7 @@
 import type {ComponentReaderArtifact, ExtractSecondParam, ReaderAst } from '@isograph/react';
 import { BfDeck__DecksListItem__param } from './param_type.ts';
 import { DecksListItem as resolver } from '../../../../isograph/components/BfDeck/DecksListItem.tsx';
+import BfSample__SampleListItem__resolver_reader from '../../BfSample/SampleListItem/resolver_reader.ts';
 
 const readerAst: ReaderAst<BfDeck__DecksListItem__param> = [
   {
@@ -103,11 +104,11 @@ const readerAst: ReaderAst<BfDeck__DecksListItem__param> = [
             isUpdatable: false,
             selections: [
               {
-                kind: "Scalar",
-                fieldName: "id",
-                alias: null,
+                kind: "Resolver",
+                alias: "SampleListItem",
                 arguments: null,
-                isUpdatable: false,
+                readerArtifact: BfSample__SampleListItem__resolver_reader,
+                usedRefetchQueries: [],
               },
             ],
           },
