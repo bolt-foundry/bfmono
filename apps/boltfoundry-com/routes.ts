@@ -2,6 +2,7 @@ import { Plinko } from "./components/plinko/Plinko.tsx";
 import { UIDemo } from "./components/UIDemo.tsx";
 import type { BfIsographEntrypoint } from "./lib/BfIsographEntrypoint.ts";
 import {
+  entrypointDeckDetailRedirect,
   entrypointGrade,
   entrypointGradeDecks,
   entrypointHome,
@@ -40,8 +41,8 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
 
   // V3 Component Routes
   ["/pg/grade/decks", entrypointGradeDecks], // Decks list (main content)
-  // ["/pg/grade/decks/:deckId", entrypointDeckDetail], // Deck detail view
-  // ["/pg/grade/decks/:deckId/:tab", entrypointDeckDetail], // Deck detail with tab (samples/graders/inbox)
+  ["/pg/grade/decks/:deckId", entrypointDeckDetailRedirect], // Deck detail redirect to samples
+  ["/pg/grade/decks/:deckId/:tab", entrypointGradeDecks], // Deck detail with tab (samples/graders/inbox) - handled by Grade component
   // ["/pg/grade/decks/:deckId/grade", entrypointGrading], // Grading interface for deck
   // ["/pg/grade/samples", entrypointSamples], // All samples list
   // ["/pg/grade/samples/:sampleId", entrypointSampleDetail], // Sample detail view

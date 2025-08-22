@@ -1,6 +1,13 @@
 import type { IsographEntrypoint } from '@isograph/react';
+import { type BfDeck__DeckDetailView__param } from './BfDeck/DeckDetailView/param_type.ts';
+import { type BfDeck__DeckGradersTab__param } from './BfDeck/DeckGradersTab/param_type.ts';
+import { type BfDeck__DeckInboxTab__param } from './BfDeck/DeckInboxTab/param_type.ts';
+import { type BfDeck__DeckSamplesList__param } from './BfDeck/DeckSamplesList/param_type.ts';
+import { type BfDeck__DeckSamplesTab__param } from './BfDeck/DeckSamplesTab/param_type.ts';
+import { type BfDeck__DeckSamples__param } from './BfDeck/DeckSamples/param_type.ts';
 import { type BfDeck__DecksListItem__param } from './BfDeck/DecksListItem/param_type.ts';
 import { type BfOrganization__DecksList__param } from './BfOrganization/DecksList/param_type.ts';
+import { type BfSample__SampleListItem__param } from './BfSample/SampleListItem/param_type.ts';
 import { type CurrentViewer__LoginPage__param } from './CurrentViewer/LoginPage/param_type.ts';
 import { type CurrentViewer__RlhfHome__param } from './CurrentViewer/RlhfHome/param_type.ts';
 import { type CurrentViewerLoggedIn__Grade__param } from './CurrentViewerLoggedIn/Grade/param_type.ts';
@@ -74,12 +81,40 @@ type MatchesWhitespaceAndString<
 > = Whitespace<T> extends `${TString}${string}` ? T : never;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckDetailView', T>
+): IdentityWithParamComponent<BfDeck__DeckDetailView__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckGradersTab', T>
+): IdentityWithParamComponent<BfDeck__DeckGradersTab__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckInboxTab', T>
+): IdentityWithParamComponent<BfDeck__DeckInboxTab__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamplesList', T>
+): IdentityWithParamComponent<BfDeck__DeckSamplesList__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamplesTab', T>
+): IdentityWithParamComponent<BfDeck__DeckSamplesTab__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamples', T>
+): IdentityWithParamComponent<BfDeck__DeckSamples__param>;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field BfDeck.DecksListItem', T>
 ): IdentityWithParamComponent<BfDeck__DecksListItem__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field BfOrganization.DecksList', T>
 ): IdentityWithParamComponent<BfOrganization__DecksList__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfSample.SampleListItem', T>
+): IdentityWithParamComponent<BfSample__SampleListItem__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field CurrentViewer.LoginPage', T>

@@ -3,6 +3,7 @@ import { BfDsListBar } from "@bfmono/apps/bfDs/components/BfDsListBar.tsx";
 import { BfDsIcon } from "@bfmono/apps/bfDs/components/BfDsIcon.tsx";
 import { BfDsBadge } from "@bfmono/apps/bfDs/components/BfDsBadge.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
+import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
 
 const logger = getLogger(import.meta);
@@ -23,7 +24,7 @@ export const DecksListItem = iso(`
     samples(first: 100) {
       edges {
         node {
-          id
+          SampleListItem
         }
       }
     }
@@ -32,10 +33,11 @@ export const DecksListItem = iso(`
   const graderCount = data.graders?.edges?.length || 0;
   const sampleCount = data.samples?.edges?.length || 0;
 
+  const { navigate } = useRouter();
+
   const handleClick = () => {
     logger.debug("Deck clicked", { deckId: data.id });
-    // TODO: Navigate to deck detail page
-    // window.location.href = `/pg/grade/decks/${data.id}`;
+    navigate(`/pg/grade/decks/${data.id}/samples`);
   };
 
   const leftContent = (
