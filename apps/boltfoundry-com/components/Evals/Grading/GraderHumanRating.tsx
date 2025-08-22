@@ -135,6 +135,7 @@ export function GraderHumanRating({
           size="small"
           onClick={handleAgreeClick}
           className="human-rating-button agree"
+          data-testid="agree-button"
         >
           <span>Agree ({aiGraderScore > 0 ? "+" : ""}{aiGraderScore})</span>
         </BfDsButton>
