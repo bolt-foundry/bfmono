@@ -26,12 +26,14 @@ export async function generateEnvTypes(): Promise<string> {
     }
   }
 
-  // Generate type definitions
+  // Generate type definitions with sorted keys
   const clientTypes = Object.keys(clientVars)
+    .sort()
     .map((key) => `  readonly ${key}?: string;`)
     .join("\n");
 
   const serverTypes = Object.keys(serverVars)
+    .sort()
     .map((key) => `  readonly ${key}?: string;`)
     .join("\n");
 
