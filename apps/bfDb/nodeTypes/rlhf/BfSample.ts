@@ -55,7 +55,7 @@ export interface BfSampleCompletionData {
 export class BfSample extends BfNode<InferProps<typeof BfSample>> {
   static override gqlSpec = this.defineGqlNode((gql) =>
     gql
-      .json("completionData")
+      .json("telemetryData")
       .string("collectionMethod")
       .string("name")
       .typedMutation("submitSample", {
@@ -70,7 +70,7 @@ export class BfSample extends BfNode<InferProps<typeof BfSample>> {
           const cv = ctx.getCurrentViewer();
           const deck = await BfDeck.findX(cv, args.deckId as BfGid);
           const sample = await deck.createSamplesItem({
-            completionData: JSON.parse(args.completionData),
+            telemetryData: JSON.parse(args.completionData),
             collectionMethod: (args.collectionMethod ||
               "manual") as BfSampleCollectionMethod,
             name: args.name || "",
@@ -87,7 +87,7 @@ export class BfSample extends BfNode<InferProps<typeof BfSample>> {
    */
   static override bfNodeSpec = this.defineBfNode((node) =>
     node
-      .json("completionData") // Native JSON storage
+      .json("telemetryData") // Native JSON storage for full telemetry data
       .string("collectionMethod") // "manual" | "telemetry"
       .string("name") // Optional human-readable name for the sample
   );
