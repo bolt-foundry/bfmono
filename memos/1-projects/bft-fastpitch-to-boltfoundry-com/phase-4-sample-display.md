@@ -16,17 +16,17 @@ allowing users to view and interact with the actual telemetry data.
 ## Current State
 
 - ✅ **Telemetry ingestion creates real samples**: Updated handler to use\
-  `deck.recordSample(telemetryData)`
+  `deck.recordSample(telemetryData)` (PR #244)
 - ✅ **Complete telemetry data pipeline**: telemetryData field stores full\
   OpenAI request/response
 - ✅ **JSON scalar serialization fixed**: GraphQL/Isograph compatibility\
-  resolved
+  resolved (PR #244)
 - ✅ **Real sample display working**: SampleListItem component parses and\
   displays telemetry data
 - ✅ **All E2E tests passing**: fastpitch-telemetry test validates full pipeline
 - ✅ **Framework issues documented**: BfNode tech debt tracked with workarounds
 - ✅ **Type system compatibility**: completionData → telemetryData migration\
-  complete
+  complete (PR #244)
 - ✅ **Sample list display functional**: Shows samples with metadata,
   completion\
   preview, token usage
@@ -210,13 +210,25 @@ not available at compile time **Solution**: Parameter typing workaround:\
 `apps/bfDb/nodeTypes/rlhf/BfDeck.ts`, documented in\
 `memos/3-resources/bfnode-tech-debt/`
 
-### 3\. Data Structure Migration ✅ COMPLETED
+### 3\. Data Structure Migration ✅ COMPLETED (PR #244)
 
 **Problem**: Field rename from `completionData` to `telemetryData` across
 entire\
 codebase **Solution**: Systematic migration of GraphQL schema, database fields,\
 UI components, and all tests **Impact**: 15+ files updated, all type errors\
 resolved, E2E tests passing
+
+**PR #244 Accomplishments**:
+
+- ✅ Removed `submitSample` mutation from BfSample.ts
+- ✅ Renamed `completionData` → `telemetryData` throughout codebase
+- ✅ Fixed GraphQL JSON scalar serialization issues
+- ✅ Added `TelemetryData` type definition
+- ✅ Implemented `BfDeck.recordSample()` method
+- ✅ Updated all E2E tests to use modern patterns (removed evaluate(), timeouts)
+- ✅ Added `reloadPage()` to E2E test context
+- ✅ Removed manual video copying from E2E tests
+- ✅ Fixed type casting issues in tests
 
 ### 4\. Telemetry Data Type Compatibility ✅ RESOLVED
 
