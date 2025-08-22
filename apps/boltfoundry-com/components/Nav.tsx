@@ -15,6 +15,15 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
   const [showMenu, setShowMenu] = useState(false);
   const { isVisible: hudOpen, toggleHud } = useHud();
 
+  // Detect if we're in mock mode based on the current route
+  const mock = globalThis.location?.pathname?.includes("mock") ?? false;
+
+  // Logo colors based on mock state and hover
+  const logoColor = mock ? "var(--bfds-mock)" : "var(--bfds-text)";
+  const hoverLogoColor = mock
+    ? "var(--bfds-mock-hover)"
+    : "var(--bfds-primary)";
+
   // Temporary organization variable - replace with actual user org check
   const organization = "boltfoundry";
 
@@ -93,7 +102,9 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
   };
 
   return (
-    <header className="landing-header flexRow">
+    <header
+      className={`landing-header flexRow ${mock ? "landing-header--mock" : ""}`}
+    >
       <div className="flex1 selfAlignCenter">
         {onSidebarToggle && (
           <div className="landing-header-sidebar-button">
@@ -117,10 +128,8 @@ export function Nav({ page, onSidebarToggle, sidebarOpen }: Props) {
             onMouseLeave={() => setHoverLogo(false)}
           >
             <BfLogo
-              boltColor={hoverLogo ? "var(--bfds-primary)" : "var(--bfds-text)"}
-              foundryColor={hoverLogo
-                ? "var(--bfds-primary)"
-                : "var(--bfds-text)"}
+              boltColor={hoverLogo ? hoverLogoColor : logoColor}
+              foundryColor={hoverLogo ? hoverLogoColor : logoColor}
               height={24}
             />
           </a>
