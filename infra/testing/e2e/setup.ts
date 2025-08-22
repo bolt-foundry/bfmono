@@ -140,6 +140,7 @@ export interface E2ETestContext {
     name: string,
     options?: { fullPage?: boolean; showAnnotations?: boolean },
   ) => Promise<string>;
+  /** @deprecated Use navigate() instead */
   navigateTo: (path: string) => Promise<void>;
   startRecording: (
     name: string,
@@ -178,6 +179,16 @@ export interface E2ETestContext {
     fn: () => T | Promise<T>,
     options?: { timeout?: number; polling?: number | "raf" | "mutation" },
   ) => Promise<void>;
+  // New convenience methods
+  automatedLogin: (options?: {
+    email?: string;
+    organizationName?: string;
+  }) => Promise<void>;
+  clearDatabase: () => Promise<void>;
+  elementExists: (selector: string) => Promise<boolean>;
+  elementWithTextExists: (selector: string, text: string) => Promise<boolean>;
+  getElementText: (selector: string) => Promise<string | null>;
+  getElementCount: (selector: string) => Promise<number>;
 }
 
 /**
@@ -441,15 +452,12 @@ export async function setupE2ETest(options: {
       baseUrl,
       takeScreenshot,
       navigateTo: async (path: string): Promise<void> => {
+        // Deprecated: redirects to navigate() for backward compatibility
         const url = new URL(path, baseUrl).toString();
-        logger.info(`Navigating to ${url}`);
-        await page.goto(url, {
+        await context.navigate(url, {
           waitUntil: "networkidle2",
           timeout: 30000,
         });
-
-        // Note: both cursor overlay and recording throbber are automatically
-        // re-injected after navigation using evaluateOnNewDocument
       },
       startRecording: async (
         name: string,
@@ -1075,6 +1083,104 @@ export async function setupE2ETest(options: {
         options?: { timeout?: number; polling?: number | "raf" | "mutation" },
       ): Promise<void> => {
         await page.waitForFunction(fn, options);
+      },
+      // New convenience methods
+      automatedLogin: async (options?: {
+        email?: string;
+        organizationName?: string;
+      }): Promise<void> => {
+        const loginEmail = options?.email || "test@boltfoundry.com";
+        const _orgName = options?.organizationName || "Bolt Foundry";
+
+        logger.info(`Performing automated login as ${loginEmail}`);
+
+        // Navigate to login page if not already there
+        const currentUrl = page.url();
+        if (!currentUrl.includes("/login")) {
+          await page.goto(`${baseUrl}/login`, {
+            waitUntil: "networkidle2",
+            timeout: 30000,
+          });
+        }
+
+        // Wait for the Google Sign-In button (either real or mock)
+        await page.waitForSelector("#google-signin-button", { timeout: 5000 });
+
+        // Click the sign-in button which triggers the dev mock flow
+        await page.click("#google-signin-button");
+
+        // The mock automatically logs in and redirects
+        await page.waitForNavigation({ waitUntil: "networkidle2" });
+
+        logger.info(`Automated login completed, redirected to: ${page.url()}`);
+      },
+      clearDatabase: async (): Promise<void> => {
+        logger.info("Clearing database via API endpoint");
+
+        // Call the API endpoint to clear the database
+        const response = await fetch(`${baseUrl}/api/clear-test-db`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            confirmClear: true,
+            testMode: true,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to clear database: ${response.statusText}`);
+        }
+
+        logger.info("Database cleared successfully");
+      },
+      elementExists: async (selector: string): Promise<boolean> => {
+        try {
+          const element = await page.$(selector);
+          return element !== null;
+        } catch {
+          return false;
+        }
+      },
+      elementWithTextExists: async (
+        selector: string,
+        text: string,
+      ): Promise<boolean> => {
+        try {
+          const elements = await page.$$(selector);
+          for (const element of elements) {
+            const elementText = await page.evaluate(
+              (el) => el.textContent,
+              element,
+            );
+            if (elementText?.includes(text)) {
+              return true;
+            }
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      },
+      getElementText: async (selector: string): Promise<string | null> => {
+        try {
+          const element = await page.$(selector);
+          if (!element) return null;
+
+          const text = await page.evaluate((el) => el.textContent, element);
+          return text;
+        } catch {
+          return null;
+        }
+      },
+      getElementCount: async (selector: string): Promise<number> => {
+        try {
+          const elements = await page.$$(selector);
+          return elements.length;
+        } catch {
+          return 0;
+        }
       },
       teardown: async (): Promise<void> => {
         try {
