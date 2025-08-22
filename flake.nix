@@ -5,9 +5,9 @@
   ## 1. Inputs
   ########################
   inputs = {
-    nixpkgs.url          = "github:NixOS/nixpkgs/26e168479fdc7a75fe55e457e713d8b5f794606a";
+    nixpkgs.url          = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url      = "github:numtide/flake-utils";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/27f23f25cd732fdb4f07328d55a0cea6ecdfb32e";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   ########################
