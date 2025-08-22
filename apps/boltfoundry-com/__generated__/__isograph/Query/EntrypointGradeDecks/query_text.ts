@@ -40,7 +40,6 @@ export default 'query EntrypointGradeDecks  {\
       },\
     },\
     ... on CurrentViewerLoggedOut {\
-      __typename,\
       id,\
       __typename,\
     },\
