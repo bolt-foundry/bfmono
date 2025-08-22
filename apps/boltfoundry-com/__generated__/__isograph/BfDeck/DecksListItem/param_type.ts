@@ -1,3 +1,4 @@
+import { type BfSample__SampleListItem__output_type } from '../../BfSample/SampleListItem/output_type.ts';
 
 export type BfDeck__DecksListItem__param = {
   readonly data: {
@@ -15,7 +16,7 @@ export type BfDeck__DecksListItem__param = {
     readonly samples: ({
       readonly edges: (ReadonlyArray<({
         readonly node: ({
-          readonly id: string,
+          readonly SampleListItem: BfSample__SampleListItem__output_type,
         } | null),
       } | null)> | null),
     } | null),
