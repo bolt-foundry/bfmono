@@ -10,6 +10,7 @@ import { createApiRoutes } from "./apiRoutes.ts";
 import { getIsographEnvironment } from "./server/isographEnvironment.ts";
 import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 import { matchRouteWithParams } from "./contexts/RouterContext.tsx";
+import { handleStreamRoutes } from "@bfmono/infra/testing/video-streaming/simple-stream-server.ts";
 
 const logger = getLogger(import.meta);
 const requestLogger = getLogger("boltfoundry-com/requests");
@@ -150,6 +151,21 @@ const handler = async (request: Request): Promise<Response> => {
   );
 
   try {
+    // Check for streaming routes first
+    const streamResponse = handleStreamRoutes(request);
+    if (streamResponse) {
+      logResponse(
+        requestId,
+        streamResponse,
+        startTime,
+        method,
+        url.pathname,
+        url.search,
+        "E2E Stream",
+      );
+      return streamResponse;
+    }
+
     // Try to match against API routes
     for (const route of apiRoutes) {
       if (route.pattern.test(url)) {

@@ -2,6 +2,7 @@ import type { CDPSession, Page } from "puppeteer-core";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
+import { getConfigurationVariable } from "@bolt-foundry/get-configuration-var";
 
 const logger = getLogger(import.meta);
 import {
@@ -16,6 +17,8 @@ export interface VideoRecordingSession {
   name: string;
   outputDir: string;
   cdpSession?: CDPSession; // Store CDP session for cleanup
+  streamingEnabled?: boolean; // Whether streaming is active
+  streamPort?: string; // Port for streaming server
 }
 
 export interface VideoRecordingOptions {
@@ -31,6 +34,16 @@ export async function startScreencastRecording(
 
   await ensureDir(outputDir);
 
+  // Check if streaming is enabled
+  const streamingEnabled = getConfigurationVariable("BF_E2E_STREAM") === "true";
+  const streamPort = getConfigurationVariable("BF_STREAM_PORT") || "8080";
+
+  if (streamingEnabled) {
+    logger.info(
+      `Streaming enabled for test: ${name} - connect to http://localhost:${streamPort}/e2e-viewer`,
+    );
+  }
+
   // Get current viewport dimensions to match screencast
   const viewport = page.viewport();
   const maxWidth = viewport?.width || 1280;
@@ -42,6 +55,8 @@ export async function startScreencastRecording(
     name,
     outputDir,
     cdpSession, // Store CDP session reference
+    streamingEnabled,
+    streamPort,
   };
 
   await cdpSession.send("Page.enable");
@@ -91,6 +106,23 @@ export async function startScreencastRecording(
       atob(frame.data).split("").map((c) => c.charCodeAt(0)),
     );
     session.frames.push(frameBuffer);
+
+    // Stream the frame if streaming is enabled
+    if (session.streamingEnabled) {
+      try {
+        // Send frame to persistent streaming server via HTTP
+        const base64Frame = btoa(String.fromCharCode(...frameBuffer));
+        fetch(`http://localhost:${session.streamPort}/stream-frame`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ frame: base64Frame, test: session.name }),
+        }).catch(() => {
+          // Ignore fetch errors - streaming is optional
+        });
+      } catch (error) {
+        // Ignore streaming errors - don't break tests
+      }
+    }
 
     // Acknowledge the frame with error handling
     try {
