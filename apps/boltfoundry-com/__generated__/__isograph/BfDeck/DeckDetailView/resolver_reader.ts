@@ -1,7 +1,9 @@
 import type {ComponentReaderArtifact, ExtractSecondParam, ReaderAst } from '@isograph/react';
 import { BfDeck__DeckDetailView__param } from './param_type.ts';
 import { DeckDetailView as resolver } from '../../../../isograph/components/BfDeck/DeckDetailView.tsx';
-import BfDeck__DeckSamplesList__resolver_reader from '../../BfDeck/DeckSamplesList/resolver_reader.ts';
+import BfDeck__DeckGradersTab__resolver_reader from '../../BfDeck/DeckGradersTab/resolver_reader.ts';
+import BfDeck__DeckInboxTab__resolver_reader from '../../BfDeck/DeckInboxTab/resolver_reader.ts';
+import BfDeck__DeckSamplesTab__resolver_reader from '../../BfDeck/DeckSamplesTab/resolver_reader.ts';
 
 const readerAst: ReaderAst<BfDeck__DeckDetailView__param> = [
   {
@@ -27,9 +29,23 @@ const readerAst: ReaderAst<BfDeck__DeckDetailView__param> = [
   },
   {
     kind: "Resolver",
-    alias: "DeckSamplesList",
+    alias: "DeckSamplesTab",
     arguments: null,
-    readerArtifact: BfDeck__DeckSamplesList__resolver_reader,
+    readerArtifact: BfDeck__DeckSamplesTab__resolver_reader,
+    usedRefetchQueries: [],
+  },
+  {
+    kind: "Resolver",
+    alias: "DeckGradersTab",
+    arguments: null,
+    readerArtifact: BfDeck__DeckGradersTab__resolver_reader,
+    usedRefetchQueries: [],
+  },
+  {
+    kind: "Resolver",
+    alias: "DeckInboxTab",
+    arguments: null,
+    readerArtifact: BfDeck__DeckInboxTab__resolver_reader,
     usedRefetchQueries: [],
   },
 ];

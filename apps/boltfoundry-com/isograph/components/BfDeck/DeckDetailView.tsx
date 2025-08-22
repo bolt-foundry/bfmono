@@ -1,8 +1,8 @@
 import { iso } from "@iso-bfc";
 import { BfDsTabs } from "@bfmono/apps/bfDs/components/BfDsTabs.tsx";
 import { BfDsButton } from "@bfmono/apps/bfDs/components/BfDsButton.tsx";
-import { BfDsEmptyState } from "@bfmono/apps/bfDs/components/BfDsEmptyState.tsx";
 import { useRouter } from "@bfmono/apps/boltfoundry-com/contexts/RouterContext.tsx";
+import { useRefinementContext } from "@bfmono/apps/boltfoundry-com/contexts/RefinementContext.tsx";
 import { DeckTab } from "@bfmono/apps/boltfoundry-com/types/deck.ts";
 
 export const DeckDetailView = iso(`
@@ -10,39 +10,17 @@ export const DeckDetailView = iso(`
     id
     name
     description
-    DeckSamplesList
+    DeckSamplesTab
+    DeckGradersTab
+    DeckInboxTab
   }
 `)(function DeckDetailView({ data }) {
   const { navigate, routeParams } = useRouter();
+  const { isRefining } = useRefinementContext();
   const currentTab = (routeParams.tab as DeckTab) || DeckTab.Samples;
 
   const handleTabChange = (newTab: string) => {
     navigate(`/pg/grade/decks/${data.id}/${newTab}`);
-  };
-
-  const renderSamplesContent = () => {
-    const SamplesList = data.DeckSamplesList;
-    return <SamplesList />;
-  };
-
-  const renderGradersContent = () => {
-    return (
-      <BfDsEmptyState
-        title="Graders Configuration"
-        description={`Configure graders for deck ${data.name || data.id}`}
-        icon="cpu"
-      />
-    );
-  };
-
-  const renderInboxContent = () => {
-    return (
-      <BfDsEmptyState
-        title="Grading Inbox"
-        description={`Start grading samples for deck ${data.name || data.id}`}
-        icon="inbox"
-      />
-    );
   };
 
   return (
@@ -70,17 +48,21 @@ export const DeckDetailView = iso(`
             {
               id: DeckTab.Samples,
               label: "Samples",
-              content: renderSamplesContent(),
+              content: <data.DeckSamplesTab />,
             },
             {
               id: DeckTab.Graders,
               label: "Graders",
-              content: renderGradersContent(),
+              content: <data.DeckGradersTab />,
+              badge: isRefining ? "Refining" : undefined,
+              badgeVariant: isRefining ? "warning" : undefined,
             },
             {
               id: DeckTab.Inbox,
               label: "Inbox",
-              content: renderInboxContent(),
+              content: <data.DeckInboxTab />,
+              badge: "New",
+              badgeVariant: "warning",
             },
           ]}
           activeTab={currentTab}

@@ -1,15 +1,16 @@
-import {
-  navigateTo,
-  teardownE2ETest,
-} from "@bfmono/infra/testing/e2e/setup.ts";
+import { teardownE2ETest } from "@bfmono/infra/testing/e2e/setup.ts";
 import { setupBoltFoundryComTest } from "../helpers.ts";
 import { getLogger } from "@bfmono/packages/logger/logger.ts";
-import { loadAuthState } from "@bfmono/infra/testing/e2e/authState.ts";
 
 const logger = getLogger(import.meta);
 
 Deno.test("Sample display mini test", async (t) => {
-  const context = await setupBoltFoundryComTest();
+  const context = await setupBoltFoundryComTest({
+    titleCard: {
+      title: "🔍 Sample Display Mini Test",
+      subtitle: "Testing deck sample display functionality",
+    },
+  });
 
   try {
     // Start video recording
@@ -20,23 +21,14 @@ Deno.test("Sample display mini test", async (t) => {
     await showSubtitle("🔍 Sample Display Mini Test");
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    await t.step("Load cached auth and navigate to /pg", async () => {
-      // Load saved authentication state
-      const authLoaded = await loadAuthState(
-        context.__UNSAFE_page_useContextMethodsInstead,
-        "boltfoundry-com",
-      );
-
-      if (authLoaded) {
-        logger.info("✅ Using saved authentication state");
-        await showSubtitle("✅ Using cached auth");
-      } else {
-        logger.warn("❌ No cached auth found");
-        await showSubtitle("❌ No cached auth");
-      }
+    await t.step("Login and navigate to /pg", async () => {
+      // Perform automated login
+      await showSubtitle("🔐 Logging in...");
+      await context.automatedLogin();
 
       // Navigate to /pg
-      await navigateTo(context, "/pg");
+      await showSubtitle("📍 Navigating to /pg");
+      await context.navigate(`${context.baseUrl}/pg`);
       await context.waitForNetworkIdle();
 
       await showSubtitle("✅ Loaded /pg");
@@ -47,15 +39,10 @@ Deno.test("Sample display mini test", async (t) => {
       await showSubtitle("🎯 Clicking fastpitch deck...");
 
       // Check if the deck exists first
-      const deckExists = await context.evaluate(() => {
-        const deckItems = document.querySelectorAll(".deck-item");
-        for (const item of deckItems) {
-          if (item.textContent?.includes("fastpitch-test-deck")) {
-            return true;
-          }
-        }
-        return false;
-      });
+      const deckExists = await context.elementWithTextExists(
+        ".deck-item",
+        "fastpitch-test-deck",
+      );
 
       if (!deckExists) {
         logger.warn("❌ Fastpitch deck not found");

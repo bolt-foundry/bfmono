@@ -1,6 +1,9 @@
 import type { IsographEntrypoint } from '@isograph/react';
 import { type BfDeck__DeckDetailView__param } from './BfDeck/DeckDetailView/param_type.ts';
+import { type BfDeck__DeckGradersTab__param } from './BfDeck/DeckGradersTab/param_type.ts';
+import { type BfDeck__DeckInboxTab__param } from './BfDeck/DeckInboxTab/param_type.ts';
 import { type BfDeck__DeckSamplesList__param } from './BfDeck/DeckSamplesList/param_type.ts';
+import { type BfDeck__DeckSamplesTab__param } from './BfDeck/DeckSamplesTab/param_type.ts';
 import { type BfDeck__DeckSamples__param } from './BfDeck/DeckSamples/param_type.ts';
 import { type BfDeck__DecksListItem__param } from './BfDeck/DecksListItem/param_type.ts';
 import { type BfOrganization__DecksList__param } from './BfOrganization/DecksList/param_type.ts';
@@ -82,8 +85,20 @@ export function iso<T>(
 ): IdentityWithParamComponent<BfDeck__DeckDetailView__param>;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckGradersTab', T>
+): IdentityWithParamComponent<BfDeck__DeckGradersTab__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckInboxTab', T>
+): IdentityWithParamComponent<BfDeck__DeckInboxTab__param>;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamplesList', T>
 ): IdentityWithParamComponent<BfDeck__DeckSamplesList__param>;
+
+export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamplesTab', T>
+): IdentityWithParamComponent<BfDeck__DeckSamplesTab__param>;
 
 export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field BfDeck.DeckSamples', T>
