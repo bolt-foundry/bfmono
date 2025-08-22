@@ -77,9 +77,9 @@ type BfPerson implements BfNode {
 
 type BfSample implements BfNode {
   collectionMethod: String
-  completionData: JSON
   id: ID!
   name: String
+  telemetryData: JSON
 }
 
 type BfSampleFeedback implements BfNode {
