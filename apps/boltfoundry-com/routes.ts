@@ -41,7 +41,7 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
 
   // V3 Component Routes
   ["/pg/grade/decks", entrypointGradeDecks], // Decks list (main content)
-  ["/pg/grade/decks/:deckId", entrypointDeckDetailRedirect], // Deck detail redirect to samples
+  ["/pg/grade/decks/:deckId", entrypointDeckDetailRedirect], // Deck detail redirect to inbox
   ["/pg/grade/decks/:deckId/:tab", entrypointGradeDecks], // Deck detail with tab (samples/graders/inbox) - handled by Grade component
   // ["/pg/grade/decks/:deckId/grade", entrypointGrading], // Grading interface for deck
   // ["/pg/grade/samples", entrypointSamples], // All samples list

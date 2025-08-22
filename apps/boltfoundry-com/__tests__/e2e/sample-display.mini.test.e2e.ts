@@ -65,6 +65,50 @@ Deno.test("Sample display mini test", async (t) => {
       await showSubtitle("✅ Permalink loaded");
     });
 
+    await t.step("Test grading functionality", async () => {
+      await showSubtitle("🎯 Testing grading controls...");
+
+      // Scroll down to see grading controls
+      await context.scroll("down");
+      await context.scroll("down");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Look for Agree (+3) button
+      const agreeButton = await context.elementWithTextExists(
+        "button",
+        "Agree (+3)",
+      );
+
+      if (agreeButton) {
+        await showSubtitle("✅ Found Agree +3 button");
+
+        // Click the Agree button using test ID
+        try {
+          await context.click('button[data-testid="agree-button"]');
+          await showSubtitle("✅ Clicked Agree (+3) button");
+
+          await context.waitForNetworkIdle();
+          // Take screenshot after clicking
+          await context.takeScreenshot("after-agree-click");
+        } catch (error) {
+          logger.error("Failed to click Agree +3:", error);
+          await showSubtitle("❌ Failed to click Agree +3");
+        }
+      } else {
+        await showSubtitle("❌ No Agree +3 button found");
+
+        // Take screenshot to see what's there
+        await context.takeScreenshot("no-agree-button-found");
+
+        // Log what elements we can find
+        const buttons = await context.evaluate(() => {
+          const buttons = Array.from(document.querySelectorAll("button"));
+          return buttons.map((btn) => btn.textContent?.trim()).filter(Boolean);
+        });
+        logger.info("Available buttons:", buttons);
+      }
+    });
+
     // Stop video recording
     const videoResult = await stop();
     if (videoResult) {

@@ -46,6 +46,13 @@ export const DeckDetailView = iso(`
         <BfDsTabs
           tabs={[
             {
+              id: DeckTab.Inbox,
+              label: "Inbox",
+              content: <data.DeckInboxTab />,
+              badge: "New",
+              badgeVariant: "warning",
+            },
+            {
               id: DeckTab.Samples,
               label: "Samples",
               content: <data.DeckSamplesTab />,
@@ -56,13 +63,6 @@ export const DeckDetailView = iso(`
               content: <data.DeckGradersTab />,
               badge: isRefining ? "Refining" : undefined,
               badgeVariant: isRefining ? "warning" : undefined,
-            },
-            {
-              id: DeckTab.Inbox,
-              label: "Inbox",
-              content: <data.DeckInboxTab />,
-              badge: "New",
-              badgeVariant: "warning",
             },
           ]}
           activeTab={currentTab}
