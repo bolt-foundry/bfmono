@@ -33,13 +33,6 @@
         let
           lib = pkgs.lib;
           unstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
-          # Include custom container tool package
-          # To test a different version, set CONTAINER_VERSION environment variable:
-          # CONTAINER_VERSION=0.3.1 nix develop --refresh
-          # containerVersion = builtins.getEnv "CONTAINER_VERSION";
-          # containerTool = if containerVersion != "" 
-          #   then pkgs.callPackage ./infra/nix/container-tool-flexible.nix { version = containerVersion; }
-          #   else pkgs.callPackage ./infra/nix/container-tool.nix {};
         in
         [
           pkgs.unzip
@@ -60,8 +53,7 @@
           pkgs.ruby_3_3  # Ruby for kamal deployment tool
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
-          # containerTool
-          # unstable.container
+          unstable.container
         ] ++ lib.optionals (!pkgs.stdenv.isDarwin) [
           # Linux-only packages
           pkgs.chromium
