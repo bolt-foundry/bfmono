@@ -27,8 +27,8 @@ export default 'query EntrypointGradeDecks  {\
                   node {\
                     id,\
                     collectionMethod,\
-                    completionData,\
                     name,\
+                    telemetryData,\
                   },\
                 },\
               },\
@@ -40,7 +40,6 @@ export default 'query EntrypointGradeDecks  {\
       },\
     },\
     ... on CurrentViewerLoggedOut {\
-      __typename,\
       id,\
       __typename,\
     },\
