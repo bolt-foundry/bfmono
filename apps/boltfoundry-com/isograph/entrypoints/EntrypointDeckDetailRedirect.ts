@@ -2,7 +2,7 @@ import { iso } from "@iso-bfc";
 
 /**
  * EntrypointDeckDetailRedirect - Redirect entrypoint for /pg/grade/decks/:deckId route
- * Redirects to /pg/grade/decks/:deckId/samples to show the samples tab by default
+ * Redirects to /pg/grade/decks/:deckId/inbox to show the inbox tab by default
  */
 export const EntrypointDeckDetailRedirect = iso(`
   field Query.EntrypointDeckDetailRedirect {
@@ -15,13 +15,13 @@ export const EntrypointDeckDetailRedirect = iso(`
     // The deckId comes from route params passed via parameters
     const deckId = props.parameters.deckId || "";
 
-    // Return a redirect response to the samples tab
+    // Return a redirect response to the inbox tab
     return {
       Body: null,
       title: "Redirecting...",
       status: 302,
       headers: {
-        Location: `/pg/grade/decks/${deckId}/samples`,
+        Location: `/pg/grade/decks/${deckId}/inbox`,
       },
     };
   },
