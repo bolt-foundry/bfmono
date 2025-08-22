@@ -5,9 +5,9 @@
   ## 1. Inputs
   ########################
   inputs = {
-    nixpkgs.url          = "github:NixOS/nixpkgs/26e168479fdc7a75fe55e457e713d8b5f794606a";
+    nixpkgs.url          = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url      = "github:numtide/flake-utils";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/27f23f25cd732fdb4f07328d55a0cea6ecdfb32e";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   ########################
@@ -33,13 +33,6 @@
         let
           lib = pkgs.lib;
           unstable = import nixpkgs-unstable { inherit system; config.allowUnfree = true; };
-          # Include custom container tool package
-          # To test a different version, set CONTAINER_VERSION environment variable:
-          # CONTAINER_VERSION=0.3.1 nix develop --refresh
-          # containerVersion = builtins.getEnv "CONTAINER_VERSION";
-          # containerTool = if containerVersion != "" 
-          #   then pkgs.callPackage ./infra/nix/container-tool-flexible.nix { version = containerVersion; }
-          #   else pkgs.callPackage ./infra/nix/container-tool.nix {};
         in
         [
           pkgs.unzip
@@ -60,8 +53,7 @@
           pkgs.ruby_3_3  # Ruby for kamal deployment tool
         ] ++ lib.optionals pkgs.stdenv.isDarwin [
           # Darwin-specific packages  
-          # containerTool
-          # unstable.container
+          unstable.container
         ] ++ lib.optionals (!pkgs.stdenv.isDarwin) [
           # Linux-only packages
           pkgs.chromium
