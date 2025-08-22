@@ -17,6 +17,7 @@ import { type Query__EntrypointGradeDecks__param } from './Query/EntrypointGrade
 import { type Query__EntrypointGrade__param } from './Query/EntrypointGrade/param_type.ts';
 import { type Query__EntrypointHome__param } from './Query/EntrypointHome/param_type.ts';
 import { type Query__EntrypointLogin__param } from './Query/EntrypointLogin/param_type.ts';
+import { type Query__EntrypointPgMock__param } from './Query/EntrypointPgMock/param_type.ts';
 import { type Query__EntrypointPg__param } from './Query/EntrypointPg/param_type.ts';
 import { type Query__EntrypointRlhf__param } from './Query/EntrypointRlhf/param_type.ts';
 import { type Query__Eval__param } from './Query/Eval/param_type.ts';
@@ -29,6 +30,7 @@ import entrypoint_Query__EntrypointGradeDecks from '../__isograph/Query/Entrypoi
 import entrypoint_Query__EntrypointGrade from '../__isograph/Query/EntrypointGrade/entrypoint.ts';
 import entrypoint_Query__EntrypointHome from '../__isograph/Query/EntrypointHome/entrypoint.ts';
 import entrypoint_Query__EntrypointLogin from '../__isograph/Query/EntrypointLogin/entrypoint.ts';
+import entrypoint_Query__EntrypointPgMock from '../__isograph/Query/EntrypointPgMock/entrypoint.ts';
 import entrypoint_Query__EntrypointPg from '../__isograph/Query/EntrypointPg/entrypoint.ts';
 import entrypoint_Query__EntrypointRlhf from '../__isograph/Query/EntrypointRlhf/entrypoint.ts';
 
@@ -153,6 +155,10 @@ export function iso<T>(
 ): IdentityWithParam<Query__EntrypointLogin__param>;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'field Query.EntrypointPgMock', T>
+): IdentityWithParam<Query__EntrypointPgMock__param>;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'field Query.EntrypointPg', T>
 ): IdentityWithParam<Query__EntrypointPg__param>;
 
@@ -201,6 +207,10 @@ export function iso<T>(
 ): typeof entrypoint_Query__EntrypointLogin;
 
 export function iso<T>(
+  param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointPgMock', T>
+): typeof entrypoint_Query__EntrypointPgMock;
+
+export function iso<T>(
   param: T & MatchesWhitespaceAndString<'entrypoint Query.EntrypointPg', T>
 ): typeof entrypoint_Query__EntrypointPg;
 
@@ -226,6 +236,8 @@ export function iso(isographLiteralText: string):
       return entrypoint_Query__EntrypointHome;
     case 'entrypoint Query.EntrypointLogin':
       return entrypoint_Query__EntrypointLogin;
+    case 'entrypoint Query.EntrypointPgMock':
+      return entrypoint_Query__EntrypointPgMock;
     case 'entrypoint Query.EntrypointPg':
       return entrypoint_Query__EntrypointPg;
     case 'entrypoint Query.EntrypointRlhf':

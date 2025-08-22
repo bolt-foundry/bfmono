@@ -14,6 +14,7 @@ iso(`entrypoint Query.EntrypointGradeDecks`)
 iso(`entrypoint Query.EntrypointGrade`)
 iso(`entrypoint Query.EntrypointHome`)
 iso(`entrypoint Query.EntrypointLogin`)
+iso(`entrypoint Query.EntrypointPgMock`)
 iso(`entrypoint Query.EntrypointPg`)
 iso(`entrypoint Query.EntrypointRlhf`)
 
@@ -23,6 +24,7 @@ import entrypointGradeDecks from "@iso-bfc/Query/EntrypointGradeDecks/entrypoint
 import entrypointHome from "@iso-bfc/Query/EntrypointHome/entrypoint.ts"
 import entrypointLogin from "@iso-bfc/Query/EntrypointLogin/entrypoint.ts"
 import entrypointPg from "@iso-bfc/Query/EntrypointPg/entrypoint.ts"
+import entrypointPgMock from "@iso-bfc/Query/EntrypointPgMock/entrypoint.ts"
 import entrypointRlhf from "@iso-bfc/Query/EntrypointRlhf/entrypoint.ts"
 import joinWaitlist from "@iso-bfc/Mutation/JoinWaitlist/entrypoint.ts"
 
@@ -31,6 +33,7 @@ export {entrypointGradeDecks};
 export {entrypointGrade};
 export {entrypointHome};
 export {entrypointLogin};
+export {entrypointPgMock};
 export {entrypointPg};
 export {entrypointRlhf};
 export {joinWaitlist};
