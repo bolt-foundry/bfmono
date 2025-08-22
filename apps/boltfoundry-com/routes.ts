@@ -8,6 +8,7 @@ import {
   entrypointHome,
   entrypointLogin,
   entrypointPg,
+  entrypointPgMock,
   entrypointRlhf,
 } from "./__generated__/builtRoutes.ts";
 
@@ -34,6 +35,17 @@ export const isographAppRoutes = new Map<string, IsographRoute>([
   ["/", entrypointHome],
   ["/login", entrypointLogin],
   ["/rlhf", entrypointRlhf],
+
+  // Mock PG Interface - Legacy eval components
+  ["/mock/pg", entrypointPgMock], // Mock version using shared/eval components
+  ["/mock/pg/grade", entrypointPgMock], // Redirects to /mock/pg/grade/decks
+  ["/mock/pg/grade/decks", entrypointPgMock], // Mock decks list
+  ["/mock/pg/grade/decks/:deckId", entrypointPgMock], // Mock deck detail redirect to samples
+  ["/mock/pg/grade/decks/:deckId/:tab", entrypointPgMock], // Mock deck detail with tab
+  ["/mock/pg/grade/samples", entrypointPgMock], // Mock samples list
+  ["/mock/pg/grade/samples/:sampleId", entrypointPgMock], // Mock sample detail
+  ["/mock/pg/analyze", entrypointPgMock], // Mock analyze view
+  ["/mock/pg/chat", entrypointPgMock], // Mock chat view
 
   // V3 Simplified Eval System Routes - Redirects
   ["/pg", entrypointPg], // Redirects to /pg/grade/decks
