@@ -191,8 +191,12 @@ jobs:
               export PATH=\"\$PATH:\$HOME/.local/share/gem/ruby/3.3.0/bin\"
             fi
 
-            # Deploy with Kamal
+            # Generate Kamal config from template
             cd apps/boltfoundry-com
+            sed \"s/\\\${FLOATING_IP}/\$FLOATING_IP/g\" config/deploy.yml.template > config/deploy.yml
+
+            # Deploy with Kamal
+            export GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}'
             kamal deploy --skip-push
           "
         env:

@@ -1,0 +1,37 @@
+service: boltfoundry-com
+
+image: ghcr.io/bolt-foundry/boltfoundry-com:latest
+
+servers:
+  web:
+    - ${FLOATING_IP}
+
+# SSL handled by Cloudflare proxy - no SSL config needed
+
+registry:
+  server: ghcr.io
+  username: bolt-foundry
+  password:
+    - GITHUB_TOKEN
+
+env:
+  clear:
+    PORT: 8000
+
+aliases:
+  console: app exec --interactive --reuse "bash"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs --follow
+
+# Health check
+healthcheck:
+  path: /
+  port: 8000
+  max_attempts: 7
+
+# Database volume (mounted from Hetzner volume)
+volumes:
+  - "/mnt/database:/data"
+
+# Asset uploads volume
+asset_path: /data/assets
