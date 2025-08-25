@@ -1,5 +1,4 @@
-// deno-lint-ignore no-external-import
-import type { Plugin } from "npm:vite@6";
+import type { Plugin } from "vite";
 import { parseEnvFile } from "./utils.ts";
 
 /**
