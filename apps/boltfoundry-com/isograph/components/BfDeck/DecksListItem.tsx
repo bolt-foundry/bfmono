@@ -37,7 +37,7 @@ export const DecksListItem = iso(`
 
   const handleClick = () => {
     logger.debug("Deck clicked", { deckId: data.id });
-    navigate(`/pg/grade/decks/${data.id}/samples`);
+    navigate(`/pg/grade/decks/${data.id}/inbox`);
   };
 
   const leftContent = (

@@ -315,3 +315,132 @@ router-navigation-auth-issue.md)
 **A:** **Token usage and cost are primary metrics, latency is secondary.** For\
 internal testing, focus on understanding AI model costs and token consumption\
 patterns rather than real-time performance metrics.
+
+## Phase 5: Feedback Loop - RESOLVED QUESTIONS
+
+### Current State Questions
+
+**Q:** What does the current grading/feedback system look like? Do we already
+have BfGrader entities and BfGraderResult storage, or would this unified
+structure be built from scratch?\
+**A:** **Complete system already exists:** BfGrader (evaluation criteria),
+BfGraderResult (AI evaluation results), BfSampleFeedback (human feedback), and
+BfSample (data samples) are fully implemented. The system supports -3 to +3
+scoring, telemetry integration, and has production-ready UI components for human
+grading.
+
+**Q:** Are there existing manual feedback mechanisms that need to be migrated
+into the unified system?\
+**A:** **Yes, BfSampleFeedback needs to be migrated:** Current system separates
+automatic grading (BfGraderResult → BfGrader) from manual feedback
+(BfSampleFeedback → BfSample directly). The unified approach will have
+BfGraderResult link to either BfGrader (automatic) OR BfPerson (manual) via 1:1
+relationships, eliminating BfSampleFeedback entirely.
+
+**Q:** What automatic graders currently exist and how do they store results?\
+**A:** **AIBFF system with demo graders:** Three production graders exist
+(Accuracy, Helpfulness, Professionalism) stored as .deck.md files. Results
+stored in BfGraderResult entities with score, explanation, and reasoningProcess
+fields. The calibrate.ts command handles automatic evaluation with multi-model
+support.
+
+### Unified Grading Structure Implementation
+
+**Q:** How should we model the "person" reference in BfGraderResult when it's
+manual feedback vs automatic grader?\
+**A:** **Use named 1:1 relationships:** BfGraderResult should have
+`.one("automaticallyGradedBy", () => BfGrader)` for automatic grading and
+`.one("manuallyGradedBy", () => BfPerson)` for manual grading. Exactly one of
+these should be set (validation at business logic level). The existing `bfCid`
+metadata already tracks creators for audit trails.
+
+**Q:** What fields are needed in the unified BfGraderResult entity beyond grader
+reference?\
+**A:** **Current fields are sufficient with minor additions:** score (number),
+explanation (string), reasoningProcess (string), plus relationships to
+`.one("automaticallyGradedBy", () => BfGrader)` and
+`.one("manuallyGradedBy", () => BfPerson)` for the unified grading approach.
+Exactly one of these relationships should be set to indicate automatic vs manual
+grading.
+
+**Q:** How do we handle versioning/history of grading results for the same
+sample?\
+**A:** **Use multiple independent results pattern:** Create separate
+BfGraderResult nodes for each evaluation, leverage existing timestamps and
+relationships for temporal ordering. This fits existing architectural patterns
+and provides full audit trail without complex versioning logic.
+
+**Q:** Should we maintain backward compatibility with current
+BfGraderResult/BfSampleFeedback or do a clean migration?\
+**A:** **Clean migration recommended:** Migrate BfSampleFeedback data to unified
+BfGraderResult entities with `.one("manuallyGradedBy", () => BfPerson)`
+relationships, update UI components (GraderHumanRating.tsx) to create
+BfGraderResult instead of BfSampleFeedback, then remove BfSampleFeedback entity.
+This follows existing codebase clean migration patterns.
+
+### Rating Interface Design
+
+**Q:** What rating scales should we support (1-5, 1-10, thumbs up/down,
+custom)?\
+**A:** **Primary: -3 to +3 (existing), Secondary: Add 1-5 stars, thumbs up/down,
+custom ranges:** The codebase consistently uses -3 to +3 with clear semantic
+meaning. BfDsRange component supports custom scales, and design system includes
+star/thumb icons. Recommend keeping -3 to +3 as primary with UI options for
+other scales.
+
+**Q:** What metadata should be captured with each rating (timestamp, confidence,
+notes)?\
+**A:** **Current metadata is comprehensive:** BfNode automatically tracks
+createdAt, lastUpdated, bfCid (creator). Add confidence level (optional number),
+rating type/scale used, and context metadata. The existing telemetry system
+captures rich context including model, duration, and full request/response data.
+
+### Feedback Storage & Retrieval
+
+**Q:** How should feedback history be organized and accessed (by sample, by
+grader, by time period)?\
+**A:** **Leverage existing indexing patterns:** Database has comprehensive
+indexes on bfGid, bfOid, bfCid, createdAt, sortValue. Use existing query
+patterns: sample.queryTargetInstances(BfGraderResult) for sample-centric access,
+BfGraderResult.query() with filters for time-based queries, and creator-based
+filtering via bfCid.
+
+**Q:** What indexing/querying patterns are needed for feedback analysis?\
+**A:** **Existing patterns are sufficient:** Organization-scoped queries,
+timestamp-based ordering via sortValue, relationship traversal via BfEdge
+system, and GraphQL connections for pagination. The current system handles
+complex multi-dimensional queries efficiently.
+
+**Q:** How do we handle bulk feedback operations efficiently?\
+**A:** **Use established patterns:** AIBFF calibrate system shows concurrency
+control (5 parallel operations), parallel processing utilities in
+parallel-executor.ts, and transaction patterns in database backends. Implement
+bulk feedback using these existing performance optimization patterns.
+
+### UI/UX for Feedback Collection
+
+**Q:** Where in the sample display interface should rating controls be placed?\
+**A:** **Inline with sample content (current pattern):** GraderHumanRating
+components are already positioned after each grader evaluation within
+SampleDisplay.tsx. This pattern works well and should be extended. Alternative
+placement options include sample header area or floating controls based on use
+case.
+
+**Q:** How do we make the feedback process quick and intuitive for frequent
+use?\
+**A:** **Current system already optimized:** "Agree" button for one-click
+feedback, -3 to +3 buttons for quick rating, optional text explanations, and
+auto-advance to next sample. The existing UI follows established quick action
+patterns with keyboard support and clear visual feedback.
+
+**Q:** Should feedback be inline with sample viewing or a separate workflow?\
+**A:** **Inline is preferred (current pattern):** The existing system uses
+inline feedback within sample display, with optional separate grading workflow
+via GradingInbox.tsx. This dual approach supports both casual feedback and
+focused evaluation sessions. Maintain this pattern.
+
+**Q:** How do we handle batch feedback scenarios?\
+**A:** **Extend existing bulk operation patterns:** GradingInbox provides
+sample-by-sample progression with progress tracking. BfDsList components support
+bulk selection with checkboxes. Extend these patterns for batch feedback
+scenarios using established UI patterns and backend bulk operation support.

@@ -33,8 +33,8 @@ Actor Deck Output → Grader Auto-Grade → Inbox (needs validation) → Manual 
 ## Interface Structure
 
 - **Inbox Tab** (default): Auto-graded samples needing human validation
-- **Samples Tab**: Historical record of all samples for analysis
 - **Graders Tab**: Configuration of evaluation criteria
+- **Samples Tab**: Historical record of all samples for analysis
 
 The goal is continuous improvement through scientific iteration - establishing
 reliable ground truth so automated graders can handle routine evaluations while
