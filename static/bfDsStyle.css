@@ -98,6 +98,13 @@
   --bfds-focus: #3b82f6;
   --bfds-focus-outline: rgba(59, 130, 246, 0.3);
 
+  --bfds-mock: rgba(238, 130, 238, 1);
+  --bfds-mock-hover: rgba(238, 130, 238, 0.8);
+  --bfds-mock-active: rgba(238, 130, 238, 0.6);
+  --bfds-mock-background: rgba(238, 130, 238, 0.15);
+  --bfds-mock-02: rgba(238, 130, 238, 0.2);
+  --bfds-mock-01: rgba(238, 130, 238, 0.1);
+
   --fontFamily: "DM Sans", "sans-serif";
   --marketingFontFamily: "Bebas Neue", "sans-serif";
   --fontFamilyMono: "DM Mono", "monospace";
@@ -4250,4 +4257,9 @@ a.bfds-button:hover {
   color: var(--bfds-text-secondary);
   line-height: 1.3;
   margin-top: 4px;
+}
+
+/* Mock State Styles */
+header.landing-header.landing-header--mock {
+  background-color: var(--bfds-mock-background);
 }
