@@ -27,10 +27,12 @@ proxy:
   ssl: false
   host: ${domain}
   app_port: 8000
-  healthcheck:
-    path: /
-    interval: 10
-    timeout: 5
+
+# Health check configuration for Kamal 2.x
+healthcheck:
+  path: /
+  interval: 10
+  timeout: 5
 
 registry:
   # Use GitHub Container Registry for simplicity
