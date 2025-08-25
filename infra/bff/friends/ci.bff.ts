@@ -261,10 +261,10 @@ function parseDenoFmtOutput(fullOutput: string) {
 // 3. Build step
 // ----------------------------------------------------------------------------
 
-async function runBuildStep(
-  useGithub: boolean,
+function runBuildStep(
+  _useGithub: boolean,
   _args: Array<string>,
-): Promise<number> {
+): number {
   logger.info("Build step removed - bff build deprecated");
   return 0;
 }
