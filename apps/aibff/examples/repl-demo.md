@@ -14,10 +14,7 @@ This document demonstrates how to use the interactive REPL for creating graders.
    OPENROUTER_API_KEY=your-api-key-here
    ```
 
-2. Install aibff if you haven't already:
-   ```bash
-   bff build
-   ```
+2. Build process is no longer required (deprecated)
 
 ## Starting a New Session
 

@@ -14,17 +14,9 @@
   "imports": {
     "@bfmono/": "../../../",
     "@babel/preset-react": "npm:@babel/preset-react@^7.25.7",
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
-    "@isograph/babel-plugin": "npm:@isograph/babel-plugin@0.3.1",
     "@isograph/compiler": "npm:@isograph/compiler@0.3.1",
-    "@isograph/react": "npm:@isograph/react@0.3.1",
     "@types/react": "npm:@types/react@^19.0.10",
     "@types/react-dom": "npm:@types/react-dom@^19.0.4",
-    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4.3.4",
-    "react": "npm:react@^19.0.0",
-    "react-dom": "npm:react-dom@^19.0.0",
-    "react/jsx-runtime": "npm:react/jsx-runtime",
-    "vite": "npm:vite@^6.0.0",
     "@std/fmt": "jsr:@std/fmt"
   }
 }
