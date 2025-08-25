@@ -4,7 +4,7 @@ import {
 } from "../contexts/AppEnvironmentContext.tsx";
 import { AppRoot } from "../AppRoot.tsx";
 import { BfDsProvider } from "@bfmono/apps/bfDs/components/BfDsProvider.tsx";
-import { RefinementProvider } from "../contexts/RefinementContext.tsx";
+import { MockProvider } from "../components/mock/contexts/MockContext.tsx";
 
 function App(props: Partial<ServerProps>) {
   return (
@@ -14,9 +14,9 @@ function App(props: Partial<ServerProps>) {
           IS_SERVER_RENDERING={false}
           {...props}
         >
-          <RefinementProvider>
+          <MockProvider>
             <AppRoot />
-          </RefinementProvider>
+          </MockProvider>
         </AppEnvironmentProvider>
       </BfDsProvider>
     </div>
