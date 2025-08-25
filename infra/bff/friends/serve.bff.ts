@@ -22,7 +22,7 @@ export async function serveCommand(args: Array<string>): Promise<number> {
   try {
     await Deno.stat(buildPath);
   } catch {
-    logger.error("Build not found. Run 'bff build' first.");
+    logger.error("Build not found. Build process deprecated.");
     return 1;
   }
 

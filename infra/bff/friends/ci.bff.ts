@@ -265,16 +265,8 @@ async function runBuildStep(
   useGithub: boolean,
   _args: Array<string>,
 ): Promise<number> {
-  logger.info("Running bff build");
-  const buildArgs = ["bff", "build"];
-
-  const { code } = await runShellCommandWithOutput(
-    buildArgs,
-    {},
-    /* useSpinner */ true,
-    /* silent */ useGithub,
-  );
-  return code;
+  logger.info("Build step removed - bff build deprecated");
+  return 0;
 }
 
 // ----------------------------------------------------------------------------

@@ -38,7 +38,7 @@ author = 33272860
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bff build && bff serve"
+args = "bff serve"
 
 [[workflows.workflow]]
 name = "Run for development"
